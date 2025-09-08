@@ -35,6 +35,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: Calendar, label: 'Bookings', href: '/bookings' },
     { icon: MapPin, label: 'Fields', href: '/fields' },
     { icon: Users, label: 'Dog Owners', href: '/dog-owners' },
+    { icon: Users, label: 'Field Owners', href: '/field-owners' },
     { icon: DollarSign, label: 'Payments', href: '/payments' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];

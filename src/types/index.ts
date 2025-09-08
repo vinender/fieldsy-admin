@@ -55,7 +55,7 @@ export interface Booking {
   duration: number;
   dogs: number;
   totalPrice: number;
-  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'EXPIRED';
+  status: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
   recurringDays?: string[];
   isRecurring: boolean;
   recurringEndDate?: string;

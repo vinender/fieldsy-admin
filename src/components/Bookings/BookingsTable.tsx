@@ -27,7 +27,6 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
       CONFIRMED: 'bg-green-lighter text-green',
       CANCELLED: 'bg-red-100 text-red-800',
       COMPLETED: 'bg-blue-100 text-blue-600',
-      EXPIRED: 'bg-gray-100 text-gray-800',
     };
     
     return (
