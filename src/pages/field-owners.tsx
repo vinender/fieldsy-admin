@@ -181,19 +181,20 @@ export default function FieldOwners() {
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="p-3 sm:p-6 bg-gray-50 min-h-screen">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">Field Owners</h1>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Field Owners</h1>
             <button
               onClick={() => {
                 setNewDefaultRate(defaultCommission.toString());
                 setShowDefaultModal(true);
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <DollarSign className="w-4 h-4" />
-              Default Commission: {defaultCommission}%
+              <span className="hidden sm:inline">Default Commission:</span>
+              <span className="sm:hidden">Commission:</span> {defaultCommission}%
             </button>
           </div>
 
@@ -211,8 +212,8 @@ export default function FieldOwners() {
             </div>
           </div>
 
-          {/* Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          {/* Desktop Table */}
+          <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -352,12 +353,73 @@ export default function FieldOwners() {
               </div>
             )}
           </div>
+          
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-4">
+            {loading ? (
+              <div className="bg-white rounded-lg p-6">
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              </div>
+            ) : fieldOwners.length === 0 ? (
+              <div className="bg-white rounded-lg p-6 text-center text-gray-500">
+                No field owners found
+              </div>
+            ) : (
+              fieldOwners.map((owner) => (
+                <div key={owner.id} className="bg-white rounded-lg shadow-sm p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">
+                        {owner.name || 'N/A'}
+                      </h3>
+                      <p className="text-sm text-gray-500">{owner.email}</p>
+                    </div>
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                      Active
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                    <div>
+                      <span className="text-gray-500 block">Fields</span>
+                      <span className="font-medium">{owner.fieldsCount}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-500 block">Commission</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{owner.effectiveCommissionRate}%</span>
+                        {owner.isUsingDefault ? (
+                          <span className="px-1.5 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                            Default
+                          </span>
+                        ) : (
+                          <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded">
+                            Custom
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={() => handleEditCommission(owner)}
+                    className="w-full text-blue-600 hover:text-blue-900 flex items-center justify-center gap-1 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit Commission
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
         </div>
 
         {/* Edit Commission Modal */}
         {showCommissionModal && selectedOwner && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
+            <div className="relative top-20 mx-auto p-5 border max-w-sm w-full shadow-lg rounded-md bg-white">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 Edit Commission Rate
               </h3>
@@ -416,8 +478,8 @@ export default function FieldOwners() {
 
         {/* Default Commission Modal */}
         {showDefaultModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
+            <div className="relative top-20 mx-auto p-5 border max-w-sm w-full shadow-lg rounded-md bg-white">
               <h3 className="text-lg font-bold text-gray-900 mb-4">
                 Update Default Commission Rate
               </h3>
