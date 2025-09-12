@@ -3,6 +3,12 @@ import AdminLayout from '../components/Layout/AdminLayout';
 import { useRouter } from 'next/router';
 import { Edit, Search, DollarSign } from 'lucide-react';
 import { useVerifyAdmin } from '@/hooks/useAuth';
+import { 
+  useFieldOwners, 
+  useCommissionSettings, 
+  useUpdateFieldOwnerCommission, 
+  useUpdateDefaultCommission 
+} from '@/hooks/useFieldOwners';
 
 interface FieldOwner {
   id: string;
@@ -24,79 +30,30 @@ interface SystemSettings {
 export default function FieldOwners() {
   const router = useRouter();
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const [fieldOwners, setFieldOwners] = useState<FieldOwner[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [defaultCommission, setDefaultCommission] = useState(20);
   const [showCommissionModal, setShowCommissionModal] = useState(false);
   const [selectedOwner, setSelectedOwner] = useState<FieldOwner | null>(null);
   const [customRate, setCustomRate] = useState('');
   const [useDefault, setUseDefault] = useState(false);
   const [showDefaultModal, setShowDefaultModal] = useState(false);
   const [newDefaultRate, setNewDefaultRate] = useState('');
-  const [saving, setSaving] = useState(false);
+
+  // React Query hooks
+  const { data: fieldOwnersData, isLoading: fieldOwnersLoading } = useFieldOwners(currentPage, 10, searchTerm);
+  const { data: commissionData } = useCommissionSettings();
+  const updateCommissionMutation = useUpdateFieldOwnerCommission();
+  const updateDefaultMutation = useUpdateDefaultCommission();
+
+  const fieldOwners = fieldOwnersData?.data?.fieldOwners || [];
+  const totalPages = fieldOwnersData?.data?.pagination?.totalPages || 1;
+  const defaultCommission = commissionData?.data?.defaultCommissionRate || fieldOwnersData?.data?.defaultCommissionRate || 20;
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
       router.push('/login');
     }
   }, [admin, adminLoading, adminError, router]);
-
-  useEffect(() => {
-    if (admin) {
-      fetchFieldOwners();
-      fetchDefaultCommission();
-    }
-  }, [admin, currentPage, searchTerm]);
-
-  const fetchFieldOwners = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/commission/field-owners?page=${currentPage}&limit=10&search=${searchTerm}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setFieldOwners(data.data.fieldOwners);
-        setDefaultCommission(data.data.defaultCommissionRate);
-        setTotalPages(data.data.pagination.totalPages);
-      }
-    } catch (error) {
-      console.error('Error fetching field owners:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchDefaultCommission = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/commission/settings`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        setDefaultCommission(data.data.defaultCommissionRate);
-      }
-    } catch (error) {
-      console.error('Error fetching default commission:', error);
-    }
-  };
 
   const handleEditCommission = (owner: FieldOwner) => {
     setSelectedOwner(owner);
@@ -108,64 +65,29 @@ export default function FieldOwners() {
   const handleSaveCommission = async () => {
     if (!selectedOwner) return;
     
-    setSaving(true);
     try {
-      const body = useDefault 
+      const data = useDefault 
         ? { useDefault: true }
         : { commissionRate: parseFloat(customRate) };
       
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/commission/field-owner/${selectedOwner.id}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        }
-      );
+      await updateCommissionMutation.mutateAsync({
+        ownerId: selectedOwner.id,
+        data
+      });
       
-      if (response.ok) {
-        await fetchFieldOwners();
-        setShowCommissionModal(false);
-      }
+      setShowCommissionModal(false);
     } catch (error) {
       console.error('Error updating commission:', error);
-    } finally {
-      setSaving(false);
     }
   };
 
   const handleSaveDefaultCommission = async () => {
-    setSaving(true);
     try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/commission/settings`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ 
-            defaultCommissionRate: parseFloat(newDefaultRate) 
-          })
-        }
-      );
-      
-      if (response.ok) {
-        await fetchDefaultCommission();
-        await fetchFieldOwners();
-        setShowDefaultModal(false);
-        setNewDefaultRate('');
-      }
+      await updateDefaultMutation.mutateAsync(parseFloat(newDefaultRate));
+      setShowDefaultModal(false);
+      setNewDefaultRate('');
     } catch (error) {
       console.error('Error updating default commission:', error);
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -239,7 +161,7 @@ export default function FieldOwners() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {loading ? (
+                  {fieldOwnersLoading ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center">
                         <div className="flex justify-center">
@@ -356,7 +278,7 @@ export default function FieldOwners() {
           
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-4">
-            {loading ? (
+            {fieldOwnersLoading ? (
               <div className="bg-white rounded-lg p-6">
                 <div className="flex justify-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -466,10 +388,10 @@ export default function FieldOwners() {
                 </button>
                 <button
                   onClick={handleSaveCommission}
-                  disabled={saving || (!useDefault && !customRate)}
+                  disabled={updateCommissionMutation.isPending || (!useDefault && !customRate)}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  {updateCommissionMutation.isPending ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
@@ -512,10 +434,10 @@ export default function FieldOwners() {
                 </button>
                 <button
                   onClick={handleSaveDefaultCommission}
-                  disabled={saving || !newDefaultRate}
+                  disabled={updateDefaultMutation.isPending || !newDefaultRate}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  {updateDefaultMutation.isPending ? 'Saving...' : 'Save'}
                 </button>
               </div>
             </div>
