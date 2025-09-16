@@ -1,5 +1,6 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 export interface BookingData {
   id: string;
@@ -22,20 +23,6 @@ interface BookingRowProps {
 
 const BookingRow: React.FC<BookingRowProps> = ({ booking }) => {
   const router = useRouter();
-  
-  const statusColors = {
-    COMPLETED: 'bg-[#3a6b22]/10 text-[#3a6b22] border-[#3a6b22]/12',
-    CONFIRMED: 'bg-[#8fb366]/10 text-[#8fb366] border-[#8fb366]/12',
-    PENDING: 'bg-[#f6bd01]/10 text-[#ffbd00] border-[#ffcc26]/16',
-    CANCELLED: 'bg-red-50 text-red-500 border-red-200'
-  };
-
-  const statusLabels = {
-    COMPLETED: 'Completed',
-    CONFIRMED: 'Confirmed',
-    PENDING: 'Pending',
-    CANCELLED: 'Cancelled'
-  };
 
   const handleViewDetail = () => {
     router.push(`/bookings/${booking.id}`);
@@ -72,9 +59,7 @@ const BookingRow: React.FC<BookingRowProps> = ({ booking }) => {
         
         <span className="text-[#20130b] text-sm w-[92px]">{booking.timeSlot}</span>
         
-        <span className={`px-2.5 py-1.5 rounded-full text-xs font-medium border ${statusColors[booking.status]}`}>
-          {statusLabels[booking.status]}
-        </span>
+        <StatusBadge status={booking.status} />
         
         <span className="text-[#20130b] text-sm w-[50px]">{booking.duration}</span>
         <span className="text-[#20130b] text-sm w-[85px]">{booking.date}</span>

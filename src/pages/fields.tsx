@@ -96,10 +96,8 @@ export default function Fields() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Field</TableHead>
+                    <TableHead>Field & Owner</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Type</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Bookings</TableHead>
                     <TableHead>Status</TableHead>
@@ -110,11 +108,25 @@ export default function Fields() {
                   {filteredFields.map((field) => (
                     <TableRow key={field.id}>
                       <TableCell>
-                        <div className="flex items-center">
-                          <MapPin className="w-5 h-5 text-gray-400 mr-2" />
+                        <div className="flex items-center space-x-3">
+                          {/* Field Image */}
+                          <div className="flex-shrink-0">
+                            {field.images && field.images.length > 0 ? (
+                              <img 
+                                src={field.images[0]} 
+                                alt={field.name}
+                                className="w-10 h-10 rounded-lg object-cover"
+                              />
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                <MapPin className="w-5 h-5 text-gray-400" />
+                              </div>
+                            )}
+                          </div>
+                          {/* Field Name and Owner */}
                           <div>
                             <div className="text-sm font-medium text-gray-900">{field.name}</div>
-                            <div className="text-sm text-gray-500">{field.size} sq ft</div>
+                            <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
                           </div>
                         </div>
                       </TableCell>
@@ -122,19 +134,7 @@ export default function Fields() {
                         <div className="text-sm text-gray-900">{field.city}, {field.state}</div>
                         <div className="text-sm text-gray-500">{field.zipCode}</div>
                       </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-900">{field.owner.name || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{field.owner.email}</div>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          field.type === 'PRIVATE' ? 'bg-purple-100 text-purple-800' :
-                          field.type === 'PUBLIC' ? 'bg-green-lighter text-green' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {field.type}
-                        </span>
-                      </TableCell>
+              
                       <TableCell className="font-medium text-gray-900">
                         {formatCurrency(field.price)}/hr
                       </TableCell>
@@ -147,13 +147,13 @@ export default function Fields() {
                           className="flex items-center"
                         >
                           {field.isActive ? (
-                            <div className="flex items-center text-green">
-                              <ToggleRight className="w-8 h-8" />
-                              <span className="ml-2 text-sm">Active</span>
+                            <div className="flex items-center   border-green text-green">
+                           
+                              <span className="ml-2 bg-light-green/20 px-5 py-1 rounded-[40px] border-green text-sm">Active</span>
                             </div>
                           ) : (
                             <div className="flex items-center text-gray-400">
-                              <ToggleLeft className="w-8 h-8" />
+                              
                               <span className="ml-2 text-sm">Inactive</span>
                             </div>
                           )}
@@ -162,9 +162,10 @@ export default function Fields() {
                       <TableCell>
                         <button 
                           onClick={() => router.push(`/fields/${field.id}`)}
-                          className="text-green hover:text-green-darker transition-colors"
+                          className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+
                         >
-                          <Eye className="w-5 h-5" />
+                         View Detail
                         </button>
                       </TableCell>
                     </TableRow>

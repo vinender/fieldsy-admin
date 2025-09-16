@@ -11,6 +11,8 @@ module.exports = {
       },
       colors: {
         // Custom Fieldsy Colors
+        'table-header': '#575757',
+        'table-text': '#20130B',
         'green': '#3A6B22',            // Primary green
         'light-green': '#8FB366',      // Pastel green
         'dark-green': '#192215',       // Dark green
@@ -19,6 +21,7 @@ module.exports = {
         'light': '#FFFCF3',            // Light yellow/cream
         'light-cream': '#FFFCF3',      // Very light background
         'yellow': '#FFBD00',           // Dark yellow/gold
+        'ash': '#EBEBEB',
         
         // Additional colors found in codebase
         'gray-text': '#8D8D8D',        // Gray text

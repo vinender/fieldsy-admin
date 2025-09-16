@@ -60,7 +60,7 @@ export default function DogOwners() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -92,10 +92,10 @@ export default function DogOwners() {
               <User className="w-8 h-8 text-purple-600" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Search and Filter */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
             <div className="flex-1 max-w-lg">
               <div className="relative">
@@ -114,7 +114,7 @@ export default function DogOwners() {
               <span>Filter</span>
             </button>
           </div>
-        </div>
+        </div> */}
 
         {/* Users Table */}
         <TableContainer>
@@ -186,7 +186,12 @@ export default function DogOwners() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <button className="text-green hover:text-green-darker mr-3 transition-colors">View</button>
+                        <button 
+                          onClick={() => router.push(`/dog-owners/${user.id}`)}
+                          className="text-green hover:text-green-darker mr-3 transition-colors"
+                        >
+                          View
+                        </button>
                         <button className="text-red-600 hover:text-red-900 transition-colors">Block</button>
                       </TableCell>
                     </TableRow>

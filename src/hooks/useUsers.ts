@@ -38,6 +38,20 @@ export const useToggleUserBlock = () => {
   });
 };
 
+// Get user details with bookings
+export const useUserDetails = (userId: string | undefined) => {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: async () => {
+      if (!userId) throw new Error('User ID is required');
+      const response = await api.get(`/admin/users/${userId}`);
+      return response.data;
+    },
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+};
+
 // Delete user
 export const useDeleteUser = () => {
   const queryClient = useQueryClient();

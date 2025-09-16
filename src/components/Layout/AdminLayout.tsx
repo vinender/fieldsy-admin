@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useLogout, useVerifyAdmin } from '@/hooks/useAuth';
+import { useAdminNotifications } from '@/hooks/useNotifications';
 import NotificationSidebar from './NotificationSidebar';
 
 interface AdminLayoutProps {
@@ -29,6 +30,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const logout = useLogout();
   const { data: admin } = useVerifyAdmin();
+  const { data: notificationsData } = useAdminNotifications(1, 50);
+  
+  const unreadCount = notificationsData?.unreadCount || 0;
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -83,12 +87,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   href={item.href}
                   className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                     active
-                      ? 'bg-green text-white'
+                      ? 'bg-light-green text-white rounded-[16px]'
                       : 'text-cream hover:bg-green-hover hover:text-white'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium text-white text-sm">{item.label}</span>
                   {active && <ChevronRight className="w-4 h-4 ml-auto" />}
                 </Link>
               );
@@ -139,7 +143,14 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
               >
                 <Bell className="w-6 h-6" />
-                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                {unreadCount > 0 && (
+                  <>
+                    <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-semibold">
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  </>
+                )}
               </button>
 
               {/* Profile */}

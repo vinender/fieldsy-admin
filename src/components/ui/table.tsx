@@ -75,7 +75,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
+      "px-6 py-3 text-left text-xs font-normal text-table-header tracking-wider",
       className
     )}
     {...props}
@@ -103,7 +103,7 @@ const TableCaption = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn("mt-4 text-sm text-gray-500", className)}
+    className={cn("mt-4 text-xs font-normal text-table-header", className)}
     {...props}
   />
 ));
@@ -117,7 +117,7 @@ const TableContainer = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden",
+      "bg-ash rounded-xl shadow-sm border border-gray-100 overflow-hidden",
       className
     )}
     {...props}

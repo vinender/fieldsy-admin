@@ -47,9 +47,9 @@ const StatsCardNew: React.FC<StatsCardProps> = ({
         </div>
         <div className={`${iconBgColor} p-3 sm:p-4 rounded-3xl flex-shrink-0 ml-3`}>
           {useImage && typeof Icon === 'string' ? (
-            <img src={Icon} alt={title} className="w-6 h-6 sm:w-8 sm:h-8" />
+            <img src={Icon} alt={title} className="w-6 h-6 sm:w-12  sm:h-12" />
           ) : (
-            React.createElement(Icon as React.ElementType, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#192215]" })
+            React.createElement(Icon as React.ElementType, { className: "w-6 h-6 sm:w-12  sm:h-12 text-[#192215]" })
           )}
         </div>
       </div>

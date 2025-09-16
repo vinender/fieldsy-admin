@@ -6,6 +6,7 @@ import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useFieldReviews } from '@/hooks/useReviews';
 import { Check, Star } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { StatusBadge } from '@/components/ui/StatusBadge';
 
 // Reusable Card Component
 const Card = ({ children, className = '', ...props }) => {
@@ -16,28 +17,13 @@ const Card = ({ children, className = '', ...props }) => {
   );
 };
 
-// Reusable Badge Component
-const Badge = ({ children, variant = 'default', className = '' }) => {
-  const variants = {
-    default: 'bg-gray-100 text-gray-700',
-    success: 'bg-green-100 text-green-700',
-    warning: 'bg-yellow-100 text-yellow-700',
-    danger: 'bg-red-100 text-red-700'
-  };
-  
-  return (
-    <span className={`px-2 py-1 rounded-full text-xs font-medium ${variants[variant]} ${className}`}>
-      {children}
-    </span>
-  );
-};
 
 // Info Card Component
 const InfoCard = ({ label, value, className = '' }) => {
   return (
     <div className={className}>
-      <p className="text-[14px] font-[300] text-gray-500 text-opacity-90 mb-1">{label}</p>
-      <p className="text-[16px]  font-[600]  text-gray-[#192215]">{value}</p>
+      <p className="text-sm font-light text-gray-500 text-opacity-90 mb-1">{label}</p>
+      <p className="text-base font-semibold text-[#192215]">{value}</p>
     </div>
   );
 };
@@ -168,10 +154,7 @@ export default function FieldDetails() {
     b.numberOfDogs?.toString() || '1',
     b.duration || '1',
     formatCurrency(b.totalPrice || 0),
-    b.status === 'COMPLETED' ? <Badge variant="success">Completed</Badge> :
-    b.status === 'PENDING' ? <Badge variant="warning">Pending</Badge> :
-    b.status === 'CONFIRMED' ? <Badge>Active</Badge> :
-    <Badge variant="danger">Cancelled</Badge>
+    <StatusBadge status={b.status} />
   ]) || [];
 
   // Calculate total earnings
@@ -203,11 +186,11 @@ export default function FieldDetails() {
       <div className="bg-light min-h-screen">
         <div className="p-6">
           {/* Page Title */}
-          <h1 className="text-2xl font-[600] text-gray-900 mb-6"><span className="text-[#8D8D8D] font-[600]">Field Overview / </span>Field Details</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-6"><span className="text-[#8D8D8D] font-semibold">Field Overview / </span>Field Details</h1>
 
           {/* Field Overview */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Field Overview</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Overview</h2>
             <Card className="p-5">
               <div className="grid grid-cols-5 gap-8">
                 <InfoCard label="Name" value={field.name || "N/A"} />
@@ -235,7 +218,7 @@ export default function FieldDetails() {
           
           {/* Location Info */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Location</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Location</h2>
             <Card className="p-5">
               <div className="grid grid-cols-4 gap-8">
                 <InfoCard label="Address" value={field.address || "N/A"} />
@@ -248,7 +231,7 @@ export default function FieldDetails() {
           
           {/* Field Owner Info */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Field Owner Info</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Owner Info</h2>
             <Card className="p-5">
               <div className="flex items-center gap-20">
                 <div className="flex items-center gap-4">
@@ -265,7 +248,7 @@ export default function FieldDetails() {
                   )}
                   <div>
                     <p className="text-xs text-gray-500">Name</p>
-                    <p className="text-lg font-[600]">{field.owner?.name || field.ownerName || "N/A"}</p>
+                    <p className="text-lg font-semibold">{field.owner?.name || field.ownerName || "N/A"}</p>
                   </div>
                 </div>
                 <InfoCard label="Email" value={field.owner?.email || "N/A"} />
@@ -278,7 +261,7 @@ export default function FieldDetails() {
           
           {/* Field Images */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Field Images</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Images</h2>
             <Card className="p-5">
               {fieldImages.length > 0 ? (
                 <ImageGallery images={fieldImages} />
@@ -290,7 +273,7 @@ export default function FieldDetails() {
           
           {/* Description */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Description</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Description</h2>
             <Card className="p-5">
               <p className="text-sm text-gray-600 leading-relaxed">
                 {field.description || "N/A"}
@@ -300,7 +283,7 @@ export default function FieldDetails() {
           
           {/* Community Safety Rules */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Community safety rules</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Community safety rules</h2>
             <Card className="p-5">
               {safetyRules.length > 0 ? (
                 <div className="space-y-4">
@@ -323,7 +306,7 @@ export default function FieldDetails() {
           
           {/* Booking Policies */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Booking Policies</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Booking Policies</h2>
             <Card className="p-5">
               {bookingPolicies.length > 0 ? (
                 <div className="space-y-4">
@@ -347,10 +330,10 @@ export default function FieldDetails() {
           {/* Earnings History */}
           {earningsData.length > 0 && (
             <div className="mb-6">
-              <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Earnings History</h2>
+              <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Earnings History</h2>
               <Card>
                 <div className="p-5 flex justify-between items-center border-b border-gray-200">
-                  <h3 className="text-lg font-[600]">Recent Transactions</h3>
+                  <h3 className="text-lg font-semibold">Recent Transactions</h3>
                   <p className="text-sm text-gray-500">Total Earnings {formatCurrency(totalEarnings)}</p>
                 </div>
                 <Table 
@@ -363,9 +346,9 @@ export default function FieldDetails() {
           
           {/* Reviews & Ratings */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-[600] text-xl leading-5 mb-3 font-sans">Reviews & Ratings</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Reviews & Ratings</h2>
             <Card className="p-5">
-              <h3 className="text-lg font-[600] mb-4">
+              <h3 className="text-lg font-semibold mb-4">
                 {totalReviews > 0 
                   ? `Over ${totalReviews} results with an average of ${averageRating.toFixed(1)} star reviews`
                   : 'No reviews yet'}
@@ -375,7 +358,7 @@ export default function FieldDetails() {
               <div className="flex gap-8 mb-8">
                 <div className="flex flex-col items-center">
                   <p className="text-sm text-gray-500 mb-2">Reviews</p>
-                  <p className="text-3xl font-[600]">{averageRating.toFixed(1)}</p>
+                  <p className="text-3xl font-semibold">{averageRating.toFixed(1)}</p>
                   <div className="flex gap-1 my-2">
                     {[...Array(5)].map((_, i) => (
                       <Star 

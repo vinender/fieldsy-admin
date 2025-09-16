@@ -13,6 +13,8 @@ import {
   TableRow,
   TableEmptyState,
 } from '@/components/ui/table';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { getDuration } from '../OwnerDetails';
 
 interface BookingsTableProps {
   bookings: Booking[];
@@ -20,21 +22,6 @@ interface BookingsTableProps {
 
 const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
   const router = useRouter();
-
-  const getStatusBadge = (status: string) => {
-    const statusClasses = {
-      PENDING: 'bg-yellow-100 text-yellow-800',
-      CONFIRMED: 'bg-green-lighter text-green',
-      CANCELLED: 'bg-red-100 text-red-800',
-      COMPLETED: 'bg-blue-100 text-blue-600',
-    };
-    
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClasses[status as keyof typeof statusClasses] || statusClasses.PENDING}`}>
-        {status}
-      </span>
-    );
-  };
 
   if (bookings.length === 0) {
     return (
@@ -72,38 +59,37 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
                 <div className="text-sm text-gray-500">{booking.field.owner.name || booking.field.owner.email}</div>
               </div>
             </TableCell>
-            <TableCell className="text-gray-500">
+            <TableCell className="text-table-text">
               {booking.startTime} - {booking.endTime}
             </TableCell>
             <TableCell>
-              {getStatusBadge(booking.status)}
+              <StatusBadge status={booking.status} />
             </TableCell>
-            <TableCell className="text-gray-500">
-              {booking.duration} hours
+            <TableCell className="text-table-text">
+              {getDuration(booking.startTime, booking.endTime)} 
             </TableCell>
-            <TableCell className="text-gray-500">
+            <TableCell className="text-table-text">
               {formatDate(booking.date)}
             </TableCell>
-            <TableCell className="text-gray-500">
-              {booking.dogs}
+            <TableCell className="text-table-text">
+              {booking.numberOfDogs}
             </TableCell>
             <TableCell className="font-medium text-gray-900">
               {formatCurrency(booking.totalPrice)}
             </TableCell>
             <TableCell>
               {booking.isRecurring ? (
-                <span className="text-green font-medium text-sm">Yes</span>
+                <span className="text-green font-[400] text-[13px]">Yes</span>
               ) : (
-                <span className="text-gray-400 text-sm">No</span>
+                <span className="text-table-text font-[400] text-[13px]">No</span>
               )}
             </TableCell>
             <TableCell>
               <button
                 onClick={() => router.push(`/bookings/${booking.id}`)}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+                className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
               >
-                <Eye className="w-4 h-4 mr-1" />
-                View Details
+                 View Detail
               </button>
             </TableCell>
           </TableRow>
