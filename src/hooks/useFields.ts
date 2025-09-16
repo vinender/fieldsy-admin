@@ -38,6 +38,20 @@ export const useToggleFieldStatus = () => {
   });
 };
 
+// Get single field details
+export const useFieldDetails = (fieldId: string | undefined) => {
+  return useQuery({
+    queryKey: ['field', fieldId],
+    queryFn: async () => {
+      if (!fieldId) throw new Error('Field ID is required');
+      const response = await api.get(`/fields/${fieldId}`);
+      return response.data;
+    },
+    enabled: !!fieldId,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+};
+
 // Delete field
 export const useDeleteField = () => {
   const queryClient = useQueryClient();

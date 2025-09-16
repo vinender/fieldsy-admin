@@ -5,9 +5,10 @@ interface StatsCardProps {
   title: string;
   value: string | number;
   change?: number;
-  icon: React.ElementType;
+  icon: React.ElementType | string;
   iconBgColor?: string;
   loading?: boolean;
+  useImage?: boolean;
 }
 
 const StatsCardNew: React.FC<StatsCardProps> = ({ 
@@ -16,7 +17,8 @@ const StatsCardNew: React.FC<StatsCardProps> = ({
   change, 
   icon: Icon, 
   iconBgColor = 'bg-[#f8f1d7]',
-  loading = false
+  loading = false,
+  useImage = false
 }) => {
   if (loading) {
     return (
@@ -44,7 +46,11 @@ const StatsCardNew: React.FC<StatsCardProps> = ({
           <p className="text-[#192215] text-xl sm:text-2xl font-bold truncate">{value}</p>
         </div>
         <div className={`${iconBgColor} p-3 sm:p-4 rounded-3xl flex-shrink-0 ml-3`}>
-          <Icon className="w-6 h-6 sm:w-8 sm:h-8 text-[#192215]" />
+          {useImage && typeof Icon === 'string' ? (
+            <img src={Icon} alt={title} className="w-6 h-6 sm:w-8 sm:h-8" />
+          ) : (
+            React.createElement(Icon as React.ElementType, { className: "w-6 h-6 sm:w-8 sm:h-8 text-[#192215]" })
+          )}
         </div>
       </div>
       {change !== undefined && (

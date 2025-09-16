@@ -98,48 +98,83 @@ const LineChart: React.FC<LineChartProps> = ({
         {/* Chart area */}
         <div className="absolute bottom-0 left-10 sm:left-14 right-0" style={{ height: '150px' }}>
           {showLines ? (
-            // Line chart with responsive SVG
+            // Line chart with responsive SVG and smooth curves
             <svg className="w-full h-full" viewBox="0 0 100 150" preserveAspectRatio="none">
-              {/* Draw lines */}
-              {colors.map((_, idx) => {
+              {/* Draw smooth curved lines */}
+              {colors.map((color, idx) => {
                 const spacing = 100 / (data.length + 1);
                 const points = data.map((item, dayIdx) => {
                   const x = spacing * (dayIdx + 1);
                   const y = 150 - getHeight(item.values[idx]);
-                  return `${x},${y}`;
-                }).join(' ');
+                  return { x, y };
+                });
+                
+                // Create smooth curve path using cubic bezier
+                let pathData = '';
+                if (points.length > 0) {
+                  pathData = `M ${points[0].x},${points[0].y}`;
+                  
+                  for (let i = 1; i < points.length; i++) {
+                    const prevPoint = points[i - 1];
+                    const currPoint = points[i];
+                    const nextPoint = points[i + 1];
+                    const prevPrevPoint = points[i - 2];
+                    
+                    // Calculate control points for smooth curves
+                    let cp1x, cp1y, cp2x, cp2y;
+                    
+                    if (i === 1) {
+                      // First segment
+                      cp1x = prevPoint.x + (currPoint.x - prevPoint.x) * 0.3;
+                      cp1y = prevPoint.y;
+                      cp2x = currPoint.x - (currPoint.x - prevPoint.x) * 0.3;
+                      cp2y = currPoint.y;
+                    } else if (i === points.length - 1) {
+                      // Last segment
+                      cp1x = prevPoint.x + (currPoint.x - prevPoint.x) * 0.3;
+                      cp1y = prevPoint.y;
+                      cp2x = currPoint.x - (currPoint.x - prevPoint.x) * 0.3;
+                      cp2y = currPoint.y;
+                    } else {
+                      // Middle segments - create smooth transitions
+                      const tension = 0.3;
+                      const prevAngle = Math.atan2(currPoint.y - prevPoint.y, currPoint.x - prevPoint.x);
+                      const nextAngle = Math.atan2(nextPoint.y - currPoint.y, nextPoint.x - currPoint.x);
+                      const avgAngle = (prevAngle + nextAngle) / 2;
+                      
+                      const cp1Distance = Math.hypot(currPoint.x - prevPoint.x, currPoint.y - prevPoint.y) * tension;
+                      const cp2Distance = Math.hypot(nextPoint.x - currPoint.x, nextPoint.y - currPoint.y) * tension;
+                      
+                      cp1x = prevPoint.x + (currPoint.x - prevPoint.x) * (1 - tension);
+                      cp1y = prevPoint.y + (currPoint.y - prevPoint.y) * (1 - tension);
+                      cp2x = currPoint.x - (currPoint.x - prevPoint.x) * tension;
+                      cp2y = currPoint.y - (currPoint.y - prevPoint.y) * tension;
+                    }
+                    
+                    pathData += ` C ${cp1x},${cp1y} ${cp2x},${cp2y} ${currPoint.x},${currPoint.y}`;
+                  }
+                }
+                
+                // Get the stroke color from the color object
+                const strokeColor = color.bg === 'bg-[#8fb366]' ? '#8fb366' :
+                                   color.bg === 'bg-[#ff0000]' ? '#ff0000' :
+                                   color.bg === 'bg-[#ffbd00]' ? '#ffbd00' :
+                                   color.bg === 'bg-[#3a6b22]' ? '#3a6b22' :
+                                   color.bg === 'bg-[#192215]' ? '#192215' :
+                                   lineColors[idx];
                 
                 return (
-                  <polyline
+                  <path
                     key={idx}
-                    points={points}
+                    d={pathData}
                     fill="none"
-                    stroke={lineColors[idx]}
-                    strokeWidth="2"
+                    stroke={strokeColor}
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     vectorEffect="non-scaling-stroke"
                     className="transition-all duration-500"
                   />
-                );
-              })}
-              
-              {/* Draw dots */}
-              {data.map((item, dayIdx) => {
-                const spacing = 100 / (data.length + 1);
-                const x = spacing * (dayIdx + 1);
-                
-                return (
-                  <g key={dayIdx}>
-                    {item.values.map((value, valueIdx) => (
-                      <circle
-                        key={valueIdx}
-                        cx={`${x}%`}
-                        cy={150 - getHeight(value)}
-                        r="3"
-                        fill={lineColors[valueIdx]}
-                        className="transition-all duration-500"
-                      />
-                    ))}
-                  </g>
                 );
               })}
             </svg>

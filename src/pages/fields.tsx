@@ -160,7 +160,10 @@ export default function Fields() {
                         </button>
                       </TableCell>
                       <TableCell>
-                        <button className="text-green hover:text-green-darker transition-colors">
+                        <button 
+                          onClick={() => router.push(`/fields/${field.id}`)}
+                          className="text-green hover:text-green-darker transition-colors"
+                        >
                           <Eye className="w-5 h-5" />
                         </button>
                       </TableCell>

@@ -45,7 +45,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-light">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
@@ -157,7 +157,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-light">
           <div className="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
             {children}
           </div>

@@ -129,7 +129,7 @@ export default function Dashboard() {
             values: [
               dayData.completed || 0,
               dayData.cancelled || 0,
-              dayData.pending || 0
+              dayData.refunded || 0
             ]
           };
         });
@@ -223,7 +223,9 @@ export default function Dashboard() {
     try {
       setLoadingBookings(true);
       const token = localStorage.getItem('adminToken');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/recent?limit=10`, {
+      
+      // Fetch all bookings from admin endpoint (already sorted by most recent)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?limit=5`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -231,15 +233,20 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        const transformedBookings: BookingData[] = data.bookings.map((booking: any) => ({
-          id: booking.id,
+        const bookingsArray = data.bookings || [];
+        
+        // The API already returns bookings sorted by createdAt desc, so just take first 5
+        const recentBookings = bookingsArray.slice(0, 5);
+        
+        const transformedBookings: BookingData[] = recentBookings.map((booking: any) => ({
+          id: booking.id || booking._id,
           fieldName: booking.field?.name || 'Unknown Field',
           ownerName: booking.field?.owner?.name || 'Unknown Owner',
           image: booking.field?.images?.[0] || '/api/placeholder/40/40',
           timeSlot: `${booking.startTime || '00:00'}-${booking.endTime || '00:00'}`,
-          status: booking.status,
+          status: booking.status || 'PENDING',
           duration: calculateDuration(booking.startTime, booking.endTime),
-          date: new Date(booking.date).toLocaleDateString('en-US', { 
+          date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', { 
             day: 'numeric', 
             month: 'short', 
             year: 'numeric' 
@@ -249,7 +256,44 @@ export default function Dashboard() {
           recurring: booking.isRecurring ? 'Yes' : 'No',
           customerName: booking.user?.name || 'Unknown'
         }));
+        
         setBookings(transformedBookings);
+      } else {
+        console.error('Failed to fetch bookings:', response.status);
+        // Try the stats endpoint as fallback
+        const statsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/stats`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (statsResponse.ok) {
+          const statsData = await statsResponse.json();
+          const recentBookings = statsData.stats?.recentBookings || [];
+          
+          const transformedBookings: BookingData[] = recentBookings.slice(0, 5).map((booking: any) => ({
+            id: booking.id || booking._id,
+            fieldName: booking.field?.name || 'Unknown Field',
+            ownerName: booking.field?.owner?.name || 'Unknown Owner',
+            image: booking.field?.images?.[0] || '/api/placeholder/40/40',
+            timeSlot: `${booking.startTime || '00:00'}-${booking.endTime || '00:00'}`,
+            status: booking.status || 'PENDING',
+            duration: calculateDuration(booking.startTime, booking.endTime),
+            date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', { 
+              day: 'numeric', 
+              month: 'short', 
+              year: 'numeric' 
+            }),
+            dogs: booking.numberOfDogs || 1,
+            price: booking.totalPrice || 0,
+            recurring: booking.isRecurring ? 'Yes' : 'No',
+            customerName: booking.user?.name || 'Unknown'
+          }));
+          
+          setBookings(transformedBookings);
+        } else {
+          setBookings([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -293,25 +337,29 @@ export default function Dashboard() {
       title: 'Active Fields', 
       value: stats?.totalFields || 0, 
       change: previousDayStats ? calculateChange(stats?.totalFields || 0, previousDayStats.totalFields || 0) : 5.2,
-      icon: MapPin 
+      icon: '/dashboard/active-fields.svg',
+      useImage: true
     },
     { 
       title: 'Registered Users', 
       value: stats?.totalUsers || 0, 
       change: previousDayStats ? calculateChange(stats?.totalUsers || 0, previousDayStats.totalUsers || 0) : 4.1,
-      icon: Users 
+      icon: '/dashboard/users.svg',
+      useImage: true
     },
     { 
       title: 'Upcoming Bookings', 
       value: stats?.upcomingBookings || 0, 
       change: previousDayStats ? calculateChange(stats?.upcomingBookings || 0, previousDayStats.upcomingBookings || 0) : 7.9,
-      icon: Calendar 
+      icon: '/dashboard/bookings.svg',
+      useImage: true
     },
     { 
       title: 'Total Revenue', 
       value: formatCurrency(totalRevenue || stats?.totalRevenue || 0), 
       change: previousDayStats ? calculateChange(totalRevenue || 0, previousDayStats.totalRevenue || 0) : 6.3,
-      icon: DollarSign 
+      icon: '/dashboard/revenue.svg',
+      useImage: true
     }
   ];
 
@@ -330,7 +378,7 @@ export default function Dashboard() {
 
   return (
     <AdminLayout>
-      <div className="bg-[#fffcf3] min-h-screen p-3 sm:p-4 md:p-6">
+      <div className="bg-light min-h-screen p-3 sm:p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
@@ -374,8 +422,8 @@ export default function Dashboard() {
               data={weeklyBookingStats}
               colors={[
                 { label: 'Completed', bg: 'bg-[#8fb366]' },
-                { label: 'Cancelled', bg: 'bg-[#ffbd00]' },
-                { label: 'Pending', bg: 'bg-[#fe87ff]' }
+                { label: 'Cancelled', bg: 'bg-[#ff0000]' },
+                { label: 'Refunded', bg: 'bg-[#ffbd00]' }
               ]}
               loading={statsLoading}
               showLines={true}
@@ -391,7 +439,7 @@ export default function Dashboard() {
           {/* Bookings Table */}
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
-              <h2 className="text-[#192215] text-xl sm:text-2xl font-bold">Recent Bookings</h2>
+              <h2 className="text-[#192215] text-xl sm:text-2xl font-bold">Bookings Overview</h2>
               <button
                 onClick={() => router.push('/bookings')}
                 className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap"
@@ -430,7 +478,7 @@ export default function Dashboard() {
                     No bookings found
                   </div>
                 ) : (
-                  bookings.map((booking) => (
+                  bookings.slice(0, 5).map((booking) => (
                     <BookingRow key={booking.id} booking={booking} />
                   ))
                 )}
@@ -448,7 +496,7 @@ export default function Dashboard() {
                   No bookings found
                 </div>
               ) : (
-                bookings.map((booking) => (
+                bookings.slice(0, 5).map((booking) => (
                   <div key={booking.id} className="bg-white rounded-xl p-4 border border-black/10 shadow-sm">
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">
