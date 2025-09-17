@@ -31,15 +31,21 @@ export interface Field {
   zipCode: string;
   latitude: number;
   longitude: number;
-  price: number;
+  price?: number;
+  pricePerHour?: number; // Keep for backward compatibility
   size: number;
   type: 'PRIVATE' | 'PUBLIC' | 'TRAINING';
   amenities: string[];
   images: string[];
   availability: any[];
   isActive: boolean;
+  isClaimed?: boolean;
   owner: User;
   createdAt: string;
+  bookingDuration?: string;
+  maxDogs?: number;
+  totalEarnings?: number;
+  joinedOn?: string;
   _count?: {
     bookings: number;
   };
@@ -89,5 +95,13 @@ export interface DashboardStats {
   totalRevenue: number;
   dogOwners: number;
   fieldOwners: number;
+  upcomingBookings?: number;
   recentBookings: Booking[];
+  growth?: {
+    users: number;
+    fields: number;
+    bookings: number;
+    revenue: number;
+    upcomingBookings: number;
+  };
 }

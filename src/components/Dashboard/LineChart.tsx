@@ -73,13 +73,8 @@ const LineChart: React.FC<LineChartProps> = ({
 
   return (
     <div className="bg-white rounded-2xl p-4 sm:p-6 border border-black/10 shadow-md">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4 sm:mb-6">
+      <div className="mb-4 sm:mb-6">
         <h3 className="text-[#20130b] text-base sm:text-lg font-semibold">{title}</h3>
-        <div className="flex gap-2 text-xs">
-          <span className="text-[#575757] font-medium">Daily</span>
-          <span className="text-[#3a6b22] font-bold">Weekly</span>
-          <span className="text-[#575757] font-medium">Monthly</span>
-        </div>
       </div>
       
       <div className="relative">

@@ -188,11 +188,10 @@ export default function DogOwners() {
                       <TableCell>
                         <button 
                           onClick={() => router.push(`/dog-owners/${user.id}`)}
-                          className="text-green hover:text-green-darker mr-3 transition-colors"
+                          className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
                         >
-                          View
+                          View Details
                         </button>
-                        <button className="text-red-600 hover:text-red-900 transition-colors">Block</button>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -27,3 +27,10 @@ export function formatCurrency(amount: number) {
     currency: 'USD',
   }).format(amount / 100);
 }
+
+export function formatMonthYear(date: string | Date) {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'long',
+    year: 'numeric',
+  }).format(new Date(date));
+}

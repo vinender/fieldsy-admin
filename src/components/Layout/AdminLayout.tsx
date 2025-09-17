@@ -6,7 +6,6 @@ import {
   Calendar,
   MapPin,
   Users,
-  DollarSign,
   Settings,
   LogOut,
   Menu,
@@ -14,7 +13,8 @@ import {
   Bell,
   Search,
   User,
-  ChevronRight
+  ChevronRight,
+  FileText
 } from 'lucide-react';
 import { useLogout, useVerifyAdmin } from '@/hooks/useAuth';
 import { useAdminNotifications } from '@/hooks/useNotifications';
@@ -40,7 +40,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: MapPin, label: 'Fields', href: '/fields' },
     { icon: Users, label: 'Dog Owners', href: '/dog-owners' },
     { icon: Users, label: 'Field Owners', href: '/field-owners' },
-    { icon: DollarSign, label: 'Payments', href: '/payments' },
+    { icon: FileText, label: 'Claims', href: '/claims' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 

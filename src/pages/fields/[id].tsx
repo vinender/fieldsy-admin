@@ -9,7 +9,7 @@ import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 
 // Reusable Card Component
-const Card = ({ children, className = '', ...props }) => {
+const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) => {
   return (
     <div className={`bg-white rounded-lg border border-gray-200 ${className}`} {...props}>
       {children}
@@ -19,7 +19,7 @@ const Card = ({ children, className = '', ...props }) => {
 
 
 // Info Card Component
-const InfoCard = ({ label, value, className = '' }) => {
+const InfoCard = ({ label, value, className = '' }: { label: string; value: React.ReactNode; className?: string }) => {
   return (
     <div className={className}>
       <p className="text-sm font-light text-gray-500 text-opacity-90 mb-1">{label}</p>
@@ -29,7 +29,7 @@ const InfoCard = ({ label, value, className = '' }) => {
 };
 
 // Image Gallery Component
-const ImageGallery = ({ images }) => {
+const ImageGallery = ({ images }: { images: string[] }) => {
   return (
     <div className="grid grid-cols-6 gap-4">
       {images.map((img, index) => (
@@ -46,7 +46,7 @@ const ImageGallery = ({ images }) => {
 };
 
 // Review Card Component
-const ReviewCard = ({ name, date, rating, review, avatar }) => {
+const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date: string; rating: number; review: string; avatar?: string }) => {
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between mb-3">

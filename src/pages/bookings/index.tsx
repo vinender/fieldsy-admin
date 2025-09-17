@@ -28,20 +28,16 @@ export default function Bookings() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  // Close filter when clicking outside
+  // Lock body scroll when filter modal is open
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
-        setShowFilter(false);
-      }
-    };
-
     if (showFilter) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.body.style.overflow = 'unset';
     };
   }, [showFilter]);
 
@@ -159,23 +155,6 @@ export default function Bookings() {
                 )}
               </button>
               
-              {/* Filter Popover */}
-              {showFilter && (
-                <div 
-                  ref={filterRef}
-                  className="absolute right-0 mt-2 z-50"
-                  style={{ 
-                    filter: 'drop-shadow(0 10px 8px rgb(0 0 0 / 0.04)) drop-shadow(0 4px 3px rgb(0 0 0 / 0.1))' 
-                  }}
-                >
-                  <FilterComponent
-                    onFiltersChange={handleFiltersChange}
-                    initialFilters={activeFilters}
-                    showApplyButton={true}
-                    onClose={() => setShowFilter(false)}
-                  />
-                </div>
-              )}
             </div>
           </div>
         </div>
@@ -196,6 +175,33 @@ export default function Bookings() {
           )}
         </TableContainer>
       </div>
+
+      {/* Filter Modal */}
+      {showFilter && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowFilter(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div 
+              ref={filterRef}
+              className="pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FilterComponent
+                onFiltersChange={handleFiltersChange}
+                initialFilters={activeFilters}
+                showApplyButton={true}
+                onClose={() => setShowFilter(false)}
+              />
+            </div>
+          </div>
+        </>
+      )}
     </AdminLayout>
   );
 }

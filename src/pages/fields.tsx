@@ -1,10 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/router';
+import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFields, useToggleFieldStatus } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { MapPin, Search, Filter, Eye, ToggleLeft, ToggleRight } from 'lucide-react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { MapPin, Search, Filter } from 'lucide-react';
+import { formatCurrency, formatMonthYear } from '@/lib/utils';
+import { 
+  FieldsTableSkeleton,
+  AdminFieldsPageSkeleton 
+} from '@/components/skeletons/AdminFieldsSkeleton';
+
+// Lazy load the filter component
+const FieldsFilterComponent = dynamic(
+  () => import('@/components/Fields/FieldsFilterComponent'),
+  { 
+    loading: () => <div className="w-[320px] bg-white p-4 rounded-2xl shadow-lg animate-pulse h-96" />,
+    ssr: false 
+  }
+);
 import {
   Table,
   TableBody,
@@ -21,6 +35,14 @@ export default function Fields() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [activeFilters, setActiveFilters] = useState({
+    claimStatus: 'All',
+    maxDogs: 'All',
+    joinedDate: 'All',
+    location: ''
+  });
+  const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10);
   const toggleStatusMutation = useToggleFieldStatus();
@@ -31,25 +53,95 @@ export default function Fields() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  if (adminLoading || fieldsLoading) {
+  // Lock body scroll when filter modal is open
+  useEffect(() => {
+    if (showFilters) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showFilters]);
+
+  // Show full page skeleton while checking admin auth
+  if (adminLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-        </div>
+        <AdminFieldsPageSkeleton />
       </AdminLayout>
     );
   }
 
+  // Helper function to check if a date falls within a range
+  const isWithinDateRange = (dateStr: string, range: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const dayInMs = 24 * 60 * 60 * 1000;
+    
+    switch(range) {
+      case 'This Month':
+        return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+      case 'Last 3 Months':
+        const threeMonthsAgo = new Date(now.getTime() - (90 * dayInMs));
+        return date >= threeMonthsAgo;
+      default:
+        return true;
+    }
+  };
+
+  // Helper function to check max dogs range
+  const isInMaxDogsRange = (maxDogs: number | undefined, range: string) => {
+    const dogs = maxDogs || 10; // Default to 10 if not specified
+    switch(range) {
+      case '1-5 Dogs':
+        return dogs >= 1 && dogs <= 5;
+      case '6+ Dogs':
+        return dogs >= 6;
+      default:
+        return true;
+    }
+  };
+
   const filteredFields = fieldsData?.fields?.filter(field => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      field.name.toLowerCase().includes(search) ||
-      field.address.toLowerCase().includes(search) ||
-      field.city.toLowerCase().includes(search) ||
-      field.owner.name?.toLowerCase().includes(search)
-    );
+    // Search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const matchesSearch = (
+        field.name?.toLowerCase().includes(search) ||
+        field.address?.toLowerCase().includes(search) ||
+        field.city?.toLowerCase().includes(search) ||
+        field.owner.name?.toLowerCase().includes(search)
+      );
+      if (!matchesSearch) return false;
+    }
+
+    // Location filter
+    if (activeFilters.location && activeFilters.location.trim() !== '') {
+      const locationSearch = activeFilters.location.toLowerCase().trim();
+      const cityMatch = field.city?.toLowerCase().includes(locationSearch);
+      if (!cityMatch) return false;
+    }
+
+    // Claim status filter
+    if (activeFilters.claimStatus !== 'All') {
+      if (activeFilters.claimStatus === 'Claimed' && !field.isClaimed) return false;
+      if (activeFilters.claimStatus === 'Not Claimed' && field.isClaimed) return false;
+    }
+
+    // Max dogs filter
+    if (activeFilters.maxDogs !== 'All') {
+      if (!isInMaxDogsRange(field.maxDogs, activeFilters.maxDogs)) return false;
+    }
+
+    // Joined date filter
+    if (activeFilters.joinedDate !== 'All') {
+      if (!isWithinDateRange(field.createdAt, activeFilters.joinedDate)) return false;
+    }
+
+    return true;
   }) || [];
 
   const handleToggleStatus = (fieldId: string, currentStatus: boolean) => {
@@ -59,6 +151,7 @@ export default function Fields() {
   return (
     <AdminLayout>
       <div className="space-y-6">
+        {/* Progressive loading: Header loads first */}
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Fields</h1>
@@ -80,14 +173,30 @@ export default function Fields() {
                 />
               </div>
             </div>
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+            <button 
+              data-filter-button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
+                showFilters || Object.values(activeFilters).some(v => v !== 'All')
+                  ? 'bg-green-50 border-green-600 text-green-700'
+                  : 'border-gray-300 hover:bg-gray-50'
+              }`}
+            >
               <Filter className="w-4 h-4" />
               <span>Filter</span>
+              {Object.values(activeFilters).filter(v => v !== 'All').length > 0 && (
+                <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                  {Object.values(activeFilters).filter(v => v !== 'All').length}
+                </span>
+              )}
             </button>
           </div>
         </div>
 
         {/* Fields Table */}
+        {fieldsLoading ? (
+          <FieldsTableSkeleton />
+        ) : (
         <TableContainer>
           {filteredFields.length === 0 ? (
             <TableEmptyState message="No fields found" />
@@ -98,8 +207,11 @@ export default function Fields() {
                   <TableRow>
                     <TableHead>Field & Owner</TableHead>
                     <TableHead>Location</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Bookings</TableHead>
+                    <TableHead>Field Price</TableHead>
+                    <TableHead>Clients</TableHead>
+                    <TableHead>Earnings</TableHead>
+                    <TableHead>Max Dogs</TableHead>
+                    <TableHead>Joined On</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -135,11 +247,27 @@ export default function Fields() {
                         <div className="text-sm text-gray-500">{field.zipCode}</div>
                       </TableCell>
               
+                      <TableCell>
+                        <div className="text-sm">
+                          <div className="font-medium text-gray-900">
+                            ${field.price || field.pricePerHour || 0}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            per {field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'} / {field.maxDogs || 10} dogs
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-gray-900">
+                        {field._count?.bookings || 0}
+                      </TableCell>
                       <TableCell className="font-medium text-gray-900">
-                        {formatCurrency(field.price)}/hr
+                        {formatCurrency(field.totalEarnings || 0)}
                       </TableCell>
                       <TableCell className="text-gray-500">
-                        {field._count?.bookings || 0}
+                        {field.maxDogs || 10}
+                      </TableCell>
+                      <TableCell className="text-gray-500">
+                        {field.joinedOn || formatMonthYear(field.createdAt)}
                       </TableCell>
                       <TableCell>
                         <button
@@ -186,7 +314,36 @@ export default function Fields() {
             </>
           )}
         </TableContainer>
+        )}
       </div>
+
+      {/* Filter Modal */}
+      {showFilters && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowFilters(false)}
+          />
+          
+          {/* Modal Content */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div 
+              ref={filterRef}
+              className="pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Suspense fallback={<div className="w-[320px] bg-white p-4 rounded-2xl shadow-lg animate-pulse h-96" />}>
+                <FieldsFilterComponent
+                  onFiltersChange={setActiveFilters}
+                  initialFilters={activeFilters}
+                  onClose={() => setShowFilters(false)}
+                />
+              </Suspense>
+            </div>
+          </div>
+        </>
+      )}
     </AdminLayout>
   );
 }

@@ -95,7 +95,7 @@ export default function FieldOwners() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
         </div>
       </AdminLayout>
     );
@@ -112,7 +112,7 @@ export default function FieldOwners() {
                 setNewDefaultRate(defaultCommission.toString());
                 setShowDefaultModal(true);
               }}
-              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 text-sm sm:text-base"
+              className="bg-green text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-hover flex items-center justify-center gap-2 text-sm sm:text-base"
             >
               <DollarSign className="w-4 h-4" />
               <span className="hidden sm:inline">Default Commission:</span>
@@ -129,7 +129,7 @@ export default function FieldOwners() {
                 placeholder="Search by name or email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green focus:border-transparent"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export default function FieldOwners() {
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center">
                         <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
                         </div>
                       </td>
                     </tr>
@@ -184,10 +184,10 @@ export default function FieldOwners() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{owner.email}</div>
+                          <div className="text-sm text-table-text">{owner.email}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{owner.fieldsCount}</div>
+                          <div className="text-sm text-table-text">{owner.fieldsCount}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
@@ -200,24 +200,24 @@ export default function FieldOwners() {
                               </span>
                             )}
                             {!owner.isUsingDefault && (
-                              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-600 rounded">
+                              <span className="px-2 py-1 text-xs bg-green-lighter text-green rounded">
                                 Custom
                               </span>
                             )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-lighter text-green">
                             Active
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <button
                             onClick={() => handleEditCommission(owner)}
-                            className="text-blue-600 hover:text-blue-900 flex items-center gap-1"
+                            className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
                           >
-                            <Edit className="w-4 h-4" />
-                            Edit
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit Commission
                           </button>
                         </td>
                       </tr>
@@ -281,7 +281,7 @@ export default function FieldOwners() {
             {fieldOwnersLoading ? (
               <div className="bg-white rounded-lg p-6">
                 <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
                 </div>
               </div>
             ) : fieldOwners.length === 0 ? (
@@ -298,7 +298,7 @@ export default function FieldOwners() {
                       </h3>
                       <p className="text-sm text-gray-500">{owner.email}</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-lighter text-green">
                       Active
                     </span>
                   </div>
@@ -317,7 +317,7 @@ export default function FieldOwners() {
                             Default
                           </span>
                         ) : (
-                          <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-600 rounded">
+                          <span className="px-1.5 py-0.5 text-xs bg-green-lighter text-green rounded">
                             Custom
                           </span>
                         )}
@@ -327,7 +327,7 @@ export default function FieldOwners() {
                   
                   <button
                     onClick={() => handleEditCommission(owner)}
-                    className="w-full text-blue-600 hover:text-blue-900 flex items-center justify-center gap-1 py-2 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                    className="w-full text-green hover:text-green-hover flex items-center justify-center gap-1 py-2 border border-green-lighter rounded-lg hover:bg-green-lighter transition-colors"
                   >
                     <Edit className="w-4 h-4" />
                     Edit Commission
@@ -341,23 +341,30 @@ export default function FieldOwners() {
         {/* Edit Commission Modal */}
         {showCommissionModal && selectedOwner && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
-            <div className="relative top-20 mx-auto p-5 border max-w-sm w-full shadow-lg rounded-md bg-white">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Edit Commission Rate
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                {selectedOwner.name || selectedOwner.email}
-              </p>
+            <div className="relative top-20 mx-auto p-6 border-0 max-w-sm w-full shadow-xl rounded-xl bg-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-green-lighter rounded-lg">
+                  <DollarSign className="w-5 h-5 text-green" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Edit Commission Rate
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {selectedOwner.name || selectedOwner.email}
+                  </p>
+                </div>
+              </div>
               
               <div className="space-y-4">
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                   <input
                     type="checkbox"
                     checked={useDefault}
                     onChange={(e) => setUseDefault(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-gray-300 text-green focus:ring-green"
                   />
-                  <span className="text-sm">Use default commission rate ({defaultCommission}%)</span>
+                  <span className="text-sm font-medium">Use default commission rate ({defaultCommission}%)</span>
                 </label>
                 
                 {!useDefault && (
@@ -372,7 +379,7 @@ export default function FieldOwners() {
                       step="0.1"
                       value={customRate}
                       onChange={(e) => setCustomRate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green focus:border-green"
                       placeholder="Enter commission rate"
                     />
                   </div>
@@ -389,7 +396,7 @@ export default function FieldOwners() {
                 <button
                   onClick={handleSaveCommission}
                   disabled={updateCommissionMutation.isPending || (!useDefault && !customRate)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-green text-white rounded-md hover:bg-green-hover disabled:opacity-50"
                 >
                   {updateCommissionMutation.isPending ? 'Saving...' : 'Save'}
                 </button>
@@ -401,13 +408,20 @@ export default function FieldOwners() {
         {/* Default Commission Modal */}
         {showDefaultModal && (
           <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
-            <div className="relative top-20 mx-auto p-5 border max-w-sm w-full shadow-lg rounded-md bg-white">
-              <h3 className="text-lg font-bold text-gray-900 mb-4">
-                Update Default Commission Rate
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                This rate will apply to all field owners without custom rates.
-              </p>
+            <div className="relative top-20 mx-auto p-6 border-0 max-w-sm w-full shadow-xl rounded-xl bg-white">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-2 bg-green-lighter rounded-lg">
+                  <DollarSign className="w-5 h-5 text-green" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Update Default Commission Rate
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Applies to all field owners without custom rates
+                  </p>
+                </div>
+              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -435,7 +449,7 @@ export default function FieldOwners() {
                 <button
                   onClick={handleSaveDefaultCommission}
                   disabled={updateDefaultMutation.isPending || !newDefaultRate}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                  className="px-4 py-2 bg-green text-white rounded-md hover:bg-green-hover disabled:opacity-50"
                 >
                   {updateDefaultMutation.isPending ? 'Saving...' : 'Save'}
                 </button>

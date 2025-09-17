@@ -14,14 +14,14 @@ import { formatCurrency } from '@/lib/utils';
 export default function Dashboard() {
   const router = useRouter();
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const [activePeriod, setActivePeriod] = useState('Weekly');
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useDashboardStats(activePeriod);
   const [bookings, setBookings] = useState<BookingData[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
-  const [weeklyBookingStats, setWeeklyBookingStats] = useState([]);
-  const [engagementStats, setEngagementStats] = useState([]);
-  const [previousDayStats, setPreviousDayStats] = useState(null);
+  const [bookingStats, setBookingStats] = useState<any[]>([]);
+  const [fieldUtilizationStats, setFieldUtilizationStats] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [chartsLoading, setChartsLoading] = useState(false);
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -31,11 +31,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (admin) {
+      setChartsLoading(true);
       fetchRecentBookings();
-      fetchWeeklyStats();
-      fetchEngagementStats();
-      fetchPreviousDayStats();
+      fetchBookingStats();
+      fetchFieldUtilization();
       calculateTotalRevenue();
+      refetchStats();
+      // Set loading to false after a delay to show skeleton
+      setTimeout(() => setChartsLoading(false), 500);
     }
   }, [admin, activePeriod]);
 
@@ -81,14 +84,11 @@ export default function Dashboard() {
     }
   };
 
-  const fetchPreviousDayStats = async () => {
+  const fetchBookingStats = async () => {
     try {
       const token = localStorage.getItem('adminToken');
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/stats/daily?date=${yesterday.toISOString().split('T')[0]}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/booking-stats?period=${activePeriod}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -98,18 +98,22 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        setPreviousDayStats(data);
+        setBookingStats(data.chartData || []);
+      } else {
+        // Use empty data on error
+        setBookingStats([]);
       }
     } catch (error) {
-      console.error('Error fetching previous day stats:', error);
+      console.error('Error fetching booking stats:', error);
+      setBookingStats([]);
     }
   };
 
-  const fetchWeeklyStats = async () => {
+  const fetchFieldUtilization = async () => {
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/booking-stats/weekly`,
+        `${process.env.NEXT_PUBLIC_API_URL}/admin/field-utilization?period=${activePeriod}`,
         {
           headers: {
             'Authorization': `Bearer ${token}`
@@ -119,103 +123,13 @@ export default function Dashboard() {
       
       if (response.ok) {
         const data = await response.json();
-        
-        // Transform data for chart
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const transformedData = days.map(day => {
-          const dayData = data.weeklyStats?.find(s => s.day === day) || {};
-          return {
-            day,
-            values: [
-              dayData.completed || 0,
-              dayData.cancelled || 0,
-              dayData.refunded || 0
-            ]
-          };
-        });
-        
-        setWeeklyBookingStats(transformedData);
+        setFieldUtilizationStats(data.chartData || []);
       } else {
-        // Use sample data for visualization
-        setWeeklyBookingStats([
-          { day: 'Mon', values: [12, 3, 5] },
-          { day: 'Tue', values: [15, 2, 8] },
-          { day: 'Wed', values: [18, 4, 6] },
-          { day: 'Thu', values: [14, 1, 9] },
-          { day: 'Fri', values: [20, 3, 7] },
-          { day: 'Sat', values: [25, 2, 10] },
-          { day: 'Sun', values: [22, 1, 8] }
-        ]);
+        setFieldUtilizationStats([]);
       }
     } catch (error) {
-      console.error('Error fetching weekly stats:', error);
-      // Use sample data for visualization
-      setWeeklyBookingStats([
-        { day: 'Mon', values: [12, 3, 5] },
-        { day: 'Tue', values: [15, 2, 8] },
-        { day: 'Wed', values: [18, 4, 6] },
-        { day: 'Thu', values: [14, 1, 9] },
-        { day: 'Fri', values: [20, 3, 7] },
-        { day: 'Sat', values: [25, 2, 10] },
-        { day: 'Sun', values: [22, 1, 8] }
-      ]);
-    }
-  };
-
-  const fetchEngagementStats = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/admin/engagement-stats/weekly`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
-      );
-      
-      if (response.ok) {
-        const data = await response.json();
-        
-        // Transform data for chart
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        const transformedData = days.map(day => {
-          const dayData = data.weeklyEngagement?.find(s => s.day === day) || {};
-          return {
-            day,
-            values: [
-              dayData.bookings || 0,
-              dayData.users || 0,
-              dayData.revenue ? Math.round(dayData.revenue / 10) : 0 // Scale revenue for display
-            ]
-          };
-        });
-        
-        setEngagementStats(transformedData);
-      } else {
-        // Use sample data for visualization
-        setEngagementStats([
-          { day: 'Mon', values: [8, 5, 30] },
-          { day: 'Tue', values: [10, 8, 45] },
-          { day: 'Wed', values: [12, 6, 38] },
-          { day: 'Thu', values: [9, 10, 50] },
-          { day: 'Fri', values: [15, 12, 65] },
-          { day: 'Sat', values: [18, 15, 80] },
-          { day: 'Sun', values: [14, 9, 55] }
-        ]);
-      }
-    } catch (error) {
-      console.error('Error fetching engagement stats:', error);
-      // Use sample data for visualization
-      setEngagementStats([
-        { day: 'Mon', values: [8, 5, 30] },
-        { day: 'Tue', values: [10, 8, 45] },
-        { day: 'Wed', values: [12, 6, 38] },
-        { day: 'Thu', values: [9, 10, 50] },
-        { day: 'Fri', values: [15, 12, 65] },
-        { day: 'Sat', values: [18, 15, 80] },
-        { day: 'Sun', values: [14, 9, 55] }
-      ]);
+      console.error('Error fetching field utilization:', error);
+      setFieldUtilizationStats([]);
     }
   };
 
@@ -326,38 +240,32 @@ export default function Dashboard() {
     );
   }
 
-  // Calculate percentage changes
-  const calculateChange = (current: number, previous: number) => {
-    if (!previous || previous === 0) return 0;
-    return Number(((current - previous) / previous * 100).toFixed(1));
-  };
-
   const statsData = [
     { 
       title: 'Active Fields', 
       value: stats?.totalFields || 0, 
-      change: previousDayStats ? calculateChange(stats?.totalFields || 0, previousDayStats.totalFields || 0) : 5.2,
+      change: stats?.growth?.fields || 0,
       icon: '/dashboard/active-fields.svg',
       useImage: true
     },
     { 
       title: 'Registered Users', 
       value: stats?.totalUsers || 0, 
-      change: previousDayStats ? calculateChange(stats?.totalUsers || 0, previousDayStats.totalUsers || 0) : 4.1,
+      change: stats?.growth?.users || 0,
       icon: '/dashboard/users.svg',
       useImage: true
     },
     { 
       title: 'Upcoming Bookings', 
       value: stats?.upcomingBookings || 0, 
-      change: previousDayStats ? calculateChange(stats?.upcomingBookings || 0, previousDayStats.upcomingBookings || 0) : 7.9,
+      change: stats?.growth?.upcomingBookings || 0,
       icon: '/dashboard/bookings.svg',
       useImage: true
     },
     { 
       title: 'Total Revenue', 
       value: formatCurrency(totalRevenue || stats?.totalRevenue || 0), 
-      change: previousDayStats ? calculateChange(totalRevenue || 0, previousDayStats.totalRevenue || 0) : 6.3,
+      change: stats?.growth?.revenue || 0,
       icon: '/dashboard/revenue.svg',
       useImage: true
     }
@@ -406,33 +314,33 @@ export default function Dashboard() {
           {/* Charts Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
             <LineChart
-              title="Engagement Metrics"
-              data={engagementStats}
+              title="Field Utilization"
+              data={fieldUtilizationStats}
               colors={[
-                { label: 'Bookings', bg: 'bg-[#3a6b22]' },
-                { label: 'New Users', bg: 'bg-[#8fb366]' },
-                { label: 'Revenue (×10)', bg: 'bg-[#192215]' }
+                { label: 'Active Fields', bg: 'bg-[#3a6b22]' },
+                { label: 'Total Bookings', bg: 'bg-[#8fb366]' },
+                { label: 'Utilization %', bg: 'bg-[#192215]' }
               ]}
-              loading={statsLoading}
+              loading={chartsLoading || statsLoading}
               showLines={false}
             />
             
             <LineChart
               title="Booking Status"
-              data={weeklyBookingStats}
+              data={bookingStats}
               colors={[
                 { label: 'Completed', bg: 'bg-[#8fb366]' },
                 { label: 'Cancelled', bg: 'bg-[#ff0000]' },
                 { label: 'Refunded', bg: 'bg-[#ffbd00]' }
               ]}
-              loading={statsLoading}
+              loading={chartsLoading || statsLoading}
               showLines={true}
             />
             
             <DonutChart
               total={(stats?.fieldOwners || 0) + (stats?.dogOwners || 0)}
               segments={userSegments}
-              loading={statsLoading}
+              loading={chartsLoading || statsLoading}
             />
           </div>
 

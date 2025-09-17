@@ -72,7 +72,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
               {formatDate(booking.date)}
             </TableCell>
             <TableCell className="text-table-text">
-              {booking.numberOfDogs}
+              {booking.dogs}
             </TableCell>
             <TableCell className="font-medium text-gray-900">
               {formatCurrency(booking.totalPrice)}
