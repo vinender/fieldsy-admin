@@ -13,6 +13,12 @@ interface SystemSettings {
   enableNotifications: boolean;
   enableEmailNotifications: boolean;
   enableSmsNotifications: boolean;
+  bannerText?: string;
+  highlightedText?: string;
+  aboutTitle?: string;
+  aboutDogImage?: string;
+  aboutFamilyImage?: string;
+  aboutDogIcons?: string[];
   createdAt: string;
   updatedAt: string;
 }

@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronDown, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Status badge component
-const StatusBadge = ({ status, statusConfig }) => {
+const StatusBadge = ({ status, statusConfig }: { status: string, statusConfig: any }) => {
   const config = statusConfig[status] || statusConfig.default;
   
   return (
@@ -28,14 +28,29 @@ const DataTable = ({
   currentPage = 1,
   onPageChange,
   className = ''
+}: {
+  data?: any[],
+  columns?: any[],
+  onRowSelect?: (id: any) => void,
+  onSelectAll?: (selected: boolean) => void,
+  selectedRows?: any[],
+  onRowAction?: (row: any) => void,
+  actionLabel?: string,
+  showCheckbox?: boolean,
+  showPagination?: boolean,
+  itemsPerPage?: number,
+  totalItems?: number,
+  currentPage?: number,
+  onPageChange?: (page: number) => void,
+  className?: string
 }) => {
-  const [localSelectedRows, setLocalSelectedRows] = useState([]);
+  const [localSelectedRows, setLocalSelectedRows] = useState<any[]>([]);
   const [localCurrentPage, setLocalCurrentPage] = useState(1);
   
   // Use external or internal state for selection
   const activeSelectedRows = onRowSelect ? selectedRows : localSelectedRows;
   const setActiveSelectedRows = onRowSelect ? 
-    (rows) => onSelectAll && onSelectAll(rows) : 
+    (rows: any) => onSelectAll && onSelectAll(rows) : 
     setLocalSelectedRows;
   
   // Use external or internal pagination
@@ -58,7 +73,7 @@ const DataTable = ({
     }
   };
 
-  const handleSelectRow = (id) => {
+  const handleSelectRow = (id: any) => {
     if (onRowSelect) {
       onRowSelect(id);
     } else {
@@ -70,7 +85,7 @@ const DataTable = ({
     }
   };
 
-  const renderCellContent = (row, column) => {
+  const renderCellContent = (row: any, column: any) => {
     // Handle custom render function
     if (column.render) {
       return column.render(row[column.key], row);

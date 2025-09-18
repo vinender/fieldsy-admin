@@ -3,7 +3,8 @@ import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/useSettings';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Plus, Trash2, Edit2, Image } from 'lucide-react';
+import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 
 export default function Settings() {
   const router = useRouter();
@@ -26,6 +27,10 @@ export default function Settings() {
     maintenanceMode: false,
     bannerText: '',
     highlightedText: '',
+    aboutTitle: '',
+    aboutDogImage: '',
+    aboutFamilyImage: '',
+    aboutDogIcons: [] as string[],
   });
   const [faqs, setFaqs] = useState<any[]>([]);
   const [editingFAQ, setEditingFAQ] = useState<any>(null);
@@ -54,6 +59,10 @@ export default function Settings() {
         maintenanceMode: settings.maintenanceMode || false,
         bannerText: settings.bannerText || 'Find Safe, private dog walking fields',
         highlightedText: settings.highlightedText || 'near you',
+        aboutTitle: settings.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
+        aboutDogImage: settings.aboutDogImage || '',
+        aboutFamilyImage: settings.aboutFamilyImage || '',
+        aboutDogIcons: settings.aboutDogIcons || [],
       });
     }
   }, [settings]);
@@ -195,6 +204,7 @@ export default function Settings() {
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'banner', label: 'Hero Banner', icon: Type },
+    { id: 'about', label: 'About Section', icon: Image },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
@@ -444,6 +454,85 @@ export default function Settings() {
                 </div>
               )}
 
+              {activeTab === 'about' && (
+                <div className="space-y-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">About Section Settings</h2>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Main Title
+                    </label>
+                    <textarea
+                      name="aboutTitle"
+                      value={formData.aboutTitle}
+                      onChange={(e) => {
+                        setFormData({ ...formData, aboutTitle: e.target.value });
+                        setHasChanges(true);
+                      }}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Enter the main title for the about section..."
+                    />
+                    <p className="mt-1 text-sm text-gray-500">
+                      This is the main headline text in the about section
+                    </p>
+                  </div>
+
+                  <div>
+                    <SettingsImageUploader
+                      label="Main Dog Image"
+                      description="The large dog image displayed on the left side"
+                      value={formData.aboutDogImage}
+                      onChange={(url) => {
+                        setFormData({ ...formData, aboutDogImage: url as string });
+                        setHasChanges(true);
+                      }}
+                      aspectRatio="portrait"
+                    />
+                  </div>
+
+                  <div>
+                    <SettingsImageUploader
+                      label="Family/Trust Image"
+                      description="The image displayed in the 'Trusted by thousands' section"
+                      value={formData.aboutFamilyImage}
+                      onChange={(url) => {
+                        setFormData({ ...formData, aboutFamilyImage: url as string });
+                        setHasChanges(true);
+                      }}
+                      aspectRatio="video"
+                    />
+                  </div>
+
+                  <div>
+                    <SettingsImageUploader
+                      label="Dog Icon Images"
+                      description="Small circular dog icons (upload up to 5)"
+                      value={formData.aboutDogIcons}
+                      onChange={(urls) => {
+                        setFormData({ ...formData, aboutDogIcons: urls as string[] });
+                        setHasChanges(true);
+                      }}
+                      multiple={true}
+                      maxFiles={5}
+                      aspectRatio="square"
+                    />
+                  </div>
+
+                  {/* Instructions */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Guidelines:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• All images will be automatically converted to WebP format for better performance</li>
+                      <li>• Main dog image should be portrait orientation (3:4 ratio recommended)</li>
+                      <li>• Family image should be landscape orientation (16:9 ratio recommended)</li>
+                      <li>• Dog icons should be square images, they will be displayed as circles</li>
+                      <li>• Maximum file size: 10MB per image</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'faqs' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-4">
@@ -575,7 +664,7 @@ export default function Settings() {
               )}
 
               {/* Save Button - Always visible when there are changes */}
-              {(activeTab === 'general' || activeTab === 'banner' || activeTab === 'notifications') && (
+              {(activeTab === 'general' || activeTab === 'banner' || activeTab === 'about' || activeTab === 'notifications') && (
                 <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
                   <div className="flex items-center justify-between">
                     <button

@@ -77,7 +77,7 @@ const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date
 };
 
 // Table Component
-const Table = ({ headers, rows }) => {
+const Table = ({ headers, rows }: { headers: string[], rows: any[][] }) => {
   return (
     <div className="overflow-x-auto">
       <table className="w-full">
