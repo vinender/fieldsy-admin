@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { useSystemSettings, useUpdateSystemSettings } from '@/hooks/useSettings';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Plus, Trash2, Edit2, Image } from 'lucide-react';
+import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Plus, Trash2, Edit2, Image, Layout, X } from 'lucide-react';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 
 export default function Settings() {
@@ -11,6 +11,7 @@ export default function Settings() {
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: settings, isLoading: settingsLoading } = useSystemSettings();
   const updateSettingsMutation = useUpdateSystemSettings();
+  const updatePlatformImagesMutation = useUpdatePlatformImages();
   const [activeTab, setActiveTab] = useState('general');
   const [hasChanges, setHasChanges] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -31,6 +32,15 @@ export default function Settings() {
     aboutDogImage: '',
     aboutFamilyImage: '',
     aboutDogIcons: [] as string[],
+    platformDogOwnersImage: '',
+    platformFieldOwnersImage: '',
+    platformTitle: '',
+    platformDogOwnersSubtitle: '',
+    platformDogOwnersTitle: '',
+    platformDogOwnersBullets: [] as string[],
+    platformFieldOwnersSubtitle: '',
+    platformFieldOwnersTitle: '',
+    platformFieldOwnersBullets: [] as string[],
   });
   const [faqs, setFaqs] = useState<any[]>([]);
   const [editingFAQ, setEditingFAQ] = useState<any>(null);
@@ -63,15 +73,26 @@ export default function Settings() {
         aboutDogImage: settings.aboutDogImage || '',
         aboutFamilyImage: settings.aboutFamilyImage || '',
         aboutDogIcons: settings.aboutDogIcons || [],
+        platformDogOwnersImage: settings.platformDogOwnersImage || '',
+        platformFieldOwnersImage: settings.platformFieldOwnersImage || '',
+        platformTitle: settings.platformTitle || 'One Platform, Two Tail-Wagging Experiences',
+        platformDogOwnersSubtitle: settings.platformDogOwnersSubtitle || 'For Dog Owners:',
+        platformDogOwnersTitle: settings.platformDogOwnersTitle || 'Find & Book Private Dog Walking Fields in Seconds',
+        platformDogOwnersBullets: settings.platformDogOwnersBullets || ["Stress-free walks for reactive or energetic dogs", "Fully fenced, secure spaces", "GPS-powered search", "Instant hourly bookings"],
+        platformFieldOwnersSubtitle: settings.platformFieldOwnersSubtitle || 'For Field Owners:',
+        platformFieldOwnersTitle: settings.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
+        platformFieldOwnersBullets: settings.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
       });
     }
   }, [settings]);
+
 
   useEffect(() => {
     if (admin) {
       fetchFAQs();
     }
   }, [admin]);
+  
 
   const fetchFAQs = async () => {
     try {
@@ -186,9 +207,49 @@ export default function Settings() {
     setHasChanges(true);
   };
 
+  const handleBulletChange = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets', index: number, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].map((item, i) => i === index ? value : item)
+    }));
+    setHasChanges(true);
+  };
+
+  const addBullet = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets') => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: [...prev[field], '']
+    }));
+    setHasChanges(true);
+  };
+
+  const removeBullet = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets', index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, i) => i !== index)
+    }));
+    setHasChanges(true);
+  };
+
   const handleSave = async () => {
     try {
-      await updateSettingsMutation.mutateAsync(formData);
+      if (activeTab === 'platform') {
+        // Save platform images separately
+        await updatePlatformImagesMutation.mutateAsync({
+          platformDogOwnersImage: formData.platformDogOwnersImage,
+          platformFieldOwnersImage: formData.platformFieldOwnersImage,
+          platformTitle: formData.platformTitle,
+          platformDogOwnersSubtitle: formData.platformDogOwnersSubtitle,
+          platformDogOwnersTitle: formData.platformDogOwnersTitle,
+          platformDogOwnersBullets: formData.platformDogOwnersBullets,
+          platformFieldOwnersSubtitle: formData.platformFieldOwnersSubtitle,
+          platformFieldOwnersTitle: formData.platformFieldOwnersTitle,
+          platformFieldOwnersBullets: formData.platformFieldOwnersBullets,
+        });
+      } else {
+        // Save other settings
+        await updateSettingsMutation.mutateAsync(formData);
+      }
       setNotification({ type: 'success', message: 'Settings saved successfully' });
       setHasChanges(false);
       // Clear notification after 3 seconds
@@ -205,6 +266,7 @@ export default function Settings() {
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'banner', label: 'Hero Banner', icon: Type },
     { id: 'about', label: 'About Section', icon: Image },
+    { id: 'platform', label: 'Platform Section', icon: Layout },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
@@ -533,6 +595,197 @@ export default function Settings() {
                 </div>
               )}
 
+              {activeTab === 'platform' && (
+                <div className="space-y-6">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Platform Section Settings</h2>
+                  
+                  {/* Main Title */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Section Title
+                    </label>
+                    <input
+                      type="text"
+                      name="platformTitle"
+                      value={formData.platformTitle}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="Enter the main platform section title..."
+                    />
+                  </div>
+
+                  {/* Dog Owners Section */}
+                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold text-gray-900">Dog Owners Card</h3>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Subtitle (Green Text)
+                      </label>
+                      <input
+                        type="text"
+                        name="platformDogOwnersSubtitle"
+                        value={formData.platformDogOwnersSubtitle}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="e.g., For Dog Owners:"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        name="platformDogOwnersTitle"
+                        value={formData.platformDogOwnersTitle}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Enter the dog owners card title..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Features / Bullet Points
+                      </label>
+                      <div className="space-y-2">
+                        {formData.platformDogOwnersBullets.map((bullet, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={bullet}
+                              onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                              placeholder="Enter bullet point..."
+                            />
+                            <button
+                              onClick={() => removeBullet('platformDogOwnersBullets', index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove bullet"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => addBullet('platformDogOwnersBullets')}
+                          className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green hover:text-green transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Bullet Point
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <SettingsImageUploader
+                        label="Card Image"
+                        description="Image displayed on the dog owners platform card"
+                        value={formData.platformDogOwnersImage}
+                        onChange={(url) => {
+                          setFormData({ ...formData, platformDogOwnersImage: url as string });
+                          setHasChanges(true);
+                        }}
+                        aspectRatio="video"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Field Owners Section */}
+                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                    <h3 className="font-semibold text-gray-900">Field Owners Card</h3>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Subtitle (Green Text)
+                      </label>
+                      <input
+                        type="text"
+                        name="platformFieldOwnersSubtitle"
+                        value={formData.platformFieldOwnersSubtitle}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="e.g., For Field Owners:"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Title
+                      </label>
+                      <input
+                        type="text"
+                        name="platformFieldOwnersTitle"
+                        value={formData.platformFieldOwnersTitle}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                        placeholder="Enter the field owners card title..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Features / Bullet Points
+                      </label>
+                      <div className="space-y-2">
+                        {formData.platformFieldOwnersBullets.map((bullet, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={bullet}
+                              onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
+                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                              placeholder="Enter bullet point..."
+                            />
+                            <button
+                              onClick={() => removeBullet('platformFieldOwnersBullets', index)}
+                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove bullet"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          onClick={() => addBullet('platformFieldOwnersBullets')}
+                          className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green hover:text-green transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Add Bullet Point
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <SettingsImageUploader
+                        label="Card Image"
+                        description="Image displayed on the field owners platform card"
+                        value={formData.platformFieldOwnersImage}
+                        onChange={(url) => {
+                          setFormData({ ...formData, platformFieldOwnersImage: url as string });
+                          setHasChanges(true);
+                        }}
+                        aspectRatio="video"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Instructions */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Guidelines:</h4>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Platform card images should be landscape orientation (16:9 ratio recommended)</li>
+                      <li>• The subtitle appears in green color above the main title</li>
+                      <li>• Keep titles concise and impactful</li>
+                      <li>• All images will be automatically converted to WebP format</li>
+                      <li>• Maximum file size: 10MB per image</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'faqs' && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center mb-4">
@@ -664,24 +917,24 @@ export default function Settings() {
               )}
 
               {/* Save Button - Always visible when there are changes */}
-              {(activeTab === 'general' || activeTab === 'banner' || activeTab === 'about' || activeTab === 'notifications') && (
+              {(activeTab === 'general' || activeTab === 'banner' || activeTab === 'about' || activeTab === 'platform' || activeTab === 'notifications') && (
                 <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
                   <div className="flex items-center justify-between">
                     <button
                       onClick={handleSave}
-                      disabled={!hasChanges || updateSettingsMutation.isPending}
+                      disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
                       className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${
-                        !hasChanges || updateSettingsMutation.isPending
+                        !hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
                           : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
                       }`}
                     >
-                      {updateSettingsMutation.isPending ? (
+                      {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
                         <>
                           <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white" />
                           <span>Saving...</span>
                         </>
-                      ) : updateSettingsMutation.isSuccess && !hasChanges ? (
+                      ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess) && !hasChanges ? (
                         <>
                           <Check className="w-5 h-5" />
                           <span>Saved Successfully</span>

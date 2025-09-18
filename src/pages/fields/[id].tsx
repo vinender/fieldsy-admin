@@ -7,6 +7,7 @@ import { useFieldReviews } from '@/hooks/useReviews';
 import { Check, Star } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 
 // Reusable Card Component
 const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) => {
@@ -35,7 +36,7 @@ const ImageGallery = ({ images }: { images: string[] }) => {
       {images.map((img, index) => (
         <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
           <img 
-            src={img} 
+            src={getImageUrl(img)} 
             alt={`Field image ${index + 1}`}
             className="w-full h-full object-cover"
           />
@@ -237,7 +238,7 @@ export default function FieldDetails() {
                 <div className="flex items-center gap-4">
                   {field.owner?.image ? (
                     <img 
-                      src={field.owner.image} 
+                      src={getImageUrl(field.owner.image)} 
                       alt="Owner"
                       className="w-12 h-12 rounded-lg object-cover"
                     />

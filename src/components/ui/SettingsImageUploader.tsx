@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Upload, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useUploadFile } from '@/hooks/useUpload';
 
 interface SettingsImageUploaderProps {
   value?: string | string[];
@@ -14,53 +15,6 @@ interface SettingsImageUploaderProps {
   aspectRatio?: 'square' | 'video' | 'portrait';
 }
 
-// Convert image file to WebP format
-const convertToWebP = async (file: File): Promise<File> => {
-  return new Promise((resolve, reject) => {
-    const img = new window.Image();
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    img.onload = () => {
-      // Resize if needed (max 1920px width)
-      const maxWidth = 1920;
-      let width = img.width;
-      let height = img.height;
-      
-      if (width > maxWidth) {
-        height = (maxWidth / width) * height;
-        width = maxWidth;
-      }
-      
-      canvas.width = width;
-      canvas.height = height;
-      ctx?.drawImage(img, 0, 0, width, height);
-      
-      canvas.toBlob(
-        (blob) => {
-          if (blob) {
-            const webpFileName = file.name.replace(/\.[^/.]+$/, '.webp');
-            const webpFile = new File([blob], webpFileName, { type: 'image/webp' });
-            resolve(webpFile);
-          } else {
-            reject(new Error('Failed to convert image to WebP'));
-          }
-        },
-        'image/webp',
-        0.85 // Quality: 85%
-      );
-    };
-    
-    img.onerror = () => reject(new Error('Failed to load image'));
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-};
 
 export function SettingsImageUploader({
   value,
@@ -79,6 +33,7 @@ export function SettingsImageUploader({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadFileMutation = useUploadFile();
   
   // Initialize from value prop
   useEffect(() => {
@@ -148,28 +103,12 @@ export function SettingsImageUploader({
     
     try {
       const uploadPromises = validFiles.map(async (file) => {
-        // Convert to WebP
-        const webpFile = await convertToWebP(file);
-        
-        // Upload to S3
-        const formData = new FormData();
-        formData.append('file', webpFile);
-        formData.append('folder', 'settings');
-        
-        const response = await fetch('/api/upload/image', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('adminToken')}`,
-          },
-          body: formData,
+        const result = await uploadFileMutation.mutateAsync({
+          file,
+          folder: 'settings',
+          convertToWebp: true,
         });
-        
-        if (!response.ok) {
-          throw new Error('Upload failed');
-        }
-        
-        const data = await response.json();
-        return data.url;
+        return result.fileUrl;
       });
       
       const uploadedUrls = await Promise.all(uploadPromises);
@@ -198,11 +137,22 @@ export function SettingsImageUploader({
     onChange?.(multiple ? newImages : newImages[0] || '');
   };
   
-  const aspectClass = {
-    square: 'aspect-square',
-    video: 'aspect-video',
-    portrait: 'aspect-[3/4]'
-  }[aspectRatio];
+  // Determine preview size based on aspect ratio and whether it's multiple
+  const getPreviewClass = () => {
+    if (multiple) {
+      return 'w-full h-24 sm:h-28 md:h-32';
+    }
+    
+    switch (aspectRatio) {
+      case 'square':
+        return 'w-40 h-40 sm:w-48 sm:h-48';
+      case 'portrait':
+        return 'w-40 h-52 sm:w-48 sm:h-64';
+      case 'video':
+      default:
+        return 'w-64 h-36 sm:w-72 sm:h-40';
+    }
+  };
   
   return (
     <div className={className}>
@@ -252,7 +202,7 @@ export function SettingsImageUploader({
           {uploading ? (
             <div className="flex flex-col items-center">
               <Loader2 className="w-8 h-8 text-green animate-spin mb-2" />
-              <p className="text-sm text-gray-600">Uploading and converting to WebP...</p>
+              <p className="text-sm text-gray-600">Uploading image...</p>
             </div>
           ) : (
             <div className="flex flex-col items-center">
@@ -270,24 +220,30 @@ export function SettingsImageUploader({
       
       {/* Preview Grid */}
       {images.length > 0 && (
-        <div className={`grid ${multiple ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-1'} gap-4 mt-4`}>
+        <div className={`${multiple ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4' : 'flex flex-wrap gap-4'} mt-4 p-4 bg-gray-50 rounded-lg border border-gray-100`}>
           {images.map((url, index) => (
-            <div key={index} className="relative group">
-              <div className={`${aspectClass} overflow-hidden rounded-lg border border-gray-200`}>
-                <img
-                  src={url}
-                  alt={`Upload ${index + 1}`}
-                  className="w-full h-full object-cover"
-                />
+            <div key={index} className="relative group inline-block">
+              <div className="space-y-2">
+                <div className={`${getPreviewClass()} overflow-hidden rounded-lg border-2 border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow relative`}>
+                  <img
+                    src={url}
+                    alt={`Upload ${index + 1}`}
+                    className="w-full h-full object-contain "
+                  />
+                  {!disabled && (
+                    <button
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 p-1.5 bg-red text-white rounded-full shadow-lg hover:bg-red-600 hover:scale-110 transition-all"
+                      title="Remove image"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 text-center truncate max-w-[10rem]">
+                  Image {index + 1}
+                </p>
               </div>
-              {!disabled && (
-                <button
-                  onClick={() => removeImage(index)}
-                  className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
             </div>
           ))}
         </div>

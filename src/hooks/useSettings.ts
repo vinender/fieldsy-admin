@@ -19,8 +19,29 @@ interface SystemSettings {
   aboutDogImage?: string;
   aboutFamilyImage?: string;
   aboutDogIcons?: string[];
+  platformDogOwnersImage?: string;
+  platformFieldOwnersImage?: string;
+  platformTitle?: string;
+  platformDogOwnersSubtitle?: string;
+  platformDogOwnersTitle?: string;
+  platformDogOwnersBullets?: string[];
+  platformFieldOwnersSubtitle?: string;
+  platformFieldOwnersTitle?: string;
+  platformFieldOwnersBullets?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+interface PlatformImagesUpdate {
+  platformDogOwnersImage?: string;
+  platformFieldOwnersImage?: string;
+  platformTitle?: string;
+  platformDogOwnersSubtitle?: string;
+  platformDogOwnersTitle?: string;
+  platformDogOwnersBullets?: string[];
+  platformFieldOwnersSubtitle?: string;
+  platformFieldOwnersTitle?: string;
+  platformFieldOwnersBullets?: string[];
 }
 
 // Fetch system settings
@@ -42,6 +63,21 @@ export const useUpdateSystemSettings = () => {
   return useMutation({
     mutationFn: async (data: Partial<SystemSettings>) => {
       const response = await api.put('/settings/admin', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
+    },
+  });
+};
+
+// Update platform section images
+export const useUpdatePlatformImages = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: PlatformImagesUpdate) => {
+      const response = await api.put('/settings/admin/platform-images', data);
       return response.data;
     },
     onSuccess: () => {
