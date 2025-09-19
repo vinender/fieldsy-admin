@@ -3,15 +3,27 @@ import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Plus, Trash2, Edit2, Image, Layout, X } from 'lucide-react';
-import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
+import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Edit2, Image, Layout } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// Import all settings components
+import GeneralSettings from '@/components/settings/GeneralSettings';
+import BannerSettings from '@/components/settings/BannerSettings';
+import AboutSectionSettings from '@/components/settings/AboutSectionSettings';
+import PlatformSettings from '@/components/settings/PlatformSettings';
+import AboutPageManagement from '@/components/settings/AboutPageManagement';
+import FAQSettings from '@/components/settings/FAQSettings';
+import NotificationsSettings from '@/components/settings/NotificationsSettings';
 
 export default function Settings() {
   const router = useRouter();
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: settings, isLoading: settingsLoading } = useSystemSettings();
+  const { data: aboutData } = useAboutPage();
   const updateSettingsMutation = useUpdateSystemSettings();
   const updatePlatformImagesMutation = useUpdatePlatformImages();
+  const updateAboutSection = useUpdateAboutSection();
   const [activeTab, setActiveTab] = useState('general');
   const [hasChanges, setHasChanges] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
@@ -47,11 +59,117 @@ export default function Settings() {
   const [showFAQModal, setShowFAQModal] = useState(false);
   const [savingFAQs, setSavingFAQs] = useState(false);
 
+  // About Page state
+  const [aboutHeroSection, setAboutHeroSection] = useState({
+    sectionTitle: 'About Us',
+    mainTitle: 'Find Safe, Private Dog Walking Fields Near You',
+    subtitle: '',
+    description: 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
+    image: '/about/dog2.png',
+    stats: [] as Array<{ value: string; label: string; order: number }>
+  });
+  
+  const [aboutMissionSection, setAboutMissionSection] = useState({
+    title: 'Our Mission',
+    description: 'At Fieldsy, we\'re on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces.',
+    buttonText: 'Join Our Community',
+    image: '/about/mission.png'
+  });
+
+  const [aboutWhoWeAreSection, setAboutWhoWeAreSection] = useState<any>({
+    title: 'Who We Are',
+    description: 'We\'re a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we\'ve built Fieldsy to give every dog the freedom they deserve.',
+    mainImage: '/about/fam.png',
+    rightCardImage: '/about/fam.png',
+    rightCardTitle: 'Loved by Paws and People Alike',
+    rightCardDescription: 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.',
+    features: []
+  });
+
+  const [aboutWhatWeDoSection, setAboutWhatWeDoSection] = useState({
+    title: 'What We Do',
+    subtitle: '',
+    description: 'We provide a seamless platform that connects dog owners with private, secure fields for safe off-lead walks and playtime.',
+    image: '/about/what-we-do.png',
+    features: [] as Array<{ title: string; description: string; order: number }>
+  });
+
+  const [aboutWhyFieldsySection, setAboutWhyFieldsySection] = useState<any>({
+    title: 'Why Fieldsy?',
+    subtitle: 'Choosing Fieldsy means choosing peace of mind for you and freedom for your dog.',
+    image: '/about/dog2.png',
+    boxTitle: "Let's Build the Future of Field Intelligence",
+    boxDescription: "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day.",
+    buttonText: 'Download App',
+    features: [
+      { icon: '', title: '', description: '100% secure, fully-fenced fields verified by our team', order: 1 },
+      { icon: '', title: '', description: 'Easy booking system - find and reserve in minutes', order: 2 },
+      { icon: '', title: '', description: 'Trusted by thousands of dog owners across the UK', order: 3 },
+      { icon: '', title: '', description: 'Perfect for reactive, nervous, or energetic dogs', order: 4 }
+    ]
+  });
+
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
       router.push('/login');
     }
   }, [admin, adminLoading, adminError, router]);
+  
+  // Load About page data
+  useEffect(() => {
+    if (aboutData) {
+      console.log('Loading aboutData:', aboutData);
+      setAboutHeroSection({
+        sectionTitle: aboutData.heroSection?.sectionTitle || 'About Us',
+        mainTitle: aboutData.heroSection?.mainTitle || 'Find Safe, Private Dog Walking Fields Near You',
+        subtitle: aboutData.heroSection?.subtitle || '',
+        description: aboutData.heroSection?.description || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
+        image: aboutData.heroSection?.image || '/about/dog2.png',
+        stats: aboutData.heroSection?.stats || [
+          { value: '500+', label: 'Happy Dogs', order: 1 },
+          { value: '200+', label: 'Private Fields', order: 2 },
+          { value: '50+', label: 'Cities Covered', order: 3 },
+          { value: '100%', label: 'Secure Spaces', order: 4 }
+        ]
+      });
+      setAboutMissionSection({
+        title: aboutData.missionSection?.title || 'Our Mission',
+        description: aboutData.missionSection?.description || 'At Fieldsy, we\'re on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces.',
+        buttonText: aboutData.missionSection?.buttonText || 'Join Our Community',
+        image: aboutData.missionSection?.image || '/about/mission.png'
+      });
+      setAboutWhoWeAreSection({
+        title: aboutData.whoWeAreSection?.title || 'Who We Are',
+        description: aboutData.whoWeAreSection?.description || 'We\'re a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we\'ve built Fieldsy to give every dog the freedom they deserve.',
+        mainImage: aboutData.whoWeAreSection?.mainImage || '/about/fam.png',
+        rightCardImage: aboutData.whoWeAreSection?.rightCardImage || '/about/fam.png',
+        rightCardTitle: aboutData.whoWeAreSection?.rightCardTitle || 'Loved by Paws and People Alike',
+        rightCardDescription: aboutData.whoWeAreSection?.rightCardDescription || 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.',
+        features: aboutData.whoWeAreSection?.features || []
+      });
+      setAboutWhatWeDoSection({
+        title: aboutData.whatWeDoSection?.title || 'What We Do',
+        subtitle: aboutData.whatWeDoSection?.subtitle || '',
+        description: aboutData.whatWeDoSection?.description || 'We provide a seamless platform that connects dog owners with private, secure fields for safe off-lead walks and playtime.',
+        image: aboutData.whatWeDoSection?.image || '/about/what-we-do.png',
+        features: aboutData.whatWeDoSection?.features || []
+      });
+      setAboutWhyFieldsySection({
+        title: aboutData.whyFieldsySection?.title || 'Why Fieldsy?',
+        subtitle: aboutData.whyFieldsySection?.subtitle || 'Choosing Fieldsy means choosing peace of mind for you and freedom for your dog.',
+        image: aboutData.whyFieldsySection?.image || '/about/dog2.png',
+        boxTitle: aboutData.whyFieldsySection?.boxTitle || "Let's Build the Future of Field Intelligence",
+        boxDescription: aboutData.whyFieldsySection?.boxDescription || "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day.",
+        buttonText: aboutData.whyFieldsySection?.buttonText || 'Download App',
+        features: aboutData.whyFieldsySection?.features || [
+          { icon: '', title: '', description: '100% secure, fully-fenced fields verified by our team', order: 1 },
+          { icon: '', title: '', description: 'Easy booking system - find and reserve in minutes', order: 2 },
+          { icon: '', title: '', description: 'Trusted by thousands of dog owners across the UK', order: 3 },
+          { icon: '', title: '', description: 'Perfect for reactive, nervous, or energetic dogs', order: 4 }
+        ]
+      });
+    }
+  }, [aboutData]);
 
   // Load settings data when available
   useEffect(() => {
@@ -70,11 +188,11 @@ export default function Settings() {
         bannerText: settings.bannerText || 'Find Safe, private dog walking fields',
         highlightedText: settings.highlightedText || 'near you',
         aboutTitle: settings.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
-        aboutDogImage: settings.aboutDogImage || '',
-        aboutFamilyImage: settings.aboutFamilyImage || '',
+        aboutDogImage: settings.aboutDogImage || '/about/dog2.png',
+        aboutFamilyImage: settings.aboutFamilyImage || '/about/fam.png',
         aboutDogIcons: settings.aboutDogIcons || [],
-        platformDogOwnersImage: settings.platformDogOwnersImage || '',
-        platformFieldOwnersImage: settings.platformFieldOwnersImage || '',
+        platformDogOwnersImage: settings.platformDogOwnersImage || '/platform-section/img1.png',
+        platformFieldOwnersImage: settings.platformFieldOwnersImage || '/platform-section/img2.png',
         platformTitle: settings.platformTitle || 'One Platform, Two Tail-Wagging Experiences',
         platformDogOwnersSubtitle: settings.platformDogOwnersSubtitle || 'For Dog Owners:',
         platformDogOwnersTitle: settings.platformDogOwnersTitle || 'Find & Book Private Dog Walking Fields in Seconds',
@@ -125,6 +243,8 @@ export default function Settings() {
   const handleDeleteFAQ = async (id: string) => {
     if (!confirm('Are you sure you want to delete this FAQ?')) return;
     
+    const toastId = toast.loading('Deleting FAQ...');
+    
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/faqs/admin/${id}`, {
@@ -136,20 +256,28 @@ export default function Settings() {
       
       if (response.ok) {
         setFaqs(faqs.filter(f => f.id !== id));
+        toast.success('FAQ deleted successfully', { id: toastId });
         setNotification({ type: 'success', message: 'FAQ deleted successfully' });
         setTimeout(() => setNotification(null), 3000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete FAQ');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting FAQ:', error);
+      toast.error(error.message || 'Failed to delete FAQ', { id: toastId });
       setNotification({ type: 'error', message: 'Failed to delete FAQ' });
     }
   };
 
   const handleSaveFAQ = async () => {
     if (!editingFAQ.question || !editingFAQ.answer) {
+      toast.error('Question and answer are required');
       setNotification({ type: 'error', message: 'Question and answer are required' });
       return;
     }
+    
+    const toastId = toast.loading(editingFAQ.id ? 'Updating FAQ...' : 'Creating FAQ...');
     
     try {
       setSavingFAQs(true);
@@ -172,16 +300,22 @@ export default function Settings() {
         const data = await response.json();
         if (editingFAQ.id) {
           setFaqs(faqs.map(f => f.id === editingFAQ.id ? data.data : f));
+          toast.success('FAQ updated successfully', { id: toastId });
         } else {
           setFaqs([...faqs, data.data]);
+          toast.success('FAQ created successfully', { id: toastId });
         }
         setShowFAQModal(false);
         setEditingFAQ(null);
         setNotification({ type: 'success', message: 'FAQ saved successfully' });
         setTimeout(() => setNotification(null), 3000);
+      } else {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save FAQ');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving FAQ:', error);
+      toast.error(error.message || 'Failed to save FAQ', { id: toastId });
       setNotification({ type: 'error', message: 'Failed to save FAQ' });
     } finally {
       setSavingFAQs(false);
@@ -207,31 +341,9 @@ export default function Settings() {
     setHasChanges(true);
   };
 
-  const handleBulletChange = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets', index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item, i) => i === index ? value : item)
-    }));
-    setHasChanges(true);
-  };
-
-  const addBullet = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets') => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], '']
-    }));
-    setHasChanges(true);
-  };
-
-  const removeBullet = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets', index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].filter((_, i) => i !== index)
-    }));
-    setHasChanges(true);
-  };
-
   const handleSave = async () => {
+    const toastId = toast.loading('Saving settings...');
+    
     try {
       if (activeTab === 'platform') {
         // Save platform images separately
@@ -250,12 +362,21 @@ export default function Settings() {
         // Save other settings
         await updateSettingsMutation.mutateAsync(formData);
       }
+      
+      toast.success('Settings saved successfully!', { id: toastId });
       setNotification({ type: 'success', message: 'Settings saved successfully' });
       setHasChanges(false);
       // Clear notification after 3 seconds
       setTimeout(() => setNotification(null), 3000);
-    } catch (error) {
-      setNotification({ type: 'error', message: 'Failed to save settings' });
+      
+    } catch (error: any) {
+      const errorMsg = error?.response?.data?.error || 
+                      error?.response?.data?.message || 
+                      error?.message || 
+                      'Failed to save settings';
+      
+      toast.error(errorMsg, { id: toastId });
+      setNotification({ type: 'error', message: errorMsg });
       console.error('Error saving settings:', error);
       // Clear notification after 5 seconds
       setTimeout(() => setNotification(null), 5000);
@@ -267,6 +388,7 @@ export default function Settings() {
     { id: 'banner', label: 'Hero Banner', icon: Type },
     { id: 'about', label: 'About Section', icon: Image },
     { id: 'platform', label: 'Platform Section', icon: Layout },
+    { id: 'about-page', label: 'About Us Page', icon: Edit2 },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
@@ -310,6 +432,7 @@ export default function Settings() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
+                
                 return (
                   <button
                     key={tab.id}
@@ -332,588 +455,77 @@ export default function Settings() {
           <div className="flex-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               {activeTab === 'general' && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Site Name
-                    </label>
-                    <input
-                      type="text"
-                      name="siteName"
-                      value={formData.siteName}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Site URL
-                    </label>
-                    <input
-                      type="url"
-                      name="siteUrl"
-                      value={formData.siteUrl}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Support Email
-                    </label>
-                    <input
-                      type="email"
-                      name="supportEmail"
-                      value={formData.supportEmail}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Max Bookings Per User
-                      </label>
-                      <input
-                        type="number"
-                        name="maxBookingsPerUser"
-                        value={formData.maxBookingsPerUser}
-                        onChange={handleChange}
-                        min="1"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Cancellation Hours Before Booking
-                      </label>
-                      <input
-                        type="number"
-                        name="cancellationWindowHours"
-                        value={formData.cancellationWindowHours}
-                        onChange={handleChange}
-                        min="1"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Commission Rate (%)
-                    </label>
-                    <input
-                      type="number"
-                      name="defaultCommissionRate"
-                      value={formData.defaultCommissionRate}
-                      onChange={handleChange}
-                      min="0"
-                      max="100"
-                      step="0.1"
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="maintenanceMode"
-                      name="maintenanceMode"
-                      checked={formData.maintenanceMode}
-                      onChange={handleChange}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="maintenanceMode" className="ml-2 block text-sm text-gray-700">
-                      Enable Maintenance Mode
-                    </label>
-                  </div>
-                </div>
+                <GeneralSettings 
+                  formData={formData}
+                  handleChange={handleChange}
+                />
               )}
 
               {activeTab === 'banner' && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Hero Banner Settings</h2>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Banner Text
-                    </label>
-                    <input
-                      type="text"
-                      name="bannerText"
-                      value={formData.bannerText}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter the main banner text..."
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      This is the main text that appears in the hero section
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Highlighted Text
-                    </label>
-                    <input
-                      type="text"
-                      name="highlightedText"
-                      value={formData.highlightedText}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter the text to highlight..."
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      This text will be highlighted in green color within the banner text
-                    </p>
-                  </div>
-
-                  {/* Preview Section */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preview
-                    </label>
-                    <div className="p-6 bg-gray-50 rounded-lg border border-gray-200">
-                      <h3 className="text-2xl lg:text-3xl font-bold text-gray-900">
-                        {formData.bannerText && formData.highlightedText ? (
-                          formData.bannerText.includes(formData.highlightedText) ? (
-                            formData.bannerText.split(formData.highlightedText).map((part, index, array) => (
-                              <React.Fragment key={index}>
-                                {part}
-                                {index < array.length - 1 && (
-                                  <span className="text-green font-semibold">{formData.highlightedText}</span>
-                                )}
-                              </React.Fragment>
-                            ))
-                          ) : (
-                            <>
-                              {formData.bannerText} <span className="text-green font-semibold">{formData.highlightedText}</span>
-                            </>
-                          )
-                        ) : (
-                          formData.bannerText || 'Enter banner text to see preview'
-                        )}
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Instructions */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Instructions:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• The banner text is the main heading displayed on the homepage hero section</li>
-                      <li>• The highlighted text should be a portion of the banner text that you want to emphasize</li>
-                      <li>• The highlighted text will appear in green color</li>
-                      <li>• If the highlighted text is not found within the banner text, it will be added at the end</li>
-                    </ul>
-                  </div>
-                </div>
+                <BannerSettings 
+                  formData={formData}
+                  setFormData={setFormData}
+                  setHasChanges={setHasChanges}
+                />
               )}
 
               {activeTab === 'about' && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">About Section Settings</h2>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Main Title
-                    </label>
-                    <textarea
-                      name="aboutTitle"
-                      value={formData.aboutTitle}
-                      onChange={(e) => {
-                        setFormData({ ...formData, aboutTitle: e.target.value });
-                        setHasChanges(true);
-                      }}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter the main title for the about section..."
-                    />
-                    <p className="mt-1 text-sm text-gray-500">
-                      This is the main headline text in the about section
-                    </p>
-                  </div>
-
-                  <div>
-                    <SettingsImageUploader
-                      label="Main Dog Image"
-                      description="The large dog image displayed on the left side"
-                      value={formData.aboutDogImage}
-                      onChange={(url) => {
-                        setFormData({ ...formData, aboutDogImage: url as string });
-                        setHasChanges(true);
-                      }}
-                      aspectRatio="portrait"
-                    />
-                  </div>
-
-                  <div>
-                    <SettingsImageUploader
-                      label="Family/Trust Image"
-                      description="The image displayed in the 'Trusted by thousands' section"
-                      value={formData.aboutFamilyImage}
-                      onChange={(url) => {
-                        setFormData({ ...formData, aboutFamilyImage: url as string });
-                        setHasChanges(true);
-                      }}
-                      aspectRatio="video"
-                    />
-                  </div>
-
-                  <div>
-                    <SettingsImageUploader
-                      label="Dog Icon Images"
-                      description="Small circular dog icons (upload up to 5)"
-                      value={formData.aboutDogIcons}
-                      onChange={(urls) => {
-                        setFormData({ ...formData, aboutDogIcons: urls as string[] });
-                        setHasChanges(true);
-                      }}
-                      multiple={true}
-                      maxFiles={5}
-                      aspectRatio="square"
-                    />
-                  </div>
-
-                  {/* Instructions */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Image Guidelines:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• All images will be automatically converted to WebP format for better performance</li>
-                      <li>• Main dog image should be portrait orientation (3:4 ratio recommended)</li>
-                      <li>• Family image should be landscape orientation (16:9 ratio recommended)</li>
-                      <li>• Dog icons should be square images, they will be displayed as circles</li>
-                      <li>• Maximum file size: 10MB per image</li>
-                    </ul>
-                  </div>
-                </div>
+                <AboutSectionSettings 
+                  formData={formData}
+                  setFormData={setFormData}
+                  setHasChanges={setHasChanges}
+                />
               )}
 
               {activeTab === 'platform' && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Platform Section Settings</h2>
-                  
-                  {/* Main Title */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Section Title
-                    </label>
-                    <input
-                      type="text"
-                      name="platformTitle"
-                      value={formData.platformTitle}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      placeholder="Enter the main platform section title..."
-                    />
-                  </div>
+                <PlatformSettings 
+                  formData={formData}
+                  setFormData={setFormData}
+                  setHasChanges={setHasChanges}
+                  handleChange={handleChange}
+                />
+              )}
 
-                  {/* Dog Owners Section */}
-                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold text-gray-900">Dog Owners Card</h3>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Subtitle (Green Text)
-                      </label>
-                      <input
-                        type="text"
-                        name="platformDogOwnersSubtitle"
-                        value={formData.platformDogOwnersSubtitle}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="e.g., For Dog Owners:"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        name="platformDogOwnersTitle"
-                        value={formData.platformDogOwnersTitle}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Enter the dog owners card title..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Features / Bullet Points
-                      </label>
-                      <div className="space-y-2">
-                        {formData.platformDogOwnersBullets.map((bullet, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={bullet}
-                              onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                              placeholder="Enter bullet point..."
-                            />
-                            <button
-                              onClick={() => removeBullet('platformDogOwnersBullets', index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Remove bullet"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => addBullet('platformDogOwnersBullets')}
-                          className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green hover:text-green transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add Bullet Point
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <SettingsImageUploader
-                        label="Card Image"
-                        description="Image displayed on the dog owners platform card"
-                        value={formData.platformDogOwnersImage}
-                        onChange={(url) => {
-                          setFormData({ ...formData, platformDogOwnersImage: url as string });
-                          setHasChanges(true);
-                        }}
-                        aspectRatio="video"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Field Owners Section */}
-                  <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-                    <h3 className="font-semibold text-gray-900">Field Owners Card</h3>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Subtitle (Green Text)
-                      </label>
-                      <input
-                        type="text"
-                        name="platformFieldOwnersSubtitle"
-                        value={formData.platformFieldOwnersSubtitle}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="e.g., For Field Owners:"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        name="platformFieldOwnersTitle"
-                        value={formData.platformFieldOwnersTitle}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        placeholder="Enter the field owners card title..."
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Features / Bullet Points
-                      </label>
-                      <div className="space-y-2">
-                        {formData.platformFieldOwnersBullets.map((bullet, index) => (
-                          <div key={index} className="flex items-center gap-2">
-                            <input
-                              type="text"
-                              value={bullet}
-                              onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
-                              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                              placeholder="Enter bullet point..."
-                            />
-                            <button
-                              onClick={() => removeBullet('platformFieldOwnersBullets', index)}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Remove bullet"
-                            >
-                              <X className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          onClick={() => addBullet('platformFieldOwnersBullets')}
-                          className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green hover:text-green transition-colors"
-                        >
-                          <Plus className="w-4 h-4" />
-                          Add Bullet Point
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <SettingsImageUploader
-                        label="Card Image"
-                        description="Image displayed on the field owners platform card"
-                        value={formData.platformFieldOwnersImage}
-                        onChange={(url) => {
-                          setFormData({ ...formData, platformFieldOwnersImage: url as string });
-                          setHasChanges(true);
-                        }}
-                        aspectRatio="video"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Instructions */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="text-sm font-semibold text-blue-900 mb-2">Guidelines:</h4>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Platform card images should be landscape orientation (16:9 ratio recommended)</li>
-                      <li>• The subtitle appears in green color above the main title</li>
-                      <li>• Keep titles concise and impactful</li>
-                      <li>• All images will be automatically converted to WebP format</li>
-                      <li>• Maximum file size: 10MB per image</li>
-                    </ul>
-                  </div>
-                </div>
+              {activeTab === 'about-page' && (
+                <AboutPageManagement 
+                  aboutData={aboutData}
+                  updateAboutSection={updateAboutSection}
+                  setNotification={setNotification}
+                  aboutHeroSection={aboutHeroSection}
+                  setAboutHeroSection={setAboutHeroSection}
+                  aboutMissionSection={aboutMissionSection}
+                  setAboutMissionSection={setAboutMissionSection}
+                  aboutWhoWeAreSection={aboutWhoWeAreSection}
+                  setAboutWhoWeAreSection={setAboutWhoWeAreSection}
+                  aboutWhatWeDoSection={aboutWhatWeDoSection}
+                  setAboutWhatWeDoSection={setAboutWhatWeDoSection}
+                  aboutWhyFieldsySection={aboutWhyFieldsySection}
+                  setAboutWhyFieldsySection={setAboutWhyFieldsySection}
+                />
               )}
 
               {activeTab === 'faqs' && (
-                <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">FAQ Management</h2>
-                    <button
-                      onClick={handleAddFAQ}
-                      className="flex items-center gap-2 px-4 py-2 bg-green text-white rounded-lg hover:bg-green-hover"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add FAQ
-                    </button>
-                  </div>
-
-                  {/* FAQ Categories */}
-                  <div className="space-y-4">
-                    {['general', 'dog-owners', 'field-owners', 'booking', 'payment'].map(category => {
-                      const categoryFaqs = faqs.filter(f => (f.category || 'general') === category);
-                      if (categoryFaqs.length === 0 && category !== 'general') return null;
-                      
-                      return (
-                        <div key={category} className="border border-gray-200 rounded-lg p-4">
-                          <h3 className="font-medium text-gray-900 mb-3 capitalize">
-                            {category.replace('-', ' ')} ({categoryFaqs.length})
-                          </h3>
-                          <div className="space-y-2">
-                            {categoryFaqs.map((faq, index) => (
-                              <div key={faq.id} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex-1">
-                                  <p className="font-medium text-gray-900 text-sm">
-                                    {index + 1}. {faq.question}
-                                  </p>
-                                  <p className="text-gray-600 text-sm mt-1">
-                                    {faq.answer.length > 100 ? faq.answer.substring(0, 100) + '...' : faq.answer}
-                                  </p>
-                                  <div className="mt-2">
-                                    <span className={`inline-flex px-2 py-1 text-xs rounded-full ${
-                                      faq.isActive 
-                                        ? 'bg-green-lighter text-green' 
-                                        : 'bg-gray-200 text-gray-600'
-                                    }`}>
-                                      {faq.isActive ? 'Active' : 'Inactive'}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2 ml-4">
-                                  <button
-                                    onClick={() => handleEditFAQ(faq)}
-                                    className="p-1 text-blue-600 hover:bg-blue-50 rounded"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDeleteFAQ(faq.id)}
-                                    className="p-1 text-red-600 hover:bg-red-50 rounded"
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            ))}
-                            {categoryFaqs.length === 0 && (
-                              <p className="text-gray-500 text-sm italic">No FAQs in this category</p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+                <FAQSettings 
+                  faqs={faqs}
+                  setFaqs={setFaqs}
+                  handleAddFAQ={handleAddFAQ}
+                  handleEditFAQ={handleEditFAQ}
+                  handleDeleteFAQ={handleDeleteFAQ}
+                  showFAQModal={showFAQModal}
+                  setShowFAQModal={setShowFAQModal}
+                  editingFAQ={editingFAQ}
+                  setEditingFAQ={setEditingFAQ}
+                  handleSaveFAQ={handleSaveFAQ}
+                  savingFAQs={savingFAQs}
+                  setNotification={setNotification}
+                />
               )}
 
               {activeTab === 'notifications' && (
-                <div className="space-y-6">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h2>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">Enable Notifications</p>
-                        <p className="text-sm text-gray-500">Receive system notifications</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="enableNotifications"
-                          checked={formData.enableNotifications}
-                          onChange={handleChange}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">Email Notifications</p>
-                        <p className="text-sm text-gray-500">Receive notifications via email</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="enableEmailNotifications"
-                          checked={formData.enableEmailNotifications}
-                          onChange={handleChange}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-900">SMS Notifications</p>
-                        <p className="text-sm text-gray-500">Receive notifications via SMS</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="enableSmsNotifications"
-                          checked={formData.enableSmsNotifications}
-                          onChange={handleChange}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
+                <NotificationsSettings 
+                  formData={formData}
+                  handleChange={handleChange}
+                />
               )}
 
               {/* Save Button - Always visible when there are changes */}
@@ -946,12 +558,14 @@ export default function Settings() {
                         </>
                       )}
                     </button>
+
                     {hasChanges && (
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2"> 
                         <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
                         <p className="text-sm font-medium text-yellow-600">You have unsaved changes</p>
                       </div>
                     )}
+                    
                   </div>
                 </div>
               )}
@@ -959,118 +573,6 @@ export default function Settings() {
           </div>
         </div>
       </div>
-
-      {/* FAQ Modal */}
-      {showFAQModal && editingFAQ && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 p-4">
-          <div className="relative top-20 mx-auto p-6 border w-full max-w-2xl shadow-lg rounded-xl bg-white">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-gray-900">
-                {editingFAQ.id ? 'Edit FAQ' : 'Add New FAQ'}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowFAQModal(false);
-                  setEditingFAQ(null);
-                }}
-                className="text-gray-400 hover:text-gray-500"
-              >
-                <XCircle className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Category
-                </label>
-                <select
-                  value={editingFAQ.category || 'general'}
-                  onChange={(e) => setEditingFAQ({ ...editingFAQ, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
-                >
-                  <option value="general">General</option>
-                  <option value="dog-owners">Dog Owners</option>
-                  <option value="field-owners">Field Owners</option>
-                  <option value="booking">Booking</option>
-                  <option value="payment">Payment</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Question
-                </label>
-                <input
-                  type="text"
-                  value={editingFAQ.question || ''}
-                  onChange={(e) => setEditingFAQ({ ...editingFAQ, question: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
-                  placeholder="Enter the question..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Answer
-                </label>
-                <textarea
-                  value={editingFAQ.answer || ''}
-                  onChange={(e) => setEditingFAQ({ ...editingFAQ, answer: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
-                  rows={4}
-                  placeholder="Enter the answer..."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Order (for sorting)
-                </label>
-                <input
-                  type="number"
-                  value={editingFAQ.order || 0}
-                  onChange={(e) => setEditingFAQ({ ...editingFAQ, order: parseInt(e.target.value) || 0 })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
-                  placeholder="0"
-                />
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="isActive"
-                  checked={editingFAQ.isActive !== false}
-                  onChange={(e) => setEditingFAQ({ ...editingFAQ, isActive: e.target.checked })}
-                  className="h-4 w-4 text-green focus:ring-green border-gray-300 rounded"
-                />
-                <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
-                  Active (visible to users)
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setShowFAQModal(false);
-                  setEditingFAQ(null);
-                }}
-                className="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveFAQ}
-                disabled={savingFAQs}
-                className="px-4 py-2 bg-green text-white rounded-md hover:bg-green-hover disabled:opacity-50"
-              >
-                {savingFAQs ? 'Saving...' : 'Save FAQ'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </AdminLayout>
   );
 }
