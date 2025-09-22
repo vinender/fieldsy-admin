@@ -64,7 +64,7 @@ const BookingRow: React.FC<BookingRowProps> = ({ booking }) => {
         <span className="text-[#20130b] text-sm w-[50px]">{booking.duration}</span>
         <span className="text-[#20130b] text-sm w-[85px]">{booking.date}</span>
         <span className="text-[#20130b] text-sm w-8">{booking.dogs}</span>
-        <span className="text-[#20130b] text-sm w-[33px]">${booking.price}</span>
+        <span className="text-[#20130b] text-sm w-[33px]">${booking.price.toFixed(2)}</span>
         <span className="text-[#20130b] text-sm w-14">{booking.recurring}</span>
         
         <button 

@@ -4,7 +4,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFieldDetails } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useFieldReviews } from '@/hooks/useReviews';
-import { Check, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
@@ -83,9 +83,9 @@ const Table = ({ headers, rows }: { headers: string[], rows: any[][] }) => {
     <div className="overflow-x-auto">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-gray-200">
+          <tr className="border-b border-gray-200 bg-gray-50">
             {headers.map((header, index) => (
-              <th key={index} className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th key={index} className="text-left py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider">
                 {header}
               </th>
             ))}
@@ -93,9 +93,9 @@ const Table = ({ headers, rows }: { headers: string[], rows: any[][] }) => {
         </thead>
         <tbody>
           {rows.map((row, index) => (
-            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+            <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
               {row.map((cell, cellIndex) => (
-                <td key={cellIndex} className="py-4 px-4 text-sm text-gray-900">
+                <td key={cellIndex} className={`py-4 px-4 text-sm ${cellIndex === 0 ? 'font-medium text-[#192215]' : 'text-gray-900'}`}>
                   {cell}
                 </td>
               ))}
@@ -144,18 +144,43 @@ export default function FieldDetails() {
 
   // Dynamic data from field
   const fieldImages = field.images?.length > 0 ? field.images : [];
-  const safetyRules = field.rules?.length > 0 ? field.rules : [];
-  const bookingPolicies = field.cancellationPolicy ? [field.cancellationPolicy] : [];
   
-  // Format earnings data from booking history
-  const earningsData = field.recentBookings?.slice(0, 6).map((b: any) => [
-    `#${b.id.slice(0, 4).toUpperCase()}`,
-    b.user?.name?.toUpperCase() || 'UNKNOWN',
-    formatDate(b.date) + ' at ' + b.startTime,
-    b.numberOfDogs?.toString() || '1',
-    b.duration || '1',
-    formatCurrency(b.totalPrice || 0),
-    <StatusBadge status={b.status} />
+  // Parse safety rules - they might be in a single string with periods or line breaks
+  let safetyRules: string[] = [];
+  if (field.rules && Array.isArray(field.rules)) {
+    if (field.rules.length === 1 && typeof field.rules[0] === 'string') {
+      // Single string with multiple rules
+      const rulesString = field.rules[0];
+      // Split by periods or line breaks
+      safetyRules = rulesString
+        .split(/[.\n]/)
+        .map((rule: string) => rule.trim())
+        .filter((rule: string) => rule.length > 0);
+    } else {
+      // Already an array of rules
+      safetyRules = field.rules.filter((rule: any) => rule && rule.length > 0);
+    }
+  }
+  
+  // Standard booking policies
+  const bookingPolicies = [
+    'All bookings must be made at least 24 hours in advance',
+    'The minimum booking slot is 1 hour',
+    'Free cancellation up to 12 hours before the scheduled start time',
+    'Users arriving late will not receive a time extension',
+    'If the client does not arrive within 15 minutes of the booking start time, the booking will be marked as non-show and charged in full',
+    'Bookings may be subject to blackout list booking nights'
+  ];
+  
+  // Format earnings data from booking history with new columns
+  const earningsData = field.recentBookings?.slice(0, 10).map((b: any) => [
+    `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
+    b.paymentIntentId ? `#${b.paymentIntentId.slice(-8).toUpperCase()}` : 'N/A',  // Payment ID
+    formatDate(b.date) + ' at ' + b.startTime,  // Date and Time
+    b.user?.name || 'Unknown',  // Clients
+    b.numberOfDogs?.toString() || '1',  // Dogs
+    formatCurrency(b.totalPrice || 0),  // Amount
+    <StatusBadge status={b.paymentStatus || b.status} />  // Status
   ]) || [];
 
   // Calculate total earnings
@@ -284,18 +309,19 @@ export default function FieldDetails() {
           
           {/* Community Safety Rules */}
           <div className="mb-6">
-            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Community safety rules</h2>
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Community Safety Rules</h2>
             <Card className="p-5">
               {safetyRules.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {safetyRules.map((rule: string, index: number) => (
                     <div key={index} className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check size={12} className="text-white" />
-                        </div>
+                      <div className="mt-1 flex-shrink-0">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <circle cx="10" cy="10" r="10" fill="#22C55E"/>
+                          <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
-                      <p className="text-sm text-gray-700">{rule}</p>
+                      <p className="text-base text-[#192215]">{rule}</p>
                     </div>
                   ))}
                 </div>
@@ -309,41 +335,42 @@ export default function FieldDetails() {
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Booking Policies</h2>
             <Card className="p-5">
-              {bookingPolicies.length > 0 ? (
-                <div className="space-y-4">
-                  {bookingPolicies.map((policy: string, index: number) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                          <Check size={12} className="text-white" />
-                        </div>
-                      </div>
-                      <p className="text-sm text-gray-700">{policy}</p>
+              <div className="space-y-3">
+                {bookingPolicies.map((policy: string, index: number) => (
+                  <div key={index} className="flex items-start gap-3">
+                    <div className="mt-1 flex-shrink-0">
+                      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="10" fill="#22C55E"/>
+                        <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500 text-center py-4">No booking policies available</p>
-              )}
+                    <p className="text-base text-[#192215]">{policy}</p>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
           
-          {/* Earnings History */}
-          {earningsData.length > 0 && (
-            <div className="mb-6">
-              <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Earnings History</h2>
-              <Card>
-                <div className="p-5 flex justify-between items-center border-b border-gray-200">
-                  <h3 className="text-lg font-semibold">Recent Transactions</h3>
-                  <p className="text-sm text-gray-500">Total Earnings {formatCurrency(totalEarnings)}</p>
-                </div>
+          {/* Earnings History - Moved under Booking Policies */}
+          <div className="mb-6">
+            <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Earnings History</h2>
+            <Card>
+              <div className="p-5 flex justify-between items-center border-b border-gray-200">
+                <h3 className="text-lg font-semibold">Recent Transactions</h3>
+                <p className="text-sm text-gray-500">Total Earnings: <span className="font-semibold text-[#192215]">{formatCurrency(totalEarnings)}</span></p>
+              </div>
+              {earningsData.length > 0 ? (
                 <Table 
-                  headers={['', 'Client Name', 'Date/Time', 'Count', 'Time', 'Amount', 'Status']}
+                  headers={['Order ID', 'Payment ID', 'Date and Time', 'Clients', 'Dogs', 'Amount', 'Status']}
                   rows={earningsData}
                 />
-              </Card>
-            </div>
-          )}
+              ) : (
+                <div className="p-8 text-center text-gray-500">
+                  No earnings history available for this field yet.
+                </div>
+              )}
+            </Card>
+          </div>
           
           {/* Reviews & Ratings */}
           <div className="mb-6">

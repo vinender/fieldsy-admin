@@ -250,7 +250,7 @@ export default function Fields() {
                       <TableCell>
                         <div className="text-sm">
                           <div className="font-medium text-gray-900">
-                            ${field.price || field.pricePerHour || 0}
+                            ${(field.price || field.pricePerHour || 0).toFixed(2)}
                           </div>
                           <div className="text-xs text-gray-500">
                             per {field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'} / {field.maxDogs || 10} dogs

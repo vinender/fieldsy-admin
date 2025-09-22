@@ -72,13 +72,13 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
               {formatDate(booking.date)}
             </TableCell>
             <TableCell className="text-table-text">
-              {booking.dogs}
+              {booking.numberOfDogs || booking.dogs || 0}
             </TableCell>
             <TableCell className="font-medium text-gray-900">
-              {formatCurrency(booking.totalPrice)}
+              {formatCurrency(booking.totalPrice || 0)}
             </TableCell>
             <TableCell>
-              {booking.isRecurring ? (
+              {(booking.isRecurring || booking.repeatBooking !== 'None') ? (
                 <span className="text-green font-[400] text-[13px]">Yes</span>
               ) : (
                 <span className="text-table-text font-[400] text-[13px]">No</span>
