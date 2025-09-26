@@ -24,8 +24,13 @@ export default function Dashboard() {
   const [chartsLoading, setChartsLoading] = useState(false);
 
   useEffect(() => {
-    if (!adminLoading && (adminError || !admin)) {
-      router.push('/login');
+    if (!adminLoading) {
+      if (adminError || !admin) {
+        console.log('Admin verification failed, redirecting to login', { adminError, admin });
+        router.push('/login');
+      } else {
+        console.log('Admin verified:', admin);
+      }
     }
   }, [admin, adminLoading, adminError, router]);
 

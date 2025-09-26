@@ -45,6 +45,7 @@ module.exports = {
       animation: {
         fadeIn: 'fadeIn 0.3s ease-in-out',
         slideUp: 'slideUp 0.3s ease-out',
+        slideDown: 'slideDown 0.2s ease-out',
         messageSlide: 'messageSlide 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
       },
       keyframes: {
@@ -56,6 +57,16 @@ module.exports = {
           '0%': { 
             opacity: '0',
             transform: 'translateY(20px)'
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateY(0)'
+          },
+        },
+        slideDown: {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateY(-10px)'
           },
           '100%': { 
             opacity: '1',

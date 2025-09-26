@@ -33,7 +33,9 @@ export default function Settings() {
     supportEmail: '',
     maxBookingsPerUser: 10,
     cancellationWindowHours: 24,
+    minimumFieldOperatingHours: 4,
     defaultCommissionRate: 20,
+    payoutReleaseSchedule: 'after_cancellation_window',
     enableNotifications: true,
     enableEmailNotifications: true,
     enableSmsNotifications: false,
@@ -180,7 +182,9 @@ export default function Settings() {
         supportEmail: settings.supportEmail || 'support@fieldsy.com',
         maxBookingsPerUser: settings.maxBookingsPerUser || 10,
         cancellationWindowHours: settings.cancellationWindowHours || 24,
+        minimumFieldOperatingHours: settings.minimumFieldOperatingHours || 4,
         defaultCommissionRate: settings.defaultCommissionRate || 20,
+        payoutReleaseSchedule: settings.payoutReleaseSchedule || 'after_cancellation_window',
         enableNotifications: settings.enableNotifications ?? true,
         enableEmailNotifications: settings.enableEmailNotifications ?? true,
         enableSmsNotifications: settings.enableSmsNotifications ?? false,
@@ -332,8 +336,11 @@ export default function Settings() {
     );
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    const type = (e.target as HTMLInputElement).type;
+    const checked = (e.target as HTMLInputElement).checked;
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
