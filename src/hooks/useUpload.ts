@@ -15,11 +15,22 @@ export function useUploadFile() {
       formData.append('folder', folder);
       formData.append('convertToWebp', String(convertToWebp));
 
-      const response = await axiosClient.post('/upload/admin/direct', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // Don't set Content-Type header - let axios handle it automatically for FormData
+      const response = await axiosClient.post('/upload/admin/direct', formData);
+
+      return response.data;
+    },
+  });
+}
+
+export function useUploadSingle() {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Don't set Content-Type header - let axios handle it automatically for FormData
+      const response = await axiosClient.post('/upload/single', formData);
 
       return response.data;
     },

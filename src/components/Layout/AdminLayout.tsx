@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
@@ -13,11 +13,13 @@ import {
   Bell,
   Search,
   User,
+  Package,
   ChevronRight,
   FileText
 } from 'lucide-react';
 import { useLogout, useVerifyAdmin } from '@/hooks/useAuth';
 import { useAdminNotifications } from '@/hooks/useNotifications';
+import { useSocket } from '@/hooks/useSocket';
 import NotificationSidebar from './NotificationSidebar';
 
 interface AdminLayoutProps {
@@ -31,7 +33,21 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const logout = useLogout();
   const { data: admin } = useVerifyAdmin();
   const { data: notificationsData } = useAdminNotifications(1, 50);
-  
+
+  // Handle real-time notification updates
+  const handleNotification = useCallback((notification: any) => {
+    console.log('Real-time notification received in AdminLayout:', notification);
+    // The socket hook already invalidates queries, so no need to do anything here
+  }, []);
+
+  // Initialize socket connection for real-time notifications
+  const { isConnected } = useSocket({
+    autoConnect: true,
+    onNotification: handleNotification,
+    onConnect: () => console.log('Admin socket connected'),
+    onDisconnect: () => console.log('Admin socket disconnected')
+  });
+
   const unreadCount = notificationsData?.unreadCount || 0;
 
   const menuItems = [
@@ -41,6 +57,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: Users, label: 'Dog Owners', href: '/dog-owners' },
     { icon: Users, label: 'Field Owners', href: '/field-owners' },
     { icon: FileText, label: 'Claims', href: '/claims' },
+    { icon: Package, label: 'Amenities', href: '/amenities' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 
