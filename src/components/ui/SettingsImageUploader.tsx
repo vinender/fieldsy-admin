@@ -106,7 +106,7 @@ export function SettingsImageUploader({
         const result = await uploadFileMutation.mutateAsync({
           file,
           folder: 'settings',
-          convertToWebp: true,
+          convertToAvif: true,
         });
         return result.fileUrl;
       });
@@ -211,7 +211,7 @@ export function SettingsImageUploader({
                 Drag and drop or <span className="text-green font-semibold">click to browse</span>
               </p>
               <p className="text-xs text-gray-500 mt-1">
-                Images will be converted to WebP format
+                Large images (&gt;20KB) auto-convert to AVIF
               </p>
             </div>
           )}

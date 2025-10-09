@@ -4,16 +4,18 @@ import axiosClient from '@/lib/api';
 interface UploadFileData {
   file: File;
   folder?: string;
-  convertToWebp?: boolean;
+  convertToAvif?: boolean; // Changed from convertToWebp
+  convertToWebp?: boolean; // Keep for backwards compatibility
 }
 
 export function useUploadFile() {
   return useMutation({
-    mutationFn: async ({ file, folder = 'settings', convertToWebp = true }: UploadFileData) => {
+    mutationFn: async ({ file, folder = 'settings', convertToAvif = true, convertToWebp }: UploadFileData) => {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('folder', folder);
-      formData.append('convertToWebp', String(convertToWebp));
+      // Use AVIF by default, fallback to WebP setting for backwards compatibility
+      formData.append('convertToAvif', String(convertToAvif ?? convertToWebp ?? true));
 
       // Don't set Content-Type header - let axios handle it automatically for FormData
       const response = await axiosClient.post('/upload/admin/direct', formData);
