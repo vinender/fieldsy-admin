@@ -237,7 +237,20 @@ export default function FieldDetails() {
                 <InfoCard label="Max Dogs" value={field.maxDogs || "N/A"} />
                 <InfoCard label="Operating Days" value={field.operatingDays?.length ? field.operatingDays.join(', ') : "N/A"} />
                 <InfoCard label="Instant Booking" value={field.instantBooking ? "Yes" : "No"} />
-                <InfoCard label="Amenities" value={field.amenities?.length ? field.amenities.join(', ') : "N/A"} />
+                <InfoCard
+                  label="Amenities"
+                  value={
+                    field.amenities?.length
+                      ? field.amenities.map((amenity: any) => {
+                          // Handle both object and string formats
+                          if (typeof amenity === 'string') {
+                            return amenity;
+                          }
+                          return amenity?.label || amenity?.name || amenity?.value || String(amenity);
+                        }).join(', ')
+                      : "N/A"
+                  }
+                />
               </div>
             </Card>
           </div>
