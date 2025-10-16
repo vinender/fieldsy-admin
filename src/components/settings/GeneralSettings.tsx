@@ -8,6 +8,7 @@ interface GeneralSettingsProps {
     supportEmail: string;
     maxBookingsPerUser: number;
     cancellationWindowHours: number;
+    maxAdvanceBookingDays: number;
     minimumFieldOperatingHours: number;
     defaultCommissionRate: number;
     payoutReleaseSchedule?: string;
@@ -118,6 +119,27 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
             min="1"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Max Advance Booking Days
+            <span className="text-xs text-gray-500 ml-1">(Days users can book in advance)</span>
+          </label>
+          <input
+            type="number"
+            name="maxAdvanceBookingDays"
+            value={formData.maxAdvanceBookingDays}
+            onChange={handleChange}
+            min="30"
+            max="60"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+          <p className="text-xs text-gray-500 mt-1">
+            Minimum: 30 days, Maximum: 60 days
+          </p>
         </div>
       </div>
 
