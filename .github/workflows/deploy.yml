@@ -75,10 +75,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Stop admin service
+      - name: Stop admin with PM2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo systemctl stop fieldsy-admin || true
+            pm2 stop fieldsy-admin || true
           EOF
 
       - name: Deploy to EC2
@@ -114,11 +114,11 @@ jobs:
             mkdir -p .next/cache
           EOF
 
-      - name: Start admin service
+      - name: Start admin with PM2
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-            sudo systemctl start fieldsy-admin
-            sudo systemctl status fieldsy-admin
+            pm2 restart fieldsy-admin || pm2 start /var/www/fieldsy/ecosystem.config.js --only fieldsy-admin
+            pm2 save
           EOF
 
       - name: Health check
@@ -126,8 +126,9 @@ jobs:
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
             sleep 15
 
-            if sudo systemctl is-active --quiet fieldsy-admin; then
-              echo "✅ Admin service is running"
+            # Check if process is running in PM2
+            if pm2 describe fieldsy-admin | grep -q "online"; then
+              echo "✅ Admin service is running in PM2"
 
               if curl -f http://localhost:3003 2>/dev/null; then
                 echo "✅ Admin health check passed"
@@ -136,7 +137,7 @@ jobs:
               fi
             else
               echo "❌ Admin service failed to start"
-              sudo journalctl -u fieldsy-admin -n 50
+              pm2 logs fieldsy-admin --lines 50 --nostream
               exit 1
             fi
           EOF
@@ -148,10 +149,11 @@ jobs:
             BACKUP=$(ls -t $(dirname ${{ env.DEPLOY_PATH }}) | grep "admin.backup" | head -n 1)
             if [ -n "$BACKUP" ]; then
               echo "Rolling back to $BACKUP"
-              sudo systemctl stop fieldsy-admin
+              pm2 stop fieldsy-admin || true
               sudo rm -rf ${{ env.DEPLOY_PATH }}
               sudo cp -r $(dirname ${{ env.DEPLOY_PATH }})/$BACKUP ${{ env.DEPLOY_PATH }}
-              sudo systemctl start fieldsy-admin
+              pm2 restart fieldsy-admin || pm2 start /var/www/fieldsy/ecosystem.config.js --only fieldsy-admin
+              pm2 save
               echo "✅ Rollback completed"
             fi
           EOF
