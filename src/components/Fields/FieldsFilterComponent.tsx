@@ -9,7 +9,7 @@ interface FieldsFilterComponentProps {
   onClose?: () => void;
 }
 
-export default function FieldsFilterComponent({ 
+export default function FieldsFilterComponent({
   onFiltersChange = () => {},
   initialFilters = null,
   showApplyButton = false,
@@ -24,10 +24,12 @@ export default function FieldsFilterComponent({
     location: ''
   });
 
-  // Notify parent component when filters change
+  // Notify parent component when filters change (only if Apply button is not shown)
   useEffect(() => {
-    onFiltersChange(filters);
-  }, [filters]);
+    if (!showApplyButton) {
+      onFiltersChange(filters);
+    }
+  }, [filters, showApplyButton]);
 
   // Handle radio button changes
   const handleFilterChange = (filterType: string, value: string) => {
@@ -184,9 +186,11 @@ export default function FieldsFilterComponent({
         {/* Optional Apply Button */}
         {showApplyButton && (
           <div className="mt-6">
-            <button 
+            <button
               onClick={() => {
-                console.log('Applied filters:', filters);
+                // Apply filters by notifying parent component
+                onFiltersChange(filters);
+                // Close the modal
                 if (onClose) onClose();
               }}
               className="w-full bg-[#3a6b22] text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:bg-[#2d5419] active:scale-[0.98] transition-all duration-150"

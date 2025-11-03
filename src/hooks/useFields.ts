@@ -38,6 +38,21 @@ export const useToggleFieldStatus = () => {
   });
 };
 
+// Toggle field claimed status
+export const useToggleFieldClaimed = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ fieldId, isClaimed }: { fieldId: string; isClaimed: boolean }) => {
+      const response = await api.patch(`/fields/${fieldId}`, { isClaimed });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
+    },
+  });
+};
+
 // Get single field details
 export const useFieldDetails = (fieldId: string | undefined) => {
   return useQuery({

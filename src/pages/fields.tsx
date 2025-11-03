@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import { useFields, useToggleFieldStatus } from '@/hooks/useFields';
+import { useFields, useToggleFieldStatus, useToggleFieldClaimed } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { MapPin, Search, Filter } from 'lucide-react';
 import { formatCurrency, formatMonthYear } from '@/lib/utils';
@@ -46,6 +46,7 @@ export default function Fields() {
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10);
   const toggleStatusMutation = useToggleFieldStatus();
+  const toggleClaimedMutation = useToggleFieldClaimed();
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -148,6 +149,10 @@ export default function Fields() {
     toggleStatusMutation.mutate({ fieldId, isActive: !currentStatus });
   };
 
+  const handleToggleClaimed = (fieldId: string, currentStatus: boolean) => {
+    toggleClaimedMutation.mutate({ fieldId, isClaimed: !currentStatus });
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -212,6 +217,7 @@ export default function Fields() {
                     <TableHead>Earnings</TableHead>
                     <TableHead>Max Dogs</TableHead>
                     <TableHead>Joined On</TableHead>
+                    <TableHead>Claimed</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -271,17 +277,31 @@ export default function Fields() {
                       </TableCell>
                       <TableCell>
                         <button
+                          onClick={() => handleToggleClaimed(field.id, field.isClaimed || false)}
+                          disabled={toggleClaimedMutation.isPending}
+                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                          style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              field.isClaimed ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </TableCell>
+                      <TableCell>
+                        <button
                           onClick={() => handleToggleStatus(field.id, field.isActive)}
                           className="flex items-center"
                         >
                           {field.isActive ? (
                             <div className="flex items-center   border-green text-green">
-                           
+
                               <span className="ml-2 bg-light-green/20 px-5 py-1 rounded-[40px] border-green text-sm">Active</span>
                             </div>
                           ) : (
                             <div className="flex items-center text-gray-400">
-                              
+
                               <span className="ml-2 text-sm">Inactive</span>
                             </div>
                           )}
@@ -337,6 +357,7 @@ export default function Fields() {
                 <FieldsFilterComponent
                   onFiltersChange={setActiveFilters}
                   initialFilters={activeFilters}
+                  showApplyButton={true}
                   onClose={() => setShowFilters(false)}
                 />
               </Suspense>
