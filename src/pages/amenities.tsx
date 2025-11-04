@@ -250,21 +250,39 @@ export default function AmenitiesPage() {
                   <Label>Icon Image</Label>
                   <div className="mt-2">
                     {formData.icon ? (
-                      <div className="relative">
-                        <div className="relative w-20 h-20 border rounded p-2">
-                          <img
-                            src={formData.icon}
-                            alt="Icon preview"
-                            className="w-full h-full object-contain"
-                          />
+                      <div className="space-y-2">
+                        <div className="relative inline-block">
+                          <div className="relative w-20 h-20 border rounded p-2">
+                            <img
+                              src={formData.icon}
+                              alt="Icon preview"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({ ...formData, icon: '' })}
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            title="Remove icon"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => setFormData({ ...formData, icon: '' })}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
+                        <div>
+                          <label className="inline-flex items-center px-4 py-2 border border-gray-300 rounded cursor-pointer hover:bg-gray-50">
+                            <Upload className="w-4 h-4 mr-2 text-gray-600" />
+                            <span className="text-sm text-gray-700">
+                              {uploadMutation.isLoading ? 'Uploading...' : 'Change Icon'}
+                            </span>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleIconUpload}
+                              disabled={uploadMutation.isLoading}
+                            />
+                          </label>
+                        </div>
                       </div>
                     ) : (
                       <label className="flex items-center justify-center w-full h-20 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-green">
