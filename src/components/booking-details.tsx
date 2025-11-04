@@ -252,13 +252,13 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 <div className="space-y-1.5">
                   <p className="text-sm text-[#8d8d8d]">Service Fee</p>
                   <p className="text-base font-semibold text-[#192215]">
-                    {booking.serviceFee ? formatCurrency(booking.serviceFee) : '$0'}
+                    {booking.serviceFee ? formatCurrency(booking.serviceFee) : '£0'}
                   </p>
                 </div>
                 <div className="space-y-1.5">
                   <p className="text-sm text-[#8d8d8d]">Tax</p>
                   <p className="text-base font-semibold text-[#192215]">
-                    {booking.tax ? formatCurrency(booking.tax) : '$0'}
+                    {booking.tax ? formatCurrency(booking.tax) : '£0'}
                   </p>
                 </div>
                 <div className="space-y-1.5">

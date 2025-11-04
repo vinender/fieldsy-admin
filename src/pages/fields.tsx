@@ -54,6 +54,14 @@ export default function Fields() {
     }
   }, [admin, adminLoading, adminError, router]);
 
+  // Add logging to track filter changes
+  useEffect(() => {
+    console.log('==================== ACTIVE FILTERS UPDATED ====================');
+    console.log('Active filters:', JSON.stringify(activeFilters, null, 2));
+    console.log('Total fields:', fieldsData?.fields?.length || 0);
+    console.log('================================================================');
+  }, [activeFilters, fieldsData?.fields?.length]);
+
   // Lock body scroll when filter modal is open
   useEffect(() => {
     if (showFilters) {
@@ -123,27 +131,42 @@ export default function Fields() {
     if (activeFilters.location && activeFilters.location.trim() !== '') {
       const locationSearch = activeFilters.location.toLowerCase().trim();
       const cityMatch = field.city?.toLowerCase().includes(locationSearch);
+      console.log(`[Filter] Location - Field: ${field.name}, City: ${field.city}, Filter: ${locationSearch}, Match: ${cityMatch}`);
       if (!cityMatch) return false;
     }
 
     // Claim status filter
     if (activeFilters.claimStatus !== 'All') {
+      const claimMatch = (activeFilters.claimStatus === 'Claimed' && field.isClaimed) ||
+                         (activeFilters.claimStatus === 'Not Claimed' && !field.isClaimed);
+      console.log(`[Filter] Claim Status - Field: ${field.name}, isClaimed: ${field.isClaimed}, Filter: ${activeFilters.claimStatus}, Match: ${claimMatch}`);
       if (activeFilters.claimStatus === 'Claimed' && !field.isClaimed) return false;
       if (activeFilters.claimStatus === 'Not Claimed' && field.isClaimed) return false;
     }
 
     // Max dogs filter
     if (activeFilters.maxDogs !== 'All') {
-      if (!isInMaxDogsRange(field.maxDogs, activeFilters.maxDogs)) return false;
+      const dogsMatch = isInMaxDogsRange(field.maxDogs, activeFilters.maxDogs);
+      console.log(`[Filter] Max Dogs - Field: ${field.name}, maxDogs: ${field.maxDogs}, Filter: ${activeFilters.maxDogs}, Match: ${dogsMatch}`);
+      if (!dogsMatch) return false;
     }
 
     // Joined date filter
     if (activeFilters.joinedDate !== 'All') {
-      if (!isWithinDateRange(field.createdAt, activeFilters.joinedDate)) return false;
+      const dateMatch = isWithinDateRange(field.createdAt, activeFilters.joinedDate);
+      console.log(`[Filter] Joined Date - Field: ${field.name}, createdAt: ${field.createdAt}, Filter: ${activeFilters.joinedDate}, Match: ${dateMatch}`);
+      if (!dateMatch) return false;
     }
 
     return true;
   }) || [];
+
+  // Log filtering results
+  console.log('==================== FILTERING RESULTS ====================');
+  console.log('Total fields:', fieldsData?.fields?.length || 0);
+  console.log('Filtered fields:', filteredFields.length);
+  console.log('Active filters:', activeFilters);
+  console.log('===========================================================');
 
   const handleToggleStatus = (fieldId: string, currentStatus: boolean) => {
     toggleStatusMutation.mutate({ fieldId, isActive: !currentStatus });
@@ -256,10 +279,10 @@ export default function Fields() {
                       <TableCell>
                         <div className="text-sm">
                           <div className="font-medium text-gray-900">
-                            ${(field.price || field.pricePerHour || 0).toFixed(2)}
+                            £{(field.price || field.pricePerHour || 0).toFixed(2)}
                           </div>
                           <div className="text-xs text-gray-500">
-                            per {field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'} / {field.maxDogs || 10} dogs
+                            per dog/{field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'}
                           </div>
                         </div>
                       </TableCell>

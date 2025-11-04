@@ -188,10 +188,21 @@ export default function FieldsFilterComponent({
           <div className="mt-6">
             <button
               onClick={() => {
+                console.log('==================== APPLY FILTERS CLICKED ====================');
+                console.log('Current filters:', JSON.stringify(filters, null, 2));
+                console.log('onFiltersChange function:', onFiltersChange);
+                console.log('onClose function:', onClose);
+
                 // Apply filters by notifying parent component
                 onFiltersChange(filters);
+                console.log('✅ onFiltersChange called');
+
                 // Close the modal
-                if (onClose) onClose();
+                if (onClose) {
+                  onClose();
+                  console.log('✅ Modal closed');
+                }
+                console.log('===============================================================');
               }}
               className="w-full bg-[#3a6b22] text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:bg-[#2d5419] active:scale-[0.98] transition-all duration-150"
             >

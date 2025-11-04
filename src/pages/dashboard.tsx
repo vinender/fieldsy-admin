@@ -464,7 +464,7 @@ export default function Dashboard() {
                       </div>
                       <div>
                         <span className="text-[#575757] text-xs">Price:</span>
-                        <span className="text-[#20130b] ml-1 font-semibold">${booking.price.toFixed(2)}</span>
+                        <span className="text-[#20130b] ml-1 font-semibold">£{booking.price.toFixed(2)}</span>
                       </div>
                     </div>
                     
