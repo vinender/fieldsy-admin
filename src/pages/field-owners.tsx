@@ -95,7 +95,7 @@ export default function FieldOwners() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
         </div>
       </AdminLayout>
     );
@@ -165,7 +165,7 @@ export default function FieldOwners() {
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center">
                         <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
                         </div>
                       </td>
                     </tr>
@@ -281,7 +281,7 @@ export default function FieldOwners() {
             {fieldOwnersLoading ? (
               <div className="bg-white rounded-lg p-6">
                 <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
                 </div>
               </div>
             ) : fieldOwners.length === 0 ? (

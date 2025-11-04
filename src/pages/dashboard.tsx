@@ -239,7 +239,7 @@ export default function Dashboard() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
         </div>
       </AdminLayout>
     );
@@ -384,7 +384,7 @@ export default function Dashboard() {
               <div className="px-6 max-h-[400px] overflow-y-auto">
                 {loadingBookings ? (
                   <div className="py-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent mx-auto"></div>
                   </div>
                 ) : bookings.length === 0 ? (
                   <div className="py-8 text-center text-gray-500">
@@ -397,12 +397,12 @@ export default function Dashboard() {
                 )}
               </div>
             </div>
-            
+
             {/* Mobile Cards */}
             <div className="lg:hidden space-y-4">
               {loadingBookings ? (
                 <div className="py-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent mx-auto"></div>
                 </div>
               ) : bookings.length === 0 ? (
                 <div className="py-8 text-center text-gray-500 bg-white rounded-xl">

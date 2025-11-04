@@ -129,7 +129,7 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
         <div className="overflow-y-auto h-[calc(100vh-88px)]">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
             </div>
           ) : notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 px-6">

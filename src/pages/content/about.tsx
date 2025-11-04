@@ -226,7 +226,7 @@ export default function AboutPageManagement() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <Loader2 className="w-8 h-8 animate-spin" />
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
         </div>
       </AdminLayout>
     )
@@ -347,7 +347,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -413,7 +413,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -509,7 +509,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -620,7 +620,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -715,7 +715,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}

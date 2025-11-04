@@ -142,7 +142,7 @@ export default function AmenitiesPage() {
 
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-green border-r-transparent"></div>
+            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-green border-t-transparent"></div>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow">

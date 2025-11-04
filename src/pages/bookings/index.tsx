@@ -45,7 +45,7 @@ export default function Bookings() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
         </div>
       </AdminLayout>
     );
