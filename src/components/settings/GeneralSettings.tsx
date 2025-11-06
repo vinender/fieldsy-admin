@@ -20,11 +20,6 @@ interface GeneralSettingsProps {
 export default function GeneralSettings({ formData, handleChange }: GeneralSettingsProps) {
   const payoutOptions = [
     {
-      value: 'immediate',
-      label: 'Immediate Release',
-      description: 'Release funds as soon as booking is paid'
-    },
-    {
       value: 'on_weekend',
       label: 'Weekend Release',
       description: 'Release funds on Friday, Saturday, or Sunday'
