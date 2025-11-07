@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
+import Image from 'next/image';
 import { useLogin } from '@/hooks/useAuth';
 import Spinner from '@/components/ui/Spinner';
 
@@ -72,8 +73,14 @@ export default function Login() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-green-lighter rounded-full mb-4">
-              <LogIn className="w-8 h-8 text-green" />
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/logo/logo.svg"
+                alt="Fieldsy Logo"
+                width={180}
+                height={60}
+                priority
+              />
             </div>
             <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
             <p className="text-gray-600 mt-2">Welcome back to Fieldsy Admin</p>
@@ -167,11 +174,11 @@ export default function Login() {
             </button>
           </div>
 
-          <div className="mt-6 text-center">
+          {/* <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
               Admin accounts can only be created via CLI script
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

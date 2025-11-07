@@ -315,19 +315,15 @@ export default function Fields() {
                       <TableCell>
                         <button
                           onClick={() => handleToggleStatus(field.id, field.isActive)}
-                          className="flex items-center"
+                          disabled={toggleStatusMutation.isPending}
+                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                          style={{ backgroundColor: field.isActive ? '#4ade80' : '#e5e7eb' }}
                         >
-                          {field.isActive ? (
-                            <div className="flex items-center   border-green text-green">
-
-                              <span className="ml-2 bg-light-green/20 px-5 py-1 rounded-[40px] border-green text-sm">Active</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center text-gray-400">
-
-                              <span className="ml-2 text-sm">Inactive</span>
-                            </div>
-                          )}
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              field.isActive ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
                         </button>
                       </TableCell>
                       <TableCell>

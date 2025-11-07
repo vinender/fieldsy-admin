@@ -37,7 +37,7 @@ export const useLogin = () => {
       console.log('Response data:', data);
       localStorage.setItem('adminToken', data.token);
       queryClient.setQueryData(['admin'], data.admin);
-      toast.success('Login successful! Redirecting...');
+      toast.success('Login successfull');
       
       // Delay redirect so you can see the network request
       setTimeout(() => {
@@ -47,7 +47,8 @@ export const useLogin = () => {
     },
     onError: (error: any) => {
       console.error('Login mutation error:', error.response?.data || error.message);
-      toast.error(error.response?.data?.error || 'Login failed. Please check your credentials.');
+      // Error message is displayed inline on the login form
+      // No need for toast notification
     },
   });
 };
