@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
@@ -333,7 +334,7 @@ export default function Settings() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
+          <Spinner size="xl" />
         </div>
       </AdminLayout>
     );
@@ -558,7 +559,7 @@ export default function Settings() {
                     >
                       {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
                         <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                          <Spinner size="sm" />
                           <span>Saving...</span>
                         </>
                       ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess) && !hasChanges ? (

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import  AdminLayout  from '@/components/Layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -142,11 +143,12 @@ export default function AmenitiesPage() {
 
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-green border-t-transparent"></div>
+            <Spinner size="lg" />
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto lg:overflow-x-visible">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -218,6 +220,7 @@ export default function AmenitiesPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
 

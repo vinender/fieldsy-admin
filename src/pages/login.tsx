@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { Eye, EyeOff, LogIn, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useLogin } from '@/hooks/useAuth';
+import Spinner from '@/components/ui/Spinner';
 
 export default function Login() {
   const router = useRouter();
@@ -154,7 +155,7 @@ export default function Login() {
             >
               {loginMutation.isPending ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <Spinner size="sm" />
                   <span>Logging in...</span>
                 </>
               ) : (

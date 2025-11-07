@@ -1,7 +1,8 @@
 import React from 'react';
-import { X, Upload, AlertCircle, Loader2, Image as ImageIcon } from 'lucide-react';
+import { X, Upload, AlertCircle, Image as ImageIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useUploadFile } from '@/hooks/useUpload';
+import Spinner from './Spinner';
 
 interface SettingsImageUploaderProps {
   value?: string | string[];
@@ -201,7 +202,7 @@ export function SettingsImageUploader({
           
           {uploading ? (
             <div className="flex flex-col items-center">
-              <Loader2 className="w-8 h-8 text-green animate-spin mb-2" />
+              <Spinner size="lg" className="mb-2" />
               <p className="text-sm text-gray-600">Uploading image...</p>
             </div>
           ) : (

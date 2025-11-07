@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFieldDetails } from '@/hooks/useFields';
@@ -80,7 +81,7 @@ const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date
 // Table Component
 const Table = ({ headers, rows }: { headers: string[], rows: any[][] }) => {
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto lg:overflow-x-visible">
       <table className="w-full">
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50">
@@ -126,7 +127,7 @@ export default function FieldDetails() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
+          <Spinner size="xl" />
         </div>
       </AdminLayout>
     );

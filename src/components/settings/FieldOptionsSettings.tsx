@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import {
   useFieldOptionsAdmin,
   useCreateFieldOption,
@@ -173,7 +174,7 @@ export default function FieldOptionsSettings() {
       {/* Options Table */}
       {isLoading ? (
         <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green mx-auto"></div>
+          <Spinner size="xl" className="mx-auto" />
           <p className="text-gray-600 mt-4 font-medium">Loading {getCategoryLabel(selectedCategory)}...</p>
         </div>
       ) : options.length === 0 ? (
@@ -405,7 +406,7 @@ export default function FieldOptionsSettings() {
                 >
                   {createMutation.isPending || updateMutation.isPending ? (
                     <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <Spinner size="sm" />
                       Saving...
                     </span>
                   ) : editingOption ? (

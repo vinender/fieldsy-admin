@@ -1,18 +1,20 @@
 import React, { useEffect } from 'react';
-import { 
-  X, 
-  AlertCircle, 
-  CheckCircle, 
-  Info, 
-  XCircle, 
+import {
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle,
+  Info,
+  XCircle,
   Calendar,
   DollarSign,
   MapPin,
   User,
   Star,
-  Bell
+  Bell,
+  Check,
+  CheckCheck
 } from 'lucide-react';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 import { useAdminNotifications, useMarkNotificationAsRead, useMarkAllNotificationsAsRead } from '@/hooks/useNotifications';
 
 interface NotificationSidebarProps {
@@ -25,30 +27,20 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
 
-  // Get icon and color based on notification type
-  const getNotificationStyle = (type: string) => {
+  // Get background color for unread notifications based on type
+  const getNotificationColor = (type: string) => {
     switch (type) {
       case 'booking_received':
       case 'booking_confirmed':
-        return { icon: Calendar, color: 'text-green-500' };
-      case 'booking_cancelled':
-        return { icon: XCircle, color: 'text-red-500' };
-      case 'payment_received':
-      case 'payment_success':
-        return { icon: DollarSign, color: 'text-green-500' };
-      case 'payment_failed':
-        return { icon: AlertCircle, color: 'text-red-500' };
+        return 'border-blue-300 bg-blue-50';
       case 'field_approved':
-      case 'field_added':
-        return { icon: MapPin, color: 'text-blue-500' };
+        return 'border-green-300 bg-green-50';
+      case 'payment_received':
+        return 'border-yellow-300 bg-yellow-50';
       case 'review_posted':
-        return { icon: Star, color: 'text-yellow-500' };
-      case 'user_registered':
-        return { icon: User, color: 'text-blue-500' };
-      case 'refund_processed':
-        return { icon: DollarSign, color: 'text-yellow-500' };
+        return 'border-purple-300 bg-purple-50';
       default:
-        return { icon: Info, color: 'text-gray-500' };
+        return 'border-gray-300 bg-gray-50';
     }
   };
 
@@ -78,104 +70,144 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
     await markAllAsRead.mutate();
   };
 
+  const handleMarkAsRead = async (id: string) => {
+    await markAsRead.mutate(id);
+  };
+
   const notifications = notificationsData?.notifications || [];
   const unreadCount = notificationsData?.unreadCount || 0;
 
   return (
     <>
       {/* Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={onClose}
-        />
-      )}
+      <div
+        className={`fixed inset-0 bg-black/80 z-40 transition-opacity duration-300 ${
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={onClose}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+      />
 
       {/* Sidebar */}
       <div
-        className={`fixed right-0 top-0 h-full w-full sm:w-96 bg-white shadow-xl z-50 transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-full w-full sm:max-w-[540px] bg-light z-50 transform transition-transform duration-300 ease-out overflow-hidden ${
           isOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b">
-          <div className="flex items-center gap-3">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Notifications</h2>
-            {unreadCount > 0 && (
-              <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
-                {unreadCount}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {unreadCount > 0 && (
+        <div className="p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
               <button
-                onClick={handleMarkAllAsRead}
-                className="text-sm text-green-600 hover:text-green-700"
+                onClick={onClose}
+                className="w-10 h-10 sm:w-12 sm:h-12 bg-cream rounded-full flex items-center justify-center hover:bg-[#efe5bf] transition-colors flex-shrink-0"
               >
-                Mark all read
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 text-dark-green" />
               </button>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-[22px] sm:text-[29px] font-semibold text-dark-green truncate">Notifications</h2>
+                {unreadCount > 0 && (
+                  <p className="text-xs sm:text-sm text-gray-600">{unreadCount} unread</p>
+                )}
+              </div>
+            </div>
+            {notifications.length > 0 && (
+              <div className="flex gap-1 sm:gap-2 flex-shrink-0">
+                {unreadCount > 0 && (
+                  <button
+                    onClick={handleMarkAllAsRead}
+                    className="p-1.5 sm:p-2 text-green hover:bg-green/10 rounded-lg transition-colors sm:hidden"
+                    title="Mark all as read"
+                  >
+                    <CheckCheck className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={handleMarkAllAsRead}
+                  className="hidden sm:block p-2 text-green text-[14px] sm:text-[16px] font-[600] underline hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap"
+                  title="Mark all as read"
+                >
+                  Mark all as read
+                </button>
+              </div>
             )}
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
           </div>
         </div>
 
-        {/* Notifications List */}
-        <div className="overflow-y-auto h-[calc(100vh-88px)]">
+        {/* Divider */}
+        <div className="h-px bg-gray-200" />
+
+        {/* Content */}
+        <div
+          className="h-[calc(100%-140px)] overflow-y-auto overflow-x-hidden notification-scrollbar"
+          onWheel={(e) => {
+            e.stopPropagation();
+          }}
+        >
           {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
-            </div>
+            <div className="text-center text-gray-600 mt-10">Loading notifications...</div>
           ) : notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 px-6">
-              <Bell className="w-12 h-12 text-gray-300 mb-4" />
-              <p className="text-gray-500 text-center">No notifications yet</p>
+            <div className="text-center mt-10">
+              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-600">No notifications yet</p>
+              <p className="text-sm text-gray-500 mt-2">
+                We'll notify you when something important happens
+              </p>
             </div>
           ) : (
-            <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-              {notifications.map((notification) => {
-                const { icon: Icon, color } = getNotificationStyle(notification.type);
-                return (
-                  <div
-                    key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`p-3 sm:p-4 rounded-lg border transition-colors cursor-pointer ${
-                      notification.read
-                        ? 'bg-white border-gray-200 hover:bg-gray-50'
-                        : 'bg-green-50 border-green-200 hover:bg-green-100'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-3">
-                      <Icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${color}`} />
+            <div className="">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`border-b py-2 transition-all cursor-pointer ${
+                    !notification.read
+                      ? `${getNotificationColor(notification.type)} border-opacity-50`
+                      : 'border-gray-200 bg-light-cream hover:bg-cream'
+                  }`}
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="flex items-start justify-between gap-2 p-3 sm:p-4">
+                    <div className="flex gap-2 sm:gap-3 flex-1 min-w-0">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-medium text-gray-900 text-sm sm:text-base">
-                          {notification.title}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-gray-600 mt-1 break-words">
+                        <div className="flex items-start gap-2">
+                          <div className="text-dark-green font-[600] sm:font-[700] text-[16px] sm:text-[18px] flex-1 break-words">
+                            {notification.title}
+                          </div>
+                          {!notification.read && (
+                            <span className="w-2 h-2 bg-green rounded-full flex-shrink-0 mt-2"></span>
+                          )}
+                        </div>
+                        <div className="text-[13px] sm:text-[14px] text-gray-700 font-[400] mt-1 break-words">
                           {notification.message}
-                        </p>
+                        </div>
                         {notification.user && (
-                          <p className="text-xs text-gray-500 mt-2">
-                            From: {notification.user.name || notification.user.email} 
+                          <p className="text-[11px] sm:text-xs text-gray-500 mt-2">
+                            From: {notification.user.name || notification.user.email}
                             ({notification.user.role === 'DOG_OWNER' ? 'Dog Owner' : 'Field Owner'})
                           </p>
                         )}
-                        <p className="text-xs text-gray-400 mt-2">
-                          {formatDate(notification.createdAt)} at {formatTime(notification.createdAt)}
-                        </p>
+                        <div className="text-[11px] sm:text-xs text-gray-500 mt-2">
+                          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                        </div>
                       </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
                       {!notification.read && (
-                        <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMarkAsRead(notification.id);
+                          }}
+                          className="p-1 text-green hover:bg-green/10 rounded transition-colors"
+                          title="Mark as read"
+                        >
+                          <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </button>
                       )}
                     </div>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
           )}
         </div>

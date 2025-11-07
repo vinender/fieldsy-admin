@@ -1,12 +1,13 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import Spinner from './Spinner';
 
 // Table Root Component
 const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  <div className="relative w-full overflow-x-auto lg:overflow-x-visible">
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}
@@ -219,7 +220,7 @@ const TableEmptyState: React.FC<EmptyStateProps> = ({
 // Loading State Component
 const TableLoadingState: React.FC = () => (
   <div className="flex items-center justify-center py-12">
-    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green"></div>
+    <Spinner size="lg" />
   </div>
 );
 

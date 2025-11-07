@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import  AdminLayout  from '@/components/Layout/AdminLayout';
 import {
   useFieldOptionsAdmin,
@@ -98,12 +99,13 @@ export default function FieldOptionsPage() {
         {/* Options Table */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
+            <Spinner size="lg" />
             <p className="mt-2 text-gray-600">Loading options...</p>
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
+            <div className="overflow-x-auto lg:overflow-x-visible">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -172,6 +174,7 @@ export default function FieldOptionsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
 
             {data?.data?.options?.length === 0 && (
               <div className="text-center py-12">

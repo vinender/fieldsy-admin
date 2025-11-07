@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
+import Spinner from '@/components/ui/Spinner';
 
 interface AboutPageManagementProps {
   aboutData: any;
@@ -257,7 +258,7 @@ export default function AboutPageManagement({
                   }`}
                 >
                   {updateAboutSection.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner size="sm" className="mr-2" />
                   ) : (
                     <Save className={`w-4 h-4 mr-2 ${hasHeroSectionChanged() ? 'text-white' : 'text-gray-500'}`} />
                   )}
@@ -320,7 +321,7 @@ export default function AboutPageManagement({
                   }`}
                 >
                   {updateAboutSection.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner size="sm" className="mr-2" />
                   ) : (
                     <Save className={`w-4 h-4 mr-2 ${hasMissionSectionChanged() ? 'text-white' : 'text-gray-500'}`} />
                   )}
@@ -425,7 +426,7 @@ export default function AboutPageManagement({
                   }`}
                 >
                   {updateAboutSection.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner size="sm" className="mr-2" />
                   ) : (
                     <Save className={`w-4 h-4 mr-2 ${hasWhoWeAreSectionChanged() ? 'text-white' : 'text-gray-500'}`} />
                   )}
@@ -546,7 +547,7 @@ export default function AboutPageManagement({
                   }`}
                 >
                   {updateAboutSection.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner size="sm" className="mr-2" />
                   ) : (
                     <Save className={`w-4 h-4 mr-2 ${hasWhatWeDoSectionChanged() ? 'text-white' : 'text-gray-500'}`} />
                   )}
@@ -699,7 +700,7 @@ export default function AboutPageManagement({
                   }`}
                 >
                   {updateAboutSection.isPending ? (
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <Spinner size="sm" className="mr-2" />
                   ) : (
                     <Save className={`w-4 h-4 mr-2 ${hasWhyFieldsySectionChanged() ? 'text-white' : 'text-gray-500'}`} />
                   )}

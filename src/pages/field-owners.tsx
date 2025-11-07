@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Spinner from '@/components/ui/Spinner';
 import AdminLayout from '../components/Layout/AdminLayout';
 import { useRouter } from 'next/router';
 import { Edit, Search, DollarSign } from 'lucide-react';
@@ -95,7 +96,7 @@ export default function FieldOwners() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
+          <Spinner size="xl" />
         </div>
       </AdminLayout>
     );
@@ -136,7 +137,7 @@ export default function FieldOwners() {
 
           {/* Desktop Table */}
           <div className="hidden lg:block bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto lg:overflow-x-visible">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
@@ -165,7 +166,7 @@ export default function FieldOwners() {
                     <tr>
                       <td colSpan={6} className="px-6 py-4 text-center">
                         <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
+                          <Spinner size="lg" />
                         </div>
                       </td>
                     </tr>
@@ -281,7 +282,7 @@ export default function FieldOwners() {
             {fieldOwnersLoading ? (
               <div className="bg-white rounded-lg p-6">
                 <div className="flex justify-center">
-                  <div className="animate-spin rounded-full h-10 w-10 border-4 border-green border-t-transparent"></div>
+                  <Spinner size="lg" />
                 </div>
               </div>
             ) : fieldOwners.length === 0 ? (

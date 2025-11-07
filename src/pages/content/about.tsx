@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'react-hot-toast'
-import { Loader2, Plus, Trash2, Save } from 'lucide-react'
+import { Plus, Trash2, Save } from 'lucide-react'
+import Spinner from '@/components/ui/Spinner'
 
 export default function AboutPageManagement() {
   const { data: aboutData, isLoading } = useAboutPage();
@@ -226,7 +227,7 @@ export default function AboutPageManagement() {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-green border-t-transparent"></div>
+          <Spinner size="xl" />
         </div>
       </AdminLayout>
     )
@@ -347,7 +348,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                      <Spinner size="sm" className="mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -413,7 +414,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                      <Spinner size="sm" className="mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -509,7 +510,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                      <Spinner size="sm" className="mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -620,7 +621,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                      <Spinner size="sm" className="mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
@@ -715,7 +716,7 @@ export default function AboutPageManagement() {
                     className="w-full sm:w-auto"
                   >
                     {updateSection.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                      <Spinner size="sm" className="mr-2" />
                     ) : (
                       <Save className="w-4 h-4 mr-2" />
                     )}
