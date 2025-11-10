@@ -167,15 +167,17 @@ export default function Queries() {
                 }}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                   activeTab === tab.name
-                    ? 'bg-green-600 text-white'
+                    ? 'bg-[#3A6B22] text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
-                {tab.name}
+                <span className={activeTab === tab.name ? 'text-white' : 'text-gray-700'}>
+                  {tab.name}
+                </span>
                 {tab.count > 0 && (
                   <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                     activeTab === tab.name
-                      ? 'bg-green-700 text-white'
+                      ? 'bg-[#2e5519] text-white'
                       : 'bg-gray-200 text-gray-700'
                   }`}>
                     {tab.count}
@@ -255,17 +257,17 @@ export default function Queries() {
                           <div className="flex items-center space-x-2">
                             <button
                               onClick={() => handleViewDetails(query)}
-                              className="inline-flex items-center px-4 py-2 text-xs font-medium rounded-full text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                              className="inline-flex items-center px-4 py-2 text-xs font-medium rounded-full text-white bg-[#3A6B22] hover:bg-[#2e5519] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                             >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View Details
+                              <Eye className="w-4 h-4 mr-1 text-white" />
+                              <span className="text-white">View Details</span>
                             </button>
                             <button
                               onClick={() => handleDeleteClick(query)}
                               className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
                               title="Delete query"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 text-red-600" />
                             </button>
                           </div>
                         </TableCell>

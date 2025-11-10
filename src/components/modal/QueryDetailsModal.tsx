@@ -183,9 +183,9 @@ export default function QueryDetailsModal({
             <button
               onClick={handleSubmit}
               disabled={isUpdating}
-              className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 bg-[#3A6B22] hover:bg-[#2e5519] rounded-lg transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isUpdating ? 'Saving...' : 'Save Changes'}
+              <span className="text-white">{isUpdating ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>
         </div>
