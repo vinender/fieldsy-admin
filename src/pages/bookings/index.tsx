@@ -13,21 +13,55 @@ export default function Bookings() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     bookingStatus: 'All',
     dateRange: 'All'
   });
   const filterRef = useRef<HTMLDivElement>(null);
-  
+
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: bookingsData, isLoading: bookingsLoading } = useBookings(page, 10);
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings(page, 10, debouncedSearchTerm);
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
       router.push('/login');
     }
   }, [admin, adminLoading, adminError, router]);
+
+  // Debounce search term - only trigger when 3+ characters or empty
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only set debounced term if searchTerm is empty or has 3+ characters
+      if (searchTerm.trim().length === 0 || searchTerm.trim().length >= 3) {
+        console.log('Setting debounced search term:', searchTerm);
+        setDebouncedSearchTerm(searchTerm);
+      } else {
+        console.log('Search term too short, not triggering API:', searchTerm);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset to page 1 when debounced search term changes
+  useEffect(() => {
+    console.log('Debounced search term changed, resetting to page 1:', debouncedSearchTerm);
+    setPage(1);
+  }, [debouncedSearchTerm]);
+
+  // Log when bookings data changes
+  useEffect(() => {
+    if (bookingsData) {
+      console.log('Bookings data updated:', {
+        total: bookingsData.total,
+        pages: bookingsData.pages,
+        bookingsCount: bookingsData.bookings?.length,
+        searchTerm: debouncedSearchTerm
+      });
+    }
+  }, [bookingsData, debouncedSearchTerm]);
 
   // Lock body scroll when filter modal is open
   useEffect(() => {
@@ -52,20 +86,8 @@ export default function Bookings() {
     );
   }
 
-  // Apply search and filters to bookings
+  // Apply client-side filters (status and date range only - name search is server-side)
   const filteredBookings = bookingsData?.bookings?.filter(booking => {
-    // Search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      const matchesSearch = 
-        booking.id.toLowerCase().includes(search) ||
-        booking.field.name.toLowerCase().includes(search) ||
-        booking.user.name?.toLowerCase().includes(search) ||
-        booking.user.email.toLowerCase().includes(search);
-      
-      if (!matchesSearch) return false;
-    }
-
     // Booking status filter
     if (activeFilters.bookingStatus !== 'All') {
       if (booking.status.toLowerCase() !== activeFilters.bookingStatus.toLowerCase()) {
@@ -78,7 +100,7 @@ export default function Bookings() {
       const bookingDate = new Date(booking.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       switch (activeFilters.dateRange) {
         case 'Today':
           if (bookingDate.toDateString() !== today.toDateString()) return false;
@@ -89,13 +111,13 @@ export default function Bookings() {
           if (bookingDate < weekStart) return false;
           break;
         case 'This Month':
-          if (bookingDate.getMonth() !== today.getMonth() || 
+          if (bookingDate.getMonth() !== today.getMonth() ||
               bookingDate.getFullYear() !== today.getFullYear()) return false;
           break;
         case 'Last Month':
           const lastMonth = new Date(today);
           lastMonth.setMonth(today.getMonth() - 1);
-          if (bookingDate.getMonth() !== lastMonth.getMonth() || 
+          if (bookingDate.getMonth() !== lastMonth.getMonth() ||
               bookingDate.getFullYear() !== lastMonth.getFullYear()) return false;
           break;
       }
@@ -131,12 +153,17 @@ export default function Bookings() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search bookings..."
+                  placeholder="Search by name (min 3 characters)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
+              {searchTerm.length > 0 && searchTerm.length < 3 && (
+                <p className="text-xs text-gray-500 mt-1 ml-1">
+                  Type at least 3 characters to search
+                </p>
+              )}
             </div>
             <div className="relative">
               <button 

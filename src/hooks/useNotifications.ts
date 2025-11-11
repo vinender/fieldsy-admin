@@ -28,12 +28,12 @@ interface NotificationsResponse {
 }
 
 // Fetch all notifications for admin
-export const useAdminNotifications = (page: number = 1, limit: number = 20) => {
+export const useAdminNotifications = (page: number = 1, limit: number = 20, markAsRead: boolean = false) => {
   return useQuery({
-    queryKey: ['admin-notifications', page, limit],
+    queryKey: ['admin-notifications', page, limit, markAsRead],
     queryFn: async () => {
       const response = await api.get<NotificationsResponse>('/admin/notifications', {
-        params: { page, limit }
+        params: { page, limit, markAsRead: markAsRead ? 'true' : 'false' }
       });
       return response.data;
     },

@@ -23,9 +23,26 @@ interface NotificationSidebarProps {
 }
 
 const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClose }) => {
+  const [hasMarkedAsRead, setHasMarkedAsRead] = React.useState(false);
   const { data: notificationsData, isLoading } = useAdminNotifications(1, 50);
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
+
+  // Mark all notifications as read when sidebar opens
+  useEffect(() => {
+    if (isOpen && !hasMarkedAsRead && notificationsData?.notifications) {
+      const unreadNotifications = notificationsData.notifications.filter(n => !n.read);
+      if (unreadNotifications.length > 0) {
+        markAllAsRead.mutate();
+        setHasMarkedAsRead(true);
+      }
+    }
+
+    // Reset hasMarkedAsRead when sidebar closes
+    if (!isOpen) {
+      setHasMarkedAsRead(false);
+    }
+  }, [isOpen, notificationsData, hasMarkedAsRead, markAllAsRead]);
 
   // Get background color for unread notifications based on type
   const getNotificationColor = (type: string) => {

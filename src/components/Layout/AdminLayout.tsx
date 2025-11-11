@@ -11,8 +11,6 @@ import {
   Menu,
   X,
   Bell,
-  Search,
-  User,
   Package,
   ChevronRight,
   FileText,
@@ -22,6 +20,7 @@ import { useLogout, useVerifyAdmin } from '@/hooks/useAuth';
 import { useAdminNotifications } from '@/hooks/useNotifications';
 import { useSocket } from '@/hooks/useSocket';
 import NotificationSidebar from './NotificationSidebar';
+import ProfileSidebar from './ProfileSidebar';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -31,6 +30,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const logout = useLogout();
   const { data: admin } = useVerifyAdmin();
   const { data: notificationsData } = useAdminNotifications(1, 50);
@@ -143,16 +143,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               >
                 <Menu className="w-6 h-6 text-gray-600" />
               </button>
-
-              {/* Search */}
-              <div className="relative hidden sm:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-10 pr-4 py-2 w-40 sm:w-64 lg:w-96 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
-                />
-              </div>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -173,15 +163,37 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </button>
 
               {/* Profile */}
-              <div className="flex items-center space-x-3">
+              <button
+                onClick={() => setProfileOpen(true)}
+                className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
+              >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-gray-900">{admin?.name}</p>
                   <p className="text-xs text-gray-500">{admin?.email}</p>
                 </div>
-                <div className="w-10 h-10 bg-green-lighter rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-green" />
-                </div>
-              </div>
+                {admin?.image ? (
+                  <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                    <img
+                      src={admin.image}
+                      alt={admin.name || 'Admin'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          parent.innerHTML = `<div class="w-full h-full bg-green-lighter rounded-full flex items-center justify-center"><span class="text-green text-sm font-semibold">${(admin.name || admin.email)?.charAt(0).toUpperCase()}</span></div>`;
+                        }
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="w-10 h-10 bg-green-lighter rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-green text-sm font-semibold">
+                      {(admin?.name || admin?.email)?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </button>
             </div>
           </div>
         </header>
@@ -198,6 +210,12 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       <NotificationSidebar
         isOpen={notificationOpen}
         onClose={() => setNotificationOpen(false)}
+      />
+
+      {/* Profile Sidebar */}
+      <ProfileSidebar
+        isOpen={profileOpen}
+        onClose={() => setProfileOpen(false)}
       />
     </div>
   );

@@ -15,13 +15,15 @@ interface BookingDetailsResponse {
 }
 
 // Get all bookings
-export const useBookings = (page: number = 1, limit: number = 10) => {
+export const useBookings = (page: number = 1, limit: number = 10, searchName?: string) => {
   return useQuery({
-    queryKey: ['bookings', page, limit],
+    queryKey: ['bookings', page, limit, searchName],
     queryFn: async () => {
-      const response = await api.get<BookingsResponse>('/admin/bookings', {
-        params: { page, limit }
-      });
+      const params: any = { page, limit };
+      if (searchName && searchName.trim()) {
+        params.searchName = searchName.trim();
+      }
+      const response = await api.get<BookingsResponse>('/admin/bookings', { params });
       return response.data;
     },
     staleTime: 1000 * 60 * 2, // 2 minutes

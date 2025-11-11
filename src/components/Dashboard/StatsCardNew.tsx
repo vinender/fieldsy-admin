@@ -53,7 +53,8 @@ const StatsCardNew: React.FC<StatsCardProps> = ({
           )}
         </div>
       </div>
-      {change !== undefined && (
+      
+      {/* {change !== undefined && (
         <div className="flex items-center gap-1 sm:gap-2">
           <TrendIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${isPositive ? 'text-[#3a6b22]' : 'text-red-500'}`} />
           <p className="text-xs sm:text-sm">
@@ -63,7 +64,7 @@ const StatsCardNew: React.FC<StatsCardProps> = ({
             <span className="text-[#8d8d8d]"> from yesterday</span>
           </p>
         </div>
-      )}
+      )} */}
     </div>
   );
 };
