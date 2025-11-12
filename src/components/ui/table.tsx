@@ -7,10 +7,10 @@ const Table = React.forwardRef<
   HTMLTableElement,
   React.HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
+  <div className="relative w-full overflow-x-auto lg:overflow-x-visible">
     <table
       ref={ref}
-      className={cn("w-full caption-bottom text-sm table-auto min-w-full", className)}
+      className={cn("w-full caption-bottom text-sm min-w-[640px] lg:min-w-full", className)}
       {...props}
     />
   </div>
@@ -76,7 +76,7 @@ const TableHead = React.forwardRef<
   <th
     ref={ref}
     className={cn(
-      "px-4 py-3 xl:px-6 text-left text-xs font-normal text-table-header tracking-wider",
+      "px-3 py-3 lg:px-6 text-left text-xs font-normal text-table-header tracking-wider",
       className
     )}
     {...props}
@@ -91,7 +91,7 @@ const TableCell = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("px-4 py-4 xl:px-6 whitespace-nowrap xl:whitespace-normal text-sm", className)}
+    className={cn("px-3 py-4 lg:px-6 whitespace-nowrap lg:whitespace-normal text-sm", className)}
     {...props}
   />
 ));
@@ -148,7 +148,7 @@ const TablePagination: React.FC<PaginationProps> = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className="px-4 py-4 xl:px-6 border-t border-gray-200">
+    <div className="px-3 py-4 lg:px-6 border-t border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="text-sm text-gray-700">
           Showing {startItem} to {endItem} of {totalItems} results
