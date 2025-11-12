@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   ArrowLeft,
   AlertCircle,
@@ -22,16 +22,45 @@ interface NotificationSidebarProps {
   onClose: () => void;
 }
 
+const ALLOWED_NOTIFICATION_TYPES = new Set([
+  // New bookings
+  'booking_received',
+  'new_booking_received',
+  // Booking cancellations
+  'booking_cancelled',
+  'booking_cancelled_by_customer',
+  'booking_cancelled_by_owner',
+  'booking_cancelled_success',
+  // Recurring booking lifecycle
+  'recurring_booking_created',
+  'recurring_booking_pending',
+  'recurring_booking_charged',
+  'recurring_booking_scheduled',
+  'recurring_booking_failed',
+  'subscription_cancelled',
+  'subscription_canceled',
+  'subscription_auto_cancelled'
+]);
+
 const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClose }) => {
   const [hasMarkedAsRead, setHasMarkedAsRead] = React.useState(false);
   const { data: notificationsData, isLoading } = useAdminNotifications(1, 50);
+  const allNotifications = notificationsData?.notifications || [];
+  const notifications = useMemo(
+    () => allNotifications.filter(notification => ALLOWED_NOTIFICATION_TYPES.has(notification.type)),
+    [allNotifications]
+  );
+  const unreadCount = useMemo(
+    () => notifications.filter(notification => !notification.read).length,
+    [notifications]
+  );
   const markAsRead = useMarkNotificationAsRead();
   const markAllAsRead = useMarkAllNotificationsAsRead();
 
   // Mark all notifications as read when sidebar opens
   useEffect(() => {
-    if (isOpen && !hasMarkedAsRead && notificationsData?.notifications) {
-      const unreadNotifications = notificationsData.notifications.filter(n => !n.read);
+    if (isOpen && !hasMarkedAsRead) {
+      const unreadNotifications = notifications.filter(n => !n.read);
       if (unreadNotifications.length > 0) {
         markAllAsRead.mutate();
         setHasMarkedAsRead(true);
@@ -42,7 +71,7 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
     if (!isOpen) {
       setHasMarkedAsRead(false);
     }
-  }, [isOpen, notificationsData, hasMarkedAsRead, markAllAsRead]);
+  }, [isOpen, hasMarkedAsRead, markAllAsRead, notifications]);
 
   // Get background color for unread notifications based on type
   const getNotificationColor = (type: string) => {
@@ -91,8 +120,6 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
     await markAsRead.mutate(id);
   };
 
-  const notifications = notificationsData?.notifications || [];
-  const unreadCount = notificationsData?.unreadCount || 0;
 
   return (
     <>
