@@ -1,6 +1,5 @@
 import React from 'react';
 import { useRouter } from 'next/router';
-import { Eye } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { Booking } from '@/types';
 import {
@@ -36,7 +35,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
       <TableHeader>
         <TableRow>
           <TableHead>Booking ID</TableHead>
-          <TableHead>Field & Owner</TableHead>
+          <TableHead className="w-48 max-w-[200px]">Field & Owner</TableHead>
           <TableHead>Time Slot</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Duration</TableHead>
@@ -53,10 +52,14 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
             <TableCell className="font-medium text-gray-900">
               #{booking.id.slice(-6)}
             </TableCell>
-            <TableCell>
-              <div>
-                <div className="text-sm font-medium text-gray-900">{booking.field.name}</div>
-                <div className="text-sm text-gray-500">{booking.field.owner.name || booking.field.owner.email}</div>
+            <TableCell className="max-w-[200px]">
+              <div className="space-y-0.5">
+                <div className="text-sm font-medium text-gray-900 truncate" title={booking.field.name}>
+                  {booking.field.name}
+                </div>
+                <div className="text-sm text-gray-500 truncate" title={booking.field.owner.name || booking.field.owner.email}>
+                  {booking.field.owner.name || booking.field.owner.email}
+                </div>
               </div>
             </TableCell>
             <TableCell className="text-table-text">
