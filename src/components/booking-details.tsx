@@ -23,6 +23,7 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
       case 'COMPLETED':
         return 'text-[#3a6b22]';
       case 'CONFIRMED':
+        return 'text-[#3a6b22] ';
       case 'ACTIVE':
         return 'text-blue-600';
       case 'PENDING':
@@ -55,12 +56,12 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
     <div className="min-h-screen bg-[#fffcf3] p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumb */}
-        <div className="mb-8">
+        {/* <div className="mb-8">
           <h1 className="text-2xl font-bold text-[#192215]">
             <span className="text-[#8d8d8d]">Bookings Overview /</span>
             <span> Booking Detail</span>
           </h1>
-        </div>
+        </div> */}
 
         {/* Content Container */}
         <div className="space-y-6">
@@ -163,24 +164,39 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                     </p>
                   </div>
                   <div className="space-y-1.5">
+                    <p className="text-sm text-[#8d8d8d]">Role</p>
+                    <p className="text-base font-semibold text-[#192215] truncate">
+                      {booking.user?.role || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
                     <p className="text-sm text-[#8d8d8d]">Phone</p>
                     <p className="text-base font-semibold text-[#192215]">
                       {booking.user?.phone || 'N/A'}
                     </p>
                   </div>
-                  <div className="space-y-1.5">
+                  {/* <div className="space-y-1.5">
                     <p className="text-sm text-[#8d8d8d]">Total Bookings</p>
                     <p className="text-base font-semibold text-[#192215]">
                       {booking.user?._count?.bookings || 'N/A'}
                     </p>
-                  </div>
+                  </div> */}
                   <div className="space-y-1.5">
                     <p className="text-sm text-[#8d8d8d]">Account Status</p>
                     <p className="text-base font-semibold text-[#3a6b22]">
                       {booking.user?.isActive !== false ? 'Active' : 'Inactive'}
                     </p>
                   </div>
+                  
                 </div>
+
+                  {/* View Detail Button */}
+                  <button 
+                  onClick={() => router.push(`/fields/${booking.user?.id}`)}
+                  className="bg-[#3a6b22] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#2d5419] transition-colors flex-shrink-0 border border-[rgba(58,107,34,0.12)]"
+                >
+                  View  Details
+                </button>
               </div>
             </div>
           </div>
@@ -204,7 +220,7 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 </div>
 
                 {/* Field Details */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-4 gap-6">
                   <div className="space-y-1.5">
                     <p className="text-sm text-[#8d8d8d]">Name</p>
                     <p className="text-base font-semibold text-[#192215]">
@@ -212,10 +228,16 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                     </p>
                   </div>
                   <div className="space-y-1.5">
+                    <p className="text-sm text-[#8d8d8d]">Owner Name</p>
+                    <p className="text-base font-semibold text-[#192215]">
+                      {booking.field?.owner?.name || 'N/A'}
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
                     <p className="text-sm text-[#8d8d8d]">Location</p>
                     <p className="text-base font-semibold text-[#192215]">
-                      {booking.field?.city && booking.field?.state 
-                        ? `${booking.field.city}, ${booking.field.state}` 
+                      {booking.field?.city && booking.field?.state
+                        ? `${booking.field.city}, ${booking.field.state}`
                         : 'N/A'}
                     </p>
                   </div>
@@ -244,27 +266,21 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
             <div className="bg-white rounded-2xl p-6 shadow-[0px_10px_13px_0px_rgba(0,0,0,0.04)] border border-black/10">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Subtotal</p>
-                  <p className="text-base font-semibold text-[#192215]">
-                    {booking.subtotal ? formatCurrency(booking.subtotal) : formatCurrency(booking.totalPrice || 0)}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Service Fee</p>
-                  <p className="text-base font-semibold text-[#192215]">
-                    {booking.serviceFee ? formatCurrency(booking.serviceFee) : '£0'}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Tax</p>
-                  <p className="text-base font-semibold text-[#192215]">
-                    {booking.tax ? formatCurrency(booking.tax) : '£0'}
-                  </p>
-                </div>
-                <div className="space-y-1.5">
                   <p className="text-sm text-[#8d8d8d]">Total Paid</p>
                   <p className="text-base font-semibold text-[#3a6b22]">
                     {booking.totalPrice ? formatCurrency(booking.totalPrice) : 'N/A'}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-[#8d8d8d]">Admin Commission</p>
+                  <p className="text-base font-semibold text-[#192215]">
+                    {booking.adminCommission ? formatCurrency(booking.adminCommission) : '£0'}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-[#8d8d8d]">Field Owner Commission</p>
+                  <p className="text-base font-semibold text-[#192215]">
+                    {booking.fieldOwnerCommission ? formatCurrency(booking.fieldOwnerCommission) : '£0'}
                   </p>
                 </div>
               </div>

@@ -145,33 +145,12 @@ export default function FieldDetails() {
 
   // Dynamic data from field
   const fieldImages = field.images?.length > 0 ? field.images : [];
-  
-  // Parse safety rules - they might be in a single string with periods or line breaks
-  let safetyRules: string[] = [];
-  if (field.rules && Array.isArray(field.rules)) {
-    if (field.rules.length === 1 && typeof field.rules[0] === 'string') {
-      // Single string with multiple rules
-      const rulesString = field.rules[0];
-      // Split by periods or line breaks
-      safetyRules = rulesString
-        .split(/[.\n]/)
-        .map((rule: string) => rule.trim())
-        .filter((rule: string) => rule.length > 0);
-    } else {
-      // Already an array of rules
-      safetyRules = field.rules.filter((rule: any) => rule && rule.length > 0);
-    }
-  }
-  
-  // Standard booking policies
-  const bookingPolicies = [
-    'All bookings must be made at least 24 hours in advance',
-    'The minimum booking slot is 1 hour',
-    'Free cancellation up to 12 hours before the scheduled start time',
-    'Users arriving late will not receive a time extension',
-    'If the client does not arrive within 15 minutes of the booking start time, the booking will be marked as non-show and charged in full',
-    'Bookings may be subject to blackout list booking nights'
-  ];
+
+  // Safety rules from API (already parsed on backend)
+  const safetyRules: string[] = field.safetyRules || [];
+
+  // Booking policies from API (already parsed on backend)
+  const bookingPolicies: string[] = field.policies || [];
   
   // Format earnings data from booking history with new columns
   const earningsData = field.recentBookings?.slice(0, 10).map((b: any) => [
@@ -208,6 +187,8 @@ export default function FieldDetails() {
     return maxRatingCount > 0 ? (count / maxRatingCount) * 100 : 0;
   };
 
+  console.log(';;field',field)
+
   return (
     <AdminLayout>
       <div className="bg-light min-h-screen">
@@ -223,7 +204,7 @@ export default function FieldDetails() {
                 <InfoCard label="Name" value={field.name || "N/A"} />
                 <InfoCard label="Type" value={field.type || "N/A"} />
                 <InfoCard label="Size" value={field.size || "N/A"} />
-                <InfoCard label="Price" value={field.pricePerHour ? `${formatCurrency(field.pricePerHour)}/hr` : "N/A"} />
+                <InfoCard label="Price" value={field.price ?`${formatCurrency(field.price)}/${field.bookingDuration}` : "N/A"} />
                 <InfoCard label="Status" value={field.isActive ? "Active" : "Inactive"} />
               </div>
               <div className="grid grid-cols-5 gap-8 mt-6">
@@ -237,7 +218,7 @@ export default function FieldDetails() {
                 <InfoCard label="Booking Duration" value={field.bookingDuration || "N/A"} />
                 <InfoCard label="Max Dogs" value={field.maxDogs || "N/A"} />
                 <InfoCard label="Operating Days" value={field.operatingDays?.length ? field.operatingDays.join(', ') : "N/A"} />
-                <InfoCard label="Instant Booking" value={field.instantBooking ? "Yes" : "No"} />
+                {/* <InfoCard label="Instant Booking" value={field.instantBooking ? "Yes" : "No"} /> */}
                 <InfoCard
                   label="Amenities"
                   value={
@@ -294,7 +275,7 @@ export default function FieldDetails() {
                 <InfoCard label="Email" value={field.owner?.email || "N/A"} />
                 <InfoCard label="Contact" value={field.owner?.phone || "N/A"} />
                 <InfoCard label="Joined On" value={field.joinedOn || "N/A"} />
-                <InfoCard label="Status" value={field.owner ? "Active" : "N/A"} />
+                <InfoCard label="Status" value={field.owner ? (field.owner.isBlocked ? "Blocked" : "Active") : "N/A"} />
               </div>
             </Card>
           </div>

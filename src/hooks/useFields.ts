@@ -53,13 +53,13 @@ export const useToggleFieldClaimed = () => {
   });
 };
 
-// Get single field details
+// Get single field details for admin (with owner and booking data)
 export const useFieldDetails = (fieldId: string | undefined) => {
   return useQuery({
-    queryKey: ['field', fieldId],
+    queryKey: ['admin-field', fieldId],
     queryFn: async () => {
       if (!fieldId) throw new Error('Field ID is required');
-      const response = await api.get(`/fields/${fieldId}`);
+      const response = await api.get(`/admin/fields/${fieldId}`);
       return response.data;
     },
     enabled: !!fieldId,
