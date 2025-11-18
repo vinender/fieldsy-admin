@@ -13,13 +13,21 @@ interface AboutSectionSettingsProps {
 }
 
 export default function AboutSectionSettings({ formData, setFormData, setHasChanges }: AboutSectionSettingsProps) {
+  // Character limits
+  const CHAR_LIMITS = {
+    aboutTitle: 300,
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">About Section Settings</h2>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Main Title
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.aboutTitle.length}/{CHAR_LIMITS.aboutTitle} characters)
+          </span>
         </label>
         <textarea
           name="aboutTitle"
@@ -28,12 +36,13 @@ export default function AboutSectionSettings({ formData, setFormData, setHasChan
             setFormData({ ...formData, aboutTitle: e.target.value });
             setHasChanges(true);
           }}
+          maxLength={CHAR_LIMITS.aboutTitle}
           rows={3}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="Enter the main title for the about section..."
         />
         <p className="mt-1 text-sm text-gray-500">
-          This is the main headline text in the about section
+          This is the main headline text in the about section (max {CHAR_LIMITS.aboutTitle} characters)
         </p>
       </div>
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import { useUsers } from '@/hooks/useUsers';
+import { useUsers, useBlockUser, useUnblockUser } from '@/hooks/useUsers';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { User, Search, Filter, Mail, Phone, Calendar, Shield, Dog } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
@@ -24,12 +24,29 @@ export default function DogOwners() {
   const [searchTerm, setSearchTerm] = useState('');
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: usersData, isLoading: usersLoading } = useUsers(page, 10, 'DOG_OWNER');
+  const blockUserMutation = useBlockUser();
+  const unblockUserMutation = useUnblockUser();
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
       router.push('/login');
     }
   }, [admin, adminLoading, adminError, router]);
+
+  const handleToggleBlock = async (user: any) => {
+    try {
+      if (user.isBlocked) {
+        await unblockUserMutation.mutateAsync(user.id);
+      } else {
+        await blockUserMutation.mutateAsync({
+          userId: user.id,
+          reason: 'Blocked by admin'
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling block status:', error);
+    }
+  };
 
   if (adminLoading || usersLoading) {
     return (
@@ -130,6 +147,7 @@ export default function DogOwners() {
                     <TableHead>Contact</TableHead>
                     <TableHead>Bookings</TableHead>
                     <TableHead>Verified</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Joined</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -180,6 +198,15 @@ export default function DogOwners() {
                           </span>
                         )}
                       </TableCell>
+                      <TableCell>
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          user.isBlocked
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-green-lighter text-green'
+                        }`}>
+                          {user.isBlocked ? 'Blocked' : 'Active'}
+                        </span>
+                      </TableCell>
                       <TableCell className="text-gray-500">
                         <div className="flex items-center">
                           <Calendar className="w-4 h-4 text-gray-400 mr-2" />
@@ -187,12 +214,33 @@ export default function DogOwners() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <button 
-                          onClick={() => router.push(`/dog-owners/${user.id}`)}
-                          className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
-                        >
-                          View Details
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => router.push(`/dog-owners/${user.id}`)}
+                            className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={() => handleToggleBlock(user)}
+                            disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              user.isBlocked
+                                ? 'bg-gray-300 focus:ring-gray-500'
+                                : 'bg-green focus:ring-green'
+                            } ${
+                              blockUserMutation.isPending || unblockUserMutation.isPending
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                            }`}
+                          >
+                            <span
+                              className={`${
+                                user.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                            />
+                          </button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

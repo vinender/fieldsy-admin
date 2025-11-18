@@ -200,9 +200,8 @@ export default function FieldDetails() {
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Overview</h2>
             <Card className="p-5">
-              <div className="grid grid-cols-5 gap-8">
+              <div className="grid grid-cols-4 gap-8">
                 <InfoCard label="Name" value={field.name || "N/A"} />
-                <InfoCard label="Type" value={field.type || "N/A"} />
                 <InfoCard label="Size" value={field.size || "N/A"} />
                 <InfoCard label="Price" value={field.price ?`${formatCurrency(field.price)}/${field.bookingDuration}` : "N/A"} />
                 <InfoCard label="Status" value={field.isActive ? "Active" : "Inactive"} />

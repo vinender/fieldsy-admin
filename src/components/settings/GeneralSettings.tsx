@@ -40,51 +40,76 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
         type: 'select'
       }
     } as React.ChangeEvent<HTMLSelectElement>;
-    
+
     handleChange(syntheticEvent);
+  };
+
+  // Character limits for each field
+  const CHAR_LIMITS = {
+    siteName: 100,
+    siteUrl: 200,
+    supportEmail: 100,
   };
 
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h2>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Site Name
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.siteName.length}/{CHAR_LIMITS.siteName} characters)
+          </span>
         </label>
         <input
           type="text"
           name="siteName"
           value={formData.siteName}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.siteName}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="e.g., Fieldsy"
         />
+        <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.siteName} characters</p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Site URL
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.siteUrl.length}/{CHAR_LIMITS.siteUrl} characters)
+          </span>
         </label>
         <input
           type="url"
           name="siteUrl"
           value={formData.siteUrl}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.siteUrl}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="https://example.com"
         />
+        <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.siteUrl} characters</p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Support Email
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.supportEmail.length}/{CHAR_LIMITS.supportEmail} characters)
+          </span>
         </label>
         <input
           type="email"
           name="supportEmail"
           value={formData.supportEmail}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.supportEmail}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="support@example.com"
         />
+        <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.supportEmail} characters</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

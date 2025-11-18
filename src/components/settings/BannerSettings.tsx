@@ -16,41 +16,55 @@ export default function BannerSettings({ formData, setFormData, setHasChanges }:
     setHasChanges(true);
   };
 
+  // Character limits
+  const CHAR_LIMITS = {
+    bannerText: 150,
+    highlightedText: 50,
+  };
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Hero Banner Settings</h2>
-      
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Banner Text
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.bannerText.length}/{CHAR_LIMITS.bannerText} characters)
+          </span>
         </label>
         <input
           type="text"
           name="bannerText"
           value={formData.bannerText}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.bannerText}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="Enter the main banner text..."
         />
         <p className="mt-1 text-sm text-gray-500">
-          This is the main text that appears in the hero section
+          This is the main text that appears in the hero section (max {CHAR_LIMITS.bannerText} characters)
         </p>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Highlighted Text
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.highlightedText.length}/{CHAR_LIMITS.highlightedText} characters)
+          </span>
         </label>
         <input
           type="text"
           name="highlightedText"
           value={formData.highlightedText}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.highlightedText}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="Enter the text to highlight..."
         />
         <p className="mt-1 text-sm text-gray-500">
-          This text will be highlighted in green color within the banner text
+          This text will be highlighted in green color within the banner text (max {CHAR_LIMITS.highlightedText} characters)
         </p>
       </div>
 

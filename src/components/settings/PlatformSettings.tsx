@@ -19,13 +19,21 @@ interface PlatformSettingsProps {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export default function PlatformSettings({ 
-  formData, 
-  setFormData, 
+export default function PlatformSettings({
+  formData,
+  setFormData,
   setHasChanges,
-  handleChange 
+  handleChange
 }: PlatformSettingsProps) {
-  
+
+  // Character limits
+  const CHAR_LIMITS = {
+    platformTitle: 150,
+    subtitle: 50,
+    title: 150,
+    bullet: 150,
+  };
+
   const handleBulletChange = (field: 'platformDogOwnersBullets' | 'platformFieldOwnersBullets', index: number, value: string) => {
     setFormData((prev: any) => ({
       ...prev,
@@ -53,20 +61,25 @@ export default function PlatformSettings({
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Platform Section Settings</h2>
-      
+
       {/* Main Title */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Section Title
+          <span className="text-xs text-gray-500 ml-2">
+            ({formData.platformTitle.length}/{CHAR_LIMITS.platformTitle} characters)
+          </span>
         </label>
         <input
           type="text"
           name="platformTitle"
           value={formData.platformTitle}
           onChange={handleChange}
+          maxLength={CHAR_LIMITS.platformTitle}
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
           placeholder="Enter the main platform section title..."
         />
+        <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.platformTitle} characters</p>
       </div>
 
       {/* Dog Owners Section */}
@@ -76,29 +89,39 @@ export default function PlatformSettings({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Subtitle (Green Text)
+            <span className="text-xs text-gray-500 ml-2">
+              ({formData.platformDogOwnersSubtitle.length}/{CHAR_LIMITS.subtitle} characters)
+            </span>
           </label>
           <input
             type="text"
             name="platformDogOwnersSubtitle"
             value={formData.platformDogOwnersSubtitle}
             onChange={handleChange}
+            maxLength={CHAR_LIMITS.subtitle}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="e.g., For Dog Owners:"
           />
+          <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Title
+            <span className="text-xs text-gray-500 ml-2">
+              ({formData.platformDogOwnersTitle.length}/{CHAR_LIMITS.title} characters)
+            </span>
           </label>
           <input
             type="text"
             name="platformDogOwnersTitle"
             value={formData.platformDogOwnersTitle}
             onChange={handleChange}
+            maxLength={CHAR_LIMITS.title}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="Enter the dog owners card title..."
           />
+          <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
         </div>
 
         <div>
@@ -108,13 +131,19 @@ export default function PlatformSettings({
           <div className="space-y-2">
             {formData.platformDogOwnersBullets.map((bullet, index) => (
               <div key={index} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={bullet}
-                  onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Enter bullet point..."
-                />
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={bullet}
+                    onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
+                    maxLength={CHAR_LIMITS.bullet}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Enter bullet point..."
+                  />
+                  <p className="text-xs text-gray-500 mt-0.5 ml-1">
+                    {bullet.length}/{CHAR_LIMITS.bullet}
+                  </p>
+                </div>
                 <button
                   onClick={() => removeBullet('platformDogOwnersBullets', index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -155,29 +184,39 @@ export default function PlatformSettings({
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Subtitle (Green Text)
+            <span className="text-xs text-gray-500 ml-2">
+              ({formData.platformFieldOwnersSubtitle.length}/{CHAR_LIMITS.subtitle} characters)
+            </span>
           </label>
           <input
             type="text"
             name="platformFieldOwnersSubtitle"
             value={formData.platformFieldOwnersSubtitle}
             onChange={handleChange}
+            maxLength={CHAR_LIMITS.subtitle}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="e.g., For Field Owners:"
           />
+          <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Title
+            <span className="text-xs text-gray-500 ml-2">
+              ({formData.platformFieldOwnersTitle.length}/{CHAR_LIMITS.title} characters)
+            </span>
           </label>
           <input
             type="text"
             name="platformFieldOwnersTitle"
             value={formData.platformFieldOwnersTitle}
             onChange={handleChange}
+            maxLength={CHAR_LIMITS.title}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="Enter the field owners card title..."
           />
+          <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
         </div>
 
         <div>
@@ -187,13 +226,19 @@ export default function PlatformSettings({
           <div className="space-y-2">
             {formData.platformFieldOwnersBullets.map((bullet, index) => (
               <div key={index} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={bullet}
-                  onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  placeholder="Enter bullet point..."
-                />
+                <div className="flex-1">
+                  <input
+                    type="text"
+                    value={bullet}
+                    onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
+                    maxLength={CHAR_LIMITS.bullet}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Enter bullet point..."
+                  />
+                  <p className="text-xs text-gray-500 mt-0.5 ml-1">
+                    {bullet.length}/{CHAR_LIMITS.bullet}
+                  </p>
+                </div>
                 <button
                   onClick={() => removeBullet('platformFieldOwnersBullets', index)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

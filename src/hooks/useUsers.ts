@@ -23,13 +23,28 @@ export const useUsers = (page: number = 1, limit: number = 10, role?: string) =>
   });
 };
 
-// Block/Unblock user
-export const useToggleUserBlock = () => {
+// Block user
+export const useBlockUser = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ userId, block }: { userId: string; block: boolean }) => {
-      const response = await api.patch(`/users/${userId}/block`, { blocked: block });
+    mutationFn: async ({ userId, reason }: { userId: string; reason?: string }) => {
+      const response = await api.patch(`/admin/users/${userId}/block`, { reason });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+};
+
+// Unblock user
+export const useUnblockUser = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await api.patch(`/admin/users/${userId}/unblock`);
       return response.data;
     },
     onSuccess: () => {

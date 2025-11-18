@@ -126,25 +126,24 @@ export default function QueryDetailsModal({
               <label className="text-sm font-medium text-gray-700 block mb-2">
                 Update Status
               </label>
-              <div className="flex space-x-3">
-                {['new', 'in-progress', 'resolved'].map((statusOption) => (
-                  <button
-                    key={statusOption}
-                    onClick={() => setStatus(statusOption as any)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      status === statusOption
-                        ? getStatusBadgeColor(statusOption)
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    }`}
-                  >
-                    {statusOption === 'in-progress' ? 'In Progress' : statusOption.charAt(0).toUpperCase() + statusOption.slice(1)}
-                  </button>
-                ))}
-              </div>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-medium ${
+                  status === 'new' ? 'text-blue-700 bg-blue-50' :
+                  status === 'in-progress' ? 'text-yellow-700 bg-yellow-50' :
+                  status === 'resolved' ? 'text-green-700 bg-green-50' :
+                  'text-gray-700 bg-white'
+                }`}
+              >
+                <option value="new" className="text-blue-700 bg-white">New</option>
+                <option value="in-progress" className="text-yellow-700 bg-white">In Progress</option>
+                <option value="resolved" className="text-green-700 bg-white">Resolved</option>
+              </select>
             </div>
 
             {/* Admin Notes */}
-            <div>
+            {/* <div>
               <label className="text-sm font-medium text-gray-700 block mb-2">
                 Admin Notes
               </label>
@@ -155,7 +154,7 @@ export default function QueryDetailsModal({
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
                 rows={4}
               />
-            </div>
+            </div> */}
 
             {/* Timestamps */}
             <div className="bg-gray-50 rounded-xl p-4">

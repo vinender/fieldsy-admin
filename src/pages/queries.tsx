@@ -156,7 +156,7 @@ export default function Queries() {
         </div>
 
         {/* Status Tabs */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="bg-white w-full flex items-center justify-between rounded-xl shadow-sm border border-gray-100 p-4">
           <div className="flex flex-wrap gap-2">
             {tabs.map((tab) => (
               <button
@@ -186,10 +186,8 @@ export default function Queries() {
               </button>
             ))}
           </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            {/* Search Bar */}
+        <div className="bg-white rounded-xl shadow-sm  p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -204,6 +202,10 @@ export default function Queries() {
             />
           </div>
         </div>
+
+        </div>
+
+       
 
         {/* Queries Table */}
         {queriesLoading ? (

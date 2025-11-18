@@ -60,6 +60,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { icon: FileText, label: 'Claims', href: '/claims' },
     { icon: MessageSquare, label: 'Queries', href: '/queries' },
     { icon: Package, label: 'Amenities', href: '/amenities' },
+    { icon: Package, label: 'Field Options', href: '/field-options' },
     { icon: Settings, label: 'Settings', href: '/settings' },
   ];
 

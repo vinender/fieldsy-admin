@@ -123,12 +123,14 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
   console.log('Bookings:', user?.bookings);
 
   const calculateTotalSpent = () => {
-    return user.bookings?.reduce((total, booking) => {
-      if (booking.status === 'completed' || booking.status === 'confirmed') {
-        return total + booking.totalPrice;
-      }
-      return total;
-    }, 0) || 0;
+    return (
+      user.bookings?.reduce((total, booking) => {
+        if ((booking.status || '').toUpperCase() === 'COMPLETED') {
+          return total + (booking.totalPrice || 0);
+        }
+        return total;
+      }, 0) || 0
+    );
   };
 
   const getLastActive = () => {

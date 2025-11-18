@@ -9,6 +9,18 @@ interface DocumentViewerModalProps {
   onDocumentSelect: (url: string) => void;
 }
 
+const PDF_TOOLBAR_PARAMS = 'toolbar=0&navpanes=0&scrollbar=0&view=FitH';
+
+const getPdfSrc = (url: string) => {
+  if (!url) return url;
+  const [base, hash] = url.split('#');
+  if (!hash) {
+    return `${base}#${PDF_TOOLBAR_PARAMS}`;
+  }
+  const connector = hash.endsWith('&') || hash.endsWith('?') ? '' : '&';
+  return `${base}#${hash}${connector}${PDF_TOOLBAR_PARAMS}`;
+};
+
 const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
   isOpen,
   onClose,
@@ -57,7 +69,7 @@ const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black bg-opacity-75"
@@ -65,56 +77,104 @@ const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-xl max-w-6xl w-full mx-4 max-h-[90vh] overflow-hidden">
+      <div className="relative bg-white rounded-xl sm:rounded-2xl shadow-2xl w-full h-full sm:max-w-6xl sm:h-[95vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="bg-white border-b px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h3 className="text-lg font-semibold text-gray-900">Document Viewer</h3>
-            <div className="text-sm text-gray-500">
-              Document {currentDocIndex + 1} of {documents.length}
-            </div>
+        <div className="bg-white border-b px-3 sm:px-6 py-3 sm:py-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+            <h3 className="text-sm sm:text-lg font-semibold text-gray-900 truncate">
+              {claim.field?.name || 'Field'} - Documents
+            </h3>
+            {documents.length > 0 && (
+              <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">
+                {currentDocIndex + 1}/{documents.length}
+              </span>
+            )}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
             {documents.length > 1 && (
               <>
                 <button
                   onClick={handlePrevious}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Previous document"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
                 <button
                   onClick={handleNext}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  title="Next document"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </>
             )}
             <button
               onClick={() => handleDownload(currentDoc)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Download document"
             >
-              <Download className="w-5 h-5" />
+              <Download className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="p-1.5 sm:p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex">
-          {/* Sidebar with document list */}
-          <div className="w-64 bg-gray-50 border-r p-4 overflow-y-auto max-h-[calc(90vh-80px)]">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">Uploaded Documents</h4>
-            <div className="space-y-2">
+        {/* Document Display */}
+        <div className="flex-1 overflow-auto bg-gray-100">
+          {currentDoc ? (
+            <div className="w-full h-full p-2 sm:p-4 md:p-6">
+              {getFileType(currentDoc) === 'image' ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <img
+                    src={currentDoc}
+                    alt={`Document ${currentDocIndex + 1}`}
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                  />
+                </div>
+              ) : getFileType(currentDoc) === 'pdf' ? (
+                <iframe
+                  src={getPdfSrc(currentDoc)}
+                  className="w-full h-full rounded-lg shadow-lg bg-white"
+                  title="PDF Document"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-lg mx-2">
+                    <FileText className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-sm sm:text-base text-gray-600 mb-4">
+                      This document type cannot be displayed in the browser
+                    </p>
+                    <button
+                      onClick={() => handleDownload(currentDoc)}
+                      className="inline-flex items-center px-3 py-2 sm:px-4 sm:py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                      Download Document
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-sm sm:text-base text-gray-500">No document available</p>
+            </div>
+          )}
+        </div>
+
+        {/* Document Thumbnails (if multiple documents) */}
+        {documents.length > 1 && (
+          <div className="bg-white border-t px-2 sm:px-4 md:px-6 py-2 sm:py-3 flex-shrink-0">
+            <div className="flex items-center space-x-1.5 sm:space-x-2 overflow-x-auto pb-1">
               {documents.map((doc: string, index: number) => {
                 const fileType = getFileType(doc);
-                const fileName = doc.split('/').pop() || `Document ${index + 1}`;
                 const isSelected = index === currentDocIndex;
 
                 return (
@@ -124,98 +184,35 @@ const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                       setCurrentDocIndex(index);
                       onDocumentSelect(doc);
                     }}
-                    className={`w-full flex items-center space-x-2 p-2 rounded-lg transition-colors ${
-                      isSelected 
-                        ? 'bg-blue-100 text-blue-700' 
-                        : 'hover:bg-gray-200 text-gray-700'
+                    className={`flex-shrink-0 p-1.5 sm:p-2 rounded-lg border-2 transition-all ${
+                      isSelected
+                        ? 'border-green-600 bg-green-50'
+                        : 'border-gray-200 hover:border-gray-300 bg-white'
                     }`}
+                    title={`Document ${index + 1}`}
                   >
                     {fileType === 'image' ? (
-                      <Image className="w-5 h-5 flex-shrink-0" />
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded overflow-hidden bg-gray-100">
+                        <img
+                          src={doc}
+                          alt={`Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                     ) : (
-                      <FileText className="w-5 h-5 flex-shrink-0" />
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 flex items-center justify-center bg-gray-100 rounded">
+                        <FileText className={`w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 ${isSelected ? 'text-green-600' : 'text-gray-400'}`} />
+                      </div>
                     )}
-                    <span className="text-sm truncate">{fileName}</span>
+                    <div className={`text-[10px] sm:text-xs mt-0.5 sm:mt-1 text-center ${isSelected ? 'text-green-600 font-semibold' : 'text-gray-500'}`}>
+                      Doc {index + 1}
+                    </div>
                   </button>
                 );
               })}
             </div>
-
-            {/* Claim Info */}
-            <div className="mt-6 pt-4 border-t">
-              <h4 className="text-sm font-semibold text-gray-700 mb-3">Claim Information</h4>
-              <div className="space-y-2 text-sm">
-                <div>
-                  <span className="font-medium text-gray-600">Claimant:</span>
-                  <p className="text-gray-900">{claim.fullName}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Email:</span>
-                  <p className="text-gray-900">{claim.email}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Phone:</span>
-                  <p className="text-gray-900">
-                    {claim.phoneCode} {claim.phoneNumber}
-                  </p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Legal Owner:</span>
-                  <p className="text-gray-900">{claim.isLegalOwner ? 'Yes' : 'No'}</p>
-                </div>
-                <div>
-                  <span className="font-medium text-gray-600">Status:</span>
-                  <p className={`font-semibold ${
-                    claim.status === 'APPROVED' ? 'text-green-600' :
-                    claim.status === 'REJECTED' ? 'text-red-600' :
-                    'text-yellow-600'
-                  }`}>
-                    {claim.status}
-                  </p>
-                </div>
-              </div>
-            </div>
           </div>
-
-          {/* Document Display */}
-          <div className="flex-1 overflow-auto max-h-[calc(90vh-80px)] bg-gray-100">
-            {currentDoc ? (
-              <div className="w-full h-full flex items-center justify-center p-4">
-                {getFileType(currentDoc) === 'image' ? (
-                  <img
-                    src={currentDoc}
-                    alt="Document"
-                    className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
-                  />
-                ) : getFileType(currentDoc) === 'pdf' ? (
-                  <iframe
-                    src={currentDoc}
-                    className="w-full h-full rounded-lg shadow-lg bg-white"
-                    title="PDF Document"
-                  />
-                ) : (
-                  <div className="text-center">
-                    <FileText className="w-24 h-24 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-600 mb-4">
-                      This document type cannot be displayed in the browser
-                    </p>
-                    <button
-                      onClick={() => handleDownload(currentDoc)}
-                      className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                      <Download className="w-5 h-5 mr-2" />
-                      Download Document
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <p className="text-gray-500">No document selected</p>
-              </div>
-            )}
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -9,23 +9,26 @@ interface FilterComponentProps {
   onClose?: () => void;
 }
 
-export default function FilterComponent({ 
+export default function FilterComponent({
   onFiltersChange = () => {},
   initialFilters = null,
   showApplyButton = false,
   className = "",
   onClose
 }: FilterComponentProps) {
-  // State for each filter section
+  // State for temporary filter changes (not yet applied)
   const [filters, setFilters] = useState(initialFilters || {
     bookingStatus: 'All',
     dateRange: 'All'
   });
 
-  // Notify parent component when filters change
+  // Only notify parent when filters change if showApplyButton is false
+  // When showApplyButton is true, filters are only applied when button is clicked
   useEffect(() => {
-    onFiltersChange(filters);
-  }, [filters]);
+    if (!showApplyButton) {
+      onFiltersChange(filters);
+    }
+  }, [filters, showApplyButton, onFiltersChange]);
 
   // Handle radio button changes
   const handleFilterChange = (filterType: string, value: string) => {
@@ -35,13 +38,24 @@ export default function FilterComponent({
     }));
   };
 
-  // Reset all filters
+  // Apply filters - called when Apply button is clicked
+  const handleApplyFilters = () => {
+    console.log('Applied filters:', filters);
+    onFiltersChange(filters);
+    if (onClose) onClose();
+  };
+
+  // Reset all filters - applies immediately and closes modal
   const handleReset = () => {
     const resetFilters = {
       bookingStatus: 'All',
       dateRange: 'All'
     };
     setFilters(resetFilters);
+    // Apply the reset filters immediately
+    onFiltersChange(resetFilters);
+    // Close modal if onClose is provided
+    if (onClose) onClose();
   };
 
   // Custom Radio Button Component
@@ -159,11 +173,8 @@ export default function FilterComponent({
         {/* Optional Apply Button */}
         {showApplyButton && (
           <div className="mt-6">
-            <button 
-              onClick={() => {
-                console.log('Applied filters:', filters);
-                if (onClose) onClose();
-              }}
+            <button
+              onClick={handleApplyFilters}
               className="w-full bg-[#3a6b22] text-white py-2.5 px-4 rounded-xl text-sm font-semibold hover:bg-[#2d5419] active:scale-[0.98] transition-all duration-150"
             >
               Apply Filters

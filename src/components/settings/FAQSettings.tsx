@@ -31,6 +31,13 @@ export default function FAQSettings({
   savingFAQs,
   setNotification
 }: FAQSettingsProps) {
+
+  // Character limits
+  const CHAR_LIMITS = {
+    question: 200,
+    answer: 1000,
+  };
+
   return (
     <>
       <div className="space-y-6">
@@ -142,27 +149,37 @@ export default function FAQSettings({
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Question
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({editingFAQ.question?.length || 0}/{CHAR_LIMITS.question} characters)
+                  </span>
                 </label>
                 <input
                   type="text"
                   value={editingFAQ.question || ''}
                   onChange={(e) => setEditingFAQ({ ...editingFAQ, question: e.target.value })}
+                  maxLength={CHAR_LIMITS.question}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
                   placeholder="Enter the question..."
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.question} characters</p>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Answer
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({editingFAQ.answer?.length || 0}/{CHAR_LIMITS.answer} characters)
+                  </span>
                 </label>
                 <textarea
                   value={editingFAQ.answer || ''}
                   onChange={(e) => setEditingFAQ({ ...editingFAQ, answer: e.target.value })}
+                  maxLength={CHAR_LIMITS.answer}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-green focus:border-green"
                   rows={4}
                   placeholder="Enter the answer..."
                 />
+                <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.answer} characters</p>
               </div>
 
               <div>

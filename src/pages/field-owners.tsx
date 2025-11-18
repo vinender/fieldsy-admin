@@ -4,12 +4,13 @@ import AdminLayout from '../components/Layout/AdminLayout';
 import { useRouter } from 'next/router';
 import { Edit, Search, DollarSign } from 'lucide-react';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { 
-  useFieldOwners, 
-  useCommissionSettings, 
-  useUpdateFieldOwnerCommission, 
-  useUpdateDefaultCommission 
+import {
+  useFieldOwners,
+  useCommissionSettings,
+  useUpdateFieldOwnerCommission,
+  useUpdateDefaultCommission
 } from '@/hooks/useFieldOwners';
+import { useBlockUser, useUnblockUser } from '@/hooks/useUsers';
 
 interface FieldOwner {
   id: string;
@@ -21,6 +22,9 @@ interface FieldOwner {
   isUsingDefault: boolean;
   fieldsCount: number;
   createdAt: string;
+  isBlocked?: boolean;
+  blockedAt?: string | null;
+  blockReason?: string | null;
 }
 
 interface SystemSettings {
@@ -45,6 +49,8 @@ export default function FieldOwners() {
   const { data: commissionData } = useCommissionSettings();
   const updateCommissionMutation = useUpdateFieldOwnerCommission();
   const updateDefaultMutation = useUpdateDefaultCommission();
+  const blockUserMutation = useBlockUser();
+  const unblockUserMutation = useUnblockUser();
 
   const fieldOwners = fieldOwnersData?.data?.fieldOwners || [];
   const totalPages = fieldOwnersData?.data?.pagination?.totalPages || 1;
@@ -92,6 +98,21 @@ export default function FieldOwners() {
     }
   };
 
+  const handleToggleBlock = async (owner: FieldOwner) => {
+    try {
+      if (owner.isBlocked) {
+        await unblockUserMutation.mutateAsync(owner.id);
+      } else {
+        await blockUserMutation.mutateAsync({
+          userId: owner.id,
+          reason: 'Blocked by admin'
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling block status:', error);
+    }
+  };
+
   if (adminLoading) {
     return (
       <AdminLayout>
@@ -108,6 +129,31 @@ export default function FieldOwners() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Field Owners</h1>
+            {/* <button
+              onClick={() => {
+                setNewDefaultRate(defaultCommission.toString());
+                setShowDefaultModal(true);
+              }}
+              className="bg-green text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-green-hover flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              <DollarSign className="w-4 h-4" />
+              <span className="hidden sm:inline">Default Commission:</span>
+              <span className="sm:hidden">Commission:</span> {defaultCommission}%
+            </button> */}
+          </div>
+
+          {/* Search Bar */}
+          <div className="flex items-center justify-between bg-white rounded-lg shadow-sm p-4 mb-6">
+            <div className="relative w-1/2">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search by name or email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full  pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green focus:border-transparent"
+              />
+            </div>
             <button
               onClick={() => {
                 setNewDefaultRate(defaultCommission.toString());
@@ -119,20 +165,6 @@ export default function FieldOwners() {
               <span className="hidden sm:inline">Default Commission:</span>
               <span className="sm:hidden">Commission:</span> {defaultCommission}%
             </button>
-          </div>
-
-          {/* Search Bar */}
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by name or email..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green focus:border-transparent"
-              />
-            </div>
           </div>
 
           {/* Desktop Table */}
@@ -208,18 +240,43 @@ export default function FieldOwners() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-lighter text-green">
-                            Active
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                            owner.isBlocked
+                              ? 'bg-red-100 text-red-700'
+                              : 'bg-green-lighter text-green'
+                          }`}>
+                            {owner.isBlocked ? 'Blocked' : 'Active'}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEditCommission(owner)}
-                            className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
-                          >
-                            <Edit className="w-4 h-4 mr-1" />
-                            Edit Commission
-                          </button>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleEditCommission(owner)}
+                              className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Edit Commission
+                            </button>
+                            <button
+                              onClick={() => handleToggleBlock(owner)}
+                              disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                                owner.isBlocked
+                                  ? 'bg-gray-300 focus:ring-gray-500'
+                                  : 'bg-green focus:ring-green'
+                              } ${
+                                blockUserMutation.isPending || unblockUserMutation.isPending
+                                  ? 'opacity-50 cursor-not-allowed'
+                                  : ''
+                              }`}
+                            >
+                              <span
+                                className={`${
+                                  owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                              />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -299,11 +356,36 @@ export default function FieldOwners() {
                       </h3>
                       <p className="text-sm text-gray-500">{owner.email}</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-lighter text-green">
-                      Active
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        owner.isBlocked
+                          ? 'bg-red-100 text-red-700'
+                          : 'bg-green-lighter text-green'
+                      }`}>
+                        {owner.isBlocked ? 'Blocked' : 'Active'}
+                      </span>
+                      <button
+                        onClick={() => handleToggleBlock(owner)}
+                        disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                          owner.isBlocked
+                            ? 'bg-gray-300 focus:ring-gray-500'
+                            : 'bg-green focus:ring-green'
+                        } ${
+                          blockUserMutation.isPending || unblockUserMutation.isPending
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                      >
+                        <span
+                          className={`${
+                            owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                        />
+                      </button>
+                    </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
                     <div>
                       <span className="text-gray-500 block">Fields</span>
@@ -325,7 +407,7 @@ export default function FieldOwners() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <button
                     onClick={() => handleEditCommission(owner)}
                     className="w-full text-green hover:text-green-hover flex items-center justify-center gap-1 py-2 border border-green-lighter rounded-lg hover:bg-green-lighter transition-colors"

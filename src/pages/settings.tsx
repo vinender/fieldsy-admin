@@ -5,7 +5,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Edit2, Image, Layout, List } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Edit2, Image, Layout } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Import all settings components
@@ -16,7 +16,6 @@ import PlatformSettings from '@/components/settings/PlatformSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
 import FAQSettings from '@/components/settings/FAQSettings';
 import NotificationsSettings from '@/components/settings/NotificationsSettings';
-import FieldOptionsSettings from '@/components/settings/FieldOptionsSettings';
 
 export default function Settings() {
   const router = useRouter();
@@ -401,7 +400,6 @@ export default function Settings() {
     { id: 'platform', label: 'Platform Section', icon: Layout },
     { id: 'about-page', label: 'About Us Page', icon: Edit2 },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
-    { id: 'field-options', label: 'Field Options', icon: List },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
@@ -451,7 +449,7 @@ export default function Settings() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                       activeTab === tab.id
-                        ? 'bg-green-50 text-green-600'
+                        ? 'bg-green text-white'
                         : 'text-gray-600 hover:bg-gray-50'
                     }`}
                   >
@@ -538,10 +536,6 @@ export default function Settings() {
                   formData={formData}
                   handleChange={handleChange}
                 />
-              )}
-
-              {activeTab === 'field-options' && (
-                <FieldOptionsSettings />
               )}
 
               {/* Save Button - Always visible when there are changes */}
