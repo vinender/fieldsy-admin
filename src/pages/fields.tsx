@@ -4,11 +4,12 @@ import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFields, useToggleFieldStatus, useToggleFieldClaimed } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { MapPin, Search, Filter } from 'lucide-react';
+import { MapPin, Search, Filter, AlertTriangle, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatMonthYear } from '@/lib/utils';
-import { 
+import Spinner from '@/components/ui/Spinner';
+import {
   FieldsTableSkeleton,
-  AdminFieldsPageSkeleton 
+  AdminFieldsPageSkeleton
 } from '@/components/skeletons/AdminFieldsSkeleton';
 
 // Lazy load the filter component
@@ -42,6 +43,12 @@ export default function Fields() {
     joinedDate: 'All',
     location: ''
   });
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    fieldId: string;
+    fieldName: string;
+    currentStatus: boolean;
+  } | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10);
@@ -172,8 +179,26 @@ export default function Fields() {
     toggleStatusMutation.mutate({ fieldId, isActive: !currentStatus });
   };
 
-  const handleToggleClaimed = (fieldId: string, currentStatus: boolean) => {
-    toggleClaimedMutation.mutate({ fieldId, isClaimed: !currentStatus });
+  const openClaimedConfirmationModal = (fieldId: string, fieldName: string, currentStatus: boolean) => {
+    setConfirmationModal({
+      isOpen: true,
+      fieldId,
+      fieldName,
+      currentStatus,
+    });
+  };
+
+  const handleToggleClaimed = () => {
+    if (!confirmationModal) return;
+
+    toggleClaimedMutation.mutate(
+      { fieldId: confirmationModal.fieldId, isClaimed: !confirmationModal.currentStatus },
+      {
+        onSuccess: () => {
+          setConfirmationModal(null);
+        },
+      }
+    );
   };
 
   return (
@@ -300,7 +325,7 @@ export default function Fields() {
                       </TableCell>
                       <TableCell>
                         <button
-                          onClick={() => handleToggleClaimed(field.id, field.isClaimed || false)}
+                          onClick={() => openClaimedConfirmationModal(field.id, field.name, field.isClaimed || false)}
                           disabled={toggleClaimedMutation.isPending}
                           className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
                           style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
@@ -360,14 +385,14 @@ export default function Fields() {
       {showFilters && (
         <>
           {/* Overlay */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
             onClick={() => setShowFilters(false)}
           />
-          
+
           {/* Modal Content */}
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-            <div 
+            <div
               ref={filterRef}
               className="pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
@@ -383,6 +408,85 @@ export default function Fields() {
             </div>
           </div>
         </>
+      )}
+
+      {/* Claim Status Confirmation Modal */}
+      {confirmationModal?.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start mb-4">
+              <div
+                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                  !confirmationModal.currentStatus ? 'bg-green-100' : 'bg-yellow-100'
+                }`}
+              >
+                {!confirmationModal.currentStatus ? (
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 text-yellow-600" />
+                )}
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {!confirmationModal.currentStatus ? 'Mark Field as Claimed' : 'Mark Field as Unclaimed'}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {!confirmationModal.currentStatus
+                    ? 'Are you sure you want to mark this field as claimed? This will indicate that the field has a verified owner.'
+                    : 'Are you sure you want to mark this field as unclaimed? This will indicate that the field ownership is not verified.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Field Name:</span>
+                  <span className="font-medium text-gray-900">{confirmationModal.fieldName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Current Status:</span>
+                  <span className="font-medium text-gray-900">
+                    {confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">New Status:</span>
+                  <span className={`font-medium ${!confirmationModal.currentStatus ? 'text-green' : 'text-yellow'}`}>
+                    {!confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmationModal(null)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleClaimed}
+                disabled={toggleClaimedMutation.isPending}
+                className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
+                  !confirmationModal.currentStatus
+                    ? 'bg-green hover:bg-green/80 disabled:bg-green'
+                    : 'bg-yellow hover:bg-yellow-700 disabled:bg-yellow'
+                }`}
+              >
+                {toggleClaimedMutation.isPending ? (
+                  <div className="flex items-center justify-center">
+                    <Spinner size="sm" className="mr-2" />
+                    Processing...
+                  </div>
+                ) : (
+                  !confirmationModal.currentStatus ? 'Mark as Claimed' : 'Mark as Unclaimed'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </AdminLayout>
   );

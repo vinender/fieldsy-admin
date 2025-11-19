@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useClaims, useUpdateClaimStatus } from '@/hooks/useClaims';
-import { FileText, Eye, CheckCircle, XCircle, Clock, MapPin } from 'lucide-react';
+import { FileText, Eye, CheckCircle, XCircle, Clock, MapPin, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import DocumentViewerModal from '@/components/modal/DocumentViewerModal';
 import {
@@ -26,7 +26,14 @@ export default function Claims() {
   const [selectedClaim, setSelectedClaim] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<string>('');
-  
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    claimId: string;
+    status: 'APPROVED' | 'REJECTED';
+    claimantName: string;
+    fieldName: string;
+  } | null>(null);
+
   const { data: admin } = useVerifyAdmin();
   const { data: claimsData, isLoading: claimsLoading, refetch } = useClaims(page, 10);
   const updateClaimStatus = useUpdateClaimStatus();
@@ -40,12 +47,25 @@ export default function Claims() {
     setSelectedDocument(documentUrl);
   };
 
-  const handleStatusUpdate = async (claimId: string, status: 'APPROVED' | 'REJECTED') => {
+  const openConfirmationModal = (claim: any, status: 'APPROVED' | 'REJECTED') => {
+    setConfirmationModal({
+      isOpen: true,
+      claimId: claim.id,
+      status,
+      claimantName: claim.fullName,
+      fieldName: claim.field?.name || 'Unknown Field',
+    });
+  };
+
+  const handleStatusUpdate = async () => {
+    if (!confirmationModal) return;
+
     try {
       await updateClaimStatus.mutateAsync({
-        claimId,
-        status,
+        claimId: confirmationModal.claimId,
+        status: confirmationModal.status,
       });
+      setConfirmationModal(null);
       refetch();
     } catch (error) {
       console.error('Error updating claim status:', error);
@@ -216,25 +236,25 @@ export default function Claims() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
-                          <button
+                          {/* <button
                             onClick={() => handleViewDocuments(claim)}
-                            className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg text-blue-600 bg-blue-50 hover:bg-blue-100"
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-lg text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             View
-                          </button>
+                          </button> */}
                           {claim.status === 'PENDING' && (
                             <>
                               <button
-                                onClick={() => handleStatusUpdate(claim.id, 'APPROVED')}
-                                className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg text-green-600 bg-green-50 hover:bg-green-100"
+                                onClick={() => openConfirmationModal(claim, 'APPROVED')}
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-green hover:bg-green transition-colors shadow-sm"
                               >
                                 <CheckCircle className="w-4 h-4 mr-1" />
                                 Approve
                               </button>
                               <button
-                                onClick={() => handleStatusUpdate(claim.id, 'REJECTED')}
-                                className="inline-flex items-center px-3 py-1 text-xs font-medium rounded-lg text-red-600 bg-red-50 hover:bg-red-100"
+                                onClick={() => openConfirmationModal(claim, 'REJECTED')}
+                                className="inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded-lg text-white bg-red hover:bg-red transition-colors shadow-sm"
                               >
                                 <XCircle className="w-4 h-4 mr-1" />
                                 Reject
@@ -274,6 +294,75 @@ export default function Claims() {
             selectedDocument={selectedDocument}
             onDocumentSelect={handleViewDocument}
           />
+        )}
+
+        {/* Confirmation Modal */}
+        {confirmationModal?.isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+              <div className="flex items-start mb-4">
+                <div className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
+                  confirmationModal.status === 'APPROVED' ? 'bg-green-100' : 'bg-red-100'
+                }`}>
+                  {confirmationModal.status === 'APPROVED' ? (
+                    <CheckCircle className="w-6 h-6 text-green-600" />
+                  ) : (
+                    <AlertTriangle className="w-6 h-6 text-red-600" />
+                  )}
+                </div>
+                <div className="ml-4 flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    {confirmationModal.status === 'APPROVED' ? 'Approve Claim' : 'Reject Claim'}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {confirmationModal.status === 'APPROVED'
+                      ? 'Are you sure you want to approve this claim? This will create a field owner account and mark the field as claimed.'
+                      : 'Are you sure you want to reject this claim? This action cannot be undone.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Claimant:</span>
+                    <span className="font-medium text-gray-900">{confirmationModal.claimantName}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Field:</span>
+                    <span className="font-medium text-gray-900">{confirmationModal.fieldName}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmationModal(null)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleStatusUpdate}
+                  disabled={updateClaimStatus.isPending}
+                  className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
+                    confirmationModal.status === 'APPROVED'
+                      ? 'bg-green hover:bg-green disabled:bg-green'
+                      : 'bg-red hover:bg-red disabled:bg-red'
+                  }`}
+                >
+                  {updateClaimStatus.isPending ? (
+                    <div className="flex items-center justify-center">
+                      <Spinner size="sm" className="mr-2" />
+                      Processing...
+                    </div>
+                  ) : (
+                    confirmationModal.status === 'APPROVED' ? 'Approve Claim' : 'Reject Claim'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </AdminLayout>

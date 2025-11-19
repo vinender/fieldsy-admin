@@ -9,7 +9,7 @@ import LineChart from '@/components/Dashboard/LineChart';
 import BookingRow, { BookingData } from '@/components/Dashboard/BookingRow';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useDashboardStats } from '@/hooks/useDashboard';
-import { Users, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Users, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [fieldUtilizationStats, setFieldUtilizationStats] = useState<any[]>([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [chartsLoading, setChartsLoading] = useState(false);
+  const [reports, setReports] = useState<any[]>([]);
+  const [loadingReports, setLoadingReports] = useState(true);
 
   useEffect(() => {
     if (!adminLoading) {
@@ -42,6 +44,7 @@ export default function Dashboard() {
       fetchBookingStats();
       fetchFieldUtilization();
       calculateTotalRevenue();
+      fetchReports();
       refetchStats();
       // Set loading to false after a delay to show skeleton
       setTimeout(() => setChartsLoading(false), 500);
@@ -136,6 +139,31 @@ export default function Dashboard() {
     } catch (error) {
       console.error('Error fetching field utilization:', error);
       setFieldUtilizationStats([]);
+    }
+  };
+
+  const fetchReports = async () => {
+    try {
+      setLoadingReports(true);
+      const token = localStorage.getItem('adminToken');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user-reports/reports?limit=5&status=pending`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setReports(data.data || []);
+      } else {
+        setReports([]);
+      }
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+      setReports([]);
+    } finally {
+      setLoadingReports(false);
     }
   };
 
@@ -479,6 +507,208 @@ export default function Dashboard() {
                       >
                         View Detail
                       </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* User Reports Table */}
+          <div className="mb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+              <h2 className="text-[#192215] text-xl sm:text-2xl font-bold">Recent User Reports</h2>
+              <button
+                onClick={() => router.push('/reports')}
+                className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap"
+              >
+                View All →
+              </button>
+            </div>
+
+            {/* Desktop Table */}
+            <div className="hidden lg:block bg-white rounded-2xl overflow-hidden border border-black/10 shadow-md">
+              {/* Table Header */}
+              <div className="bg-[#ebebeb] px-6 py-3">
+                <div className="grid grid-cols-6 gap-4 text-[#575757] text-xs">
+                  <span>Reporter</span>
+                  <span>Reported User</span>
+                  <span>Role</span>
+                  <span>Reason</span>
+                  <span>Date</span>
+                  <span className="text-center">Action</span>
+                </div>
+              </div>
+
+              {/* Table Body */}
+              <div className="px-6 max-h-[400px] overflow-y-auto">
+                {loadingReports ? (
+                  <div className="py-8 text-center">
+                    <Spinner size="lg" className="mx-auto" />
+                  </div>
+                ) : reports.length === 0 ? (
+                  <div className="py-8 text-center text-gray-500">
+                    No pending reports
+                  </div>
+                ) : (
+                  reports.map((report) => (
+                    <div
+                      key={report.id}
+                      className="grid grid-cols-6 gap-4 py-4 border-b border-gray-100 last:border-b-0 items-center text-sm"
+                    >
+                      <div className="flex items-center gap-2">
+                        {report.reporter?.image ? (
+                          <img
+                            src={report.reporter.image}
+                            alt={report.reporter.name}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                            {report.reporter?.name?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-[#20130b] font-medium text-xs">{report.reporter?.name}</p>
+                          <p className="text-[#575757] text-xs">{report.reporter?.email}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {report.reportedUser?.image ? (
+                          <img
+                            src={report.reportedUser.image}
+                            alt={report.reportedUser.name}
+                            className="w-8 h-8 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                            {report.reportedUser?.name?.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-[#20130b] font-medium text-xs">{report.reportedUser?.name}</p>
+                          <p className="text-[#575757] text-xs">{report.reportedUser?.email}</p>
+                        </div>
+                      </div>
+
+                      <span className="text-[#20130b] text-xs capitalize">
+                        {report.reportedUser?.role?.toLowerCase().replace('_', ' ')}
+                      </span>
+
+                      <div>
+                        <p className="text-[#20130b] font-medium text-xs">{report.reportOption}</p>
+                        {report.reason && (
+                          <p className="text-[#575757] text-xs truncate">{report.reason}</p>
+                        )}
+                      </div>
+
+                      <span className="text-[#575757] text-xs">
+                        {new Date(report.createdAt).toLocaleDateString('en-US', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </span>
+
+                      <div className="text-center">
+                        <button
+                          onClick={() => router.push(`/reports/${report.id}`)}
+                          className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white text-xs font-semibold px-4 py-2 rounded-full"
+                        >
+                          Review
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="lg:hidden space-y-4">
+              {loadingReports ? (
+                <div className="py-8 text-center">
+                  <Spinner size="lg" className="mx-auto" />
+                </div>
+              ) : reports.length === 0 ? (
+                <div className="py-8 text-center text-gray-500 bg-white rounded-xl">
+                  No pending reports
+                </div>
+              ) : (
+                reports.map((report) => (
+                  <div key={report.id} className="bg-white rounded-xl p-4 border border-black/10 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <AlertTriangle className="w-5 h-5 text-red-500" />
+                      <span className="text-[#20130b] font-semibold text-sm">User Report</span>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-[#575757] text-xs mb-1">Reporter:</p>
+                        <div className="flex items-center gap-2">
+                          {report.reporter?.image ? (
+                            <img
+                              src={report.reporter.image}
+                              alt={report.reporter.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                              {report.reporter?.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-[#20130b] font-medium text-xs">{report.reporter?.name}</p>
+                            <p className="text-[#575757] text-xs">{report.reporter?.email}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-[#575757] text-xs mb-1">Reported User:</p>
+                        <div className="flex items-center gap-2">
+                          {report.reportedUser?.image ? (
+                            <img
+                              src={report.reportedUser.image}
+                              alt={report.reportedUser.name}
+                              className="w-8 h-8 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-600">
+                              {report.reportedUser?.name?.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-[#20130b] font-medium text-xs">{report.reportedUser?.name}</p>
+                            <p className="text-[#575757] text-xs">{report.reportedUser?.email}</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-[#575757] text-xs">Reason: </span>
+                        <span className="text-[#20130b] text-xs font-medium">{report.reportOption}</span>
+                        {report.reason && (
+                          <p className="text-[#575757] text-xs mt-1">{report.reason}</p>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-[#575757] text-xs">
+                          {new Date(report.createdAt).toLocaleDateString('en-US', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </span>
+                        <button
+                          onClick={() => router.push(`/reports/${report.id}`)}
+                          className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white text-xs font-semibold px-4 py-2 rounded-full"
+                        >
+                          Review
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))
