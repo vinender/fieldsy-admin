@@ -10,12 +10,12 @@ interface FieldsResponse {
 }
 
 // Get all fields
-export const useFields = (page: number = 1, limit: number = 10) => {
+export const useFields = (page: number = 1, limit: number = 10, search: string = '') => {
   return useQuery({
-    queryKey: ['fields', page, limit],
+    queryKey: ['fields', page, limit, search],
     queryFn: async () => {
       const response = await api.get<FieldsResponse>('/admin/fields', {
-        params: { page, limit }
+        params: { page, limit, search }
       });
       return response.data;
     },

@@ -36,6 +36,7 @@ export default function Fields() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     claimStatus: 'All',
@@ -45,8 +46,18 @@ export default function Fields() {
   });
   const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10);
+  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, debouncedSearch);
   const toggleStatusMutation = useToggleFieldStatus();
+
+  // Debounce search term
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setPage(1); // Reset to first page when searching
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -115,17 +126,7 @@ export default function Fields() {
   };
 
   const filteredFields = fieldsData?.fields?.filter(field => {
-    // Search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      const matchesSearch = (
-        field.name?.toLowerCase().includes(search) ||
-        field.address?.toLowerCase().includes(search) ||
-        field.city?.toLowerCase().includes(search) ||
-        field.owner.name?.toLowerCase().includes(search)
-      );
-      if (!matchesSearch) return false;
-    }
+    // Note: Search is now handled by backend API, only apply other filters here
 
     // Location filter
     if (activeFilters.location && activeFilters.location.trim() !== '') {
