@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import { useFields, useToggleFieldStatus, useToggleFieldClaimed } from '@/hooks/useFields';
+import { useFields, useToggleFieldStatus } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { MapPin, Search, Filter, AlertTriangle, CheckCircle } from 'lucide-react';
 import { formatCurrency, formatMonthYear } from '@/lib/utils';
@@ -15,9 +15,9 @@ import {
 // Lazy load the filter component
 const FieldsFilterComponent = dynamic(
   () => import('@/components/Fields/FieldsFilterComponent'),
-  { 
+  {
     loading: () => <div className="w-[320px] bg-white p-4 rounded-2xl shadow-lg animate-pulse h-96" />,
-    ssr: false 
+    ssr: false
   }
 );
 import {
@@ -43,17 +43,10 @@ export default function Fields() {
     joinedDate: 'All',
     location: ''
   });
-  const [confirmationModal, setConfirmationModal] = useState<{
-    isOpen: boolean;
-    fieldId: string;
-    fieldName: string;
-    currentStatus: boolean;
-  } | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10);
   const toggleStatusMutation = useToggleFieldStatus();
-  const toggleClaimedMutation = useToggleFieldClaimed();
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -96,8 +89,8 @@ export default function Fields() {
     const date = new Date(dateStr);
     const now = new Date();
     const dayInMs = 24 * 60 * 60 * 1000;
-    
-    switch(range) {
+
+    switch (range) {
       case 'This Month':
         return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
       case 'Last 3 Months':
@@ -111,7 +104,7 @@ export default function Fields() {
   // Helper function to check max dogs range
   const isInMaxDogsRange = (maxDogs: number | undefined, range: string) => {
     const dogs = maxDogs || 10; // Default to 10 if not specified
-    switch(range) {
+    switch (range) {
       case '1-5 Dogs':
         return dogs >= 1 && dogs <= 5;
       case '6+ Dogs':
@@ -145,7 +138,7 @@ export default function Fields() {
     // Claim status filter
     if (activeFilters.claimStatus !== 'All') {
       const claimMatch = (activeFilters.claimStatus === 'Claimed' && field.isClaimed) ||
-                         (activeFilters.claimStatus === 'Not Claimed' && !field.isClaimed);
+        (activeFilters.claimStatus === 'Not Claimed' && !field.isClaimed);
       console.log(`[Filter] Claim Status - Field: ${field.name}, isClaimed: ${field.isClaimed}, Filter: ${activeFilters.claimStatus}, Match: ${claimMatch}`);
       if (activeFilters.claimStatus === 'Claimed' && !field.isClaimed) return false;
       if (activeFilters.claimStatus === 'Not Claimed' && field.isClaimed) return false;
@@ -179,28 +172,6 @@ export default function Fields() {
     toggleStatusMutation.mutate({ fieldId, isActive: !currentStatus });
   };
 
-  const openClaimedConfirmationModal = (fieldId: string, fieldName: string, currentStatus: boolean) => {
-    setConfirmationModal({
-      isOpen: true,
-      fieldId,
-      fieldName,
-      currentStatus,
-    });
-  };
-
-  const handleToggleClaimed = () => {
-    if (!confirmationModal) return;
-
-    toggleClaimedMutation.mutate(
-      { fieldId: confirmationModal.fieldId, isClaimed: !confirmationModal.currentStatus },
-      {
-        onSuccess: () => {
-          setConfirmationModal(null);
-        },
-      }
-    );
-  };
-
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -226,14 +197,13 @@ export default function Fields() {
                 />
               </div>
             </div>
-            <button 
+            <button
               data-filter-button
               onClick={() => setShowFilters(!showFilters)}
-              className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
-                showFilters || Object.values(activeFilters).some(v => v !== 'All')
-                  ? 'bg-green-50 border-green-600 text-green-700'
-                  : 'border-gray-300 hover:bg-gray-50'
-              }`}
+              className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${showFilters || Object.values(activeFilters).some(v => v !== 'All')
+                ? 'bg-green-50 border-green-600 text-green-700'
+                : 'border-gray-300 hover:bg-gray-50'
+                }`}
             >
               <Filter className="w-4 h-4" />
               <span>Filter</span>
@@ -250,134 +220,127 @@ export default function Fields() {
         {fieldsLoading ? (
           <FieldsTableSkeleton />
         ) : (
-        <TableContainer>
-          {filteredFields.length === 0 ? (
-            <TableEmptyState message="No fields found" />
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Field & Owner</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Field Price</TableHead>
-                    <TableHead>Clients</TableHead>
-                    <TableHead>Earnings</TableHead>
-                    <TableHead>Max Dogs</TableHead>
-                    <TableHead>Joined On</TableHead>
-                    <TableHead>Claimed</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredFields.map((field) => (
-                    <TableRow key={field.id}>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          {/* Field Image */}
-                          <div className="flex-shrink-0">
-                            {field.images && field.images.length > 0 ? (
-                              <img 
-                                src={field.images[0]} 
-                                alt={field.name}
-                                className="w-10 h-10 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                                <MapPin className="w-5 h-5 text-gray-400" />
-                              </div>
-                            )}
-                          </div>
-                          {/* Field Name and Owner */}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{field.name}</div>
-                            <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-900">{field.city}, {field.state}</div>
-                        <div className="text-sm text-gray-500">{field.zipCode}</div>
-                      </TableCell>
-              
-                      <TableCell>
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">
-                            £{(field.price || field.pricePerHour || 0).toFixed(2)}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            per dog/{field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-gray-900">
-                        {field._count?.bookings || 0}
-                      </TableCell>
-                      <TableCell className="font-medium text-gray-900">
-                        {formatCurrency(field.totalEarnings || 0)}
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {field.maxDogs || 10}
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {field.joinedOn || formatMonthYear(field.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => openClaimedConfirmationModal(field.id, field.name, field.isClaimed || false)}
-                          disabled={toggleClaimedMutation.isPending}
-                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
-                          style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              field.isClaimed ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <button
-                          onClick={() => handleToggleStatus(field.id, field.isActive)}
-                          disabled={toggleStatusMutation.isPending}
-                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
-                          style={{ backgroundColor: field.isActive ? '#4ade80' : '#e5e7eb' }}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                              field.isActive ? 'translate-x-6' : 'translate-x-1'
-                            }`}
-                          />
-                        </button>
-                      </TableCell>
-                      <TableCell>
-                        <button 
-                          onClick={() => router.push(`/fields/${field.id}`)}
-                          className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
-
-                        >
-                         View Detail
-                        </button>
-                      </TableCell>
+          <TableContainer>
+            {filteredFields.length === 0 ? (
+              <TableEmptyState message="No fields found" />
+            ) : (
+              <>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Field & Owner</TableHead>
+                      <TableHead>Location</TableHead>
+                      <TableHead>Field Price</TableHead>
+                      <TableHead>Clients</TableHead>
+                      <TableHead>Earnings</TableHead>
+                      <TableHead>Max Dogs</TableHead>
+                      <TableHead>Joined On</TableHead>
+                      <TableHead>Claimed</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFields.map((field) => (
+                      <TableRow key={field.id}>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            {/* Field Image */}
+                            <div className="flex-shrink-0">
+                              {field.images && field.images.length > 0 ? (
+                                <img
+                                  src={field.images[0]}
+                                  alt={field.name}
+                                  className="w-10 h-10 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                                  <MapPin className="w-5 h-5 text-gray-400" />
+                                </div>
+                              )}
+                            </div>
+                            {/* Field Name and Owner */}
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{field.name}</div>
+                              <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-900">{field.city}, {field.state}</div>
+                          <div className="text-sm text-gray-500">{field.zipCode}</div>
+                        </TableCell>
 
-              {/* Pagination */}
-              {fieldsData && fieldsData.pages > 1 && (
-                <TablePagination
-                  currentPage={page}
-                  totalPages={fieldsData.pages}
-                  totalItems={fieldsData.total}
-                  itemsPerPage={10}
-                  onPageChange={setPage}
-                />
-              )}
-            </>
-          )}
-        </TableContainer>
+                        <TableCell>
+                          <div className="text-sm">
+                            <div className="font-medium text-gray-900">
+                              £{(field.price || field.pricePerHour || 0).toFixed(2)}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              per dog/{field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-gray-900">
+                          {field.clientsCount || 0}
+                        </TableCell>
+                        <TableCell className="font-medium text-gray-900">
+                          {formatCurrency(field.totalEarnings || 0)}
+                        </TableCell>
+                        <TableCell className="text-gray-500">
+                          {field.maxDogs || 10}
+                        </TableCell>
+                        <TableCell className="text-gray-500">
+                          {field.joinedOn || formatMonthYear(field.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${field.isClaimed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                              }`}
+                          >
+                            {field.isClaimed ? 'Claimed' : 'Not Claimed'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => handleToggleStatus(field.id, field.isActive)}
+                            disabled={toggleStatusMutation.isPending}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                            style={{ backgroundColor: field.isActive ? '#4ade80' : '#e5e7eb' }}
+                          >
+                            <span
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isActive ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                            />
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <button
+                            onClick={() => router.push(`/fields/${field.id}`)}
+                            className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+
+                          >
+                            View Detail
+                          </button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {/* Pagination */}
+                {fieldsData && fieldsData.pages > 1 && (
+                  <TablePagination
+                    currentPage={page}
+                    totalPages={fieldsData.pages}
+                    totalItems={fieldsData.total}
+                    itemsPerPage={10}
+                    onPageChange={setPage}
+                  />
+                )}
+              </>
+            )}
+          </TableContainer>
         )}
       </div>
 
@@ -408,85 +371,6 @@ export default function Fields() {
             </div>
           </div>
         </>
-      )}
-
-      {/* Claim Status Confirmation Modal */}
-      {confirmationModal?.isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
-            <div className="flex items-start mb-4">
-              <div
-                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                  !confirmationModal.currentStatus ? 'bg-green-100' : 'bg-yellow-100'
-                }`}
-              >
-                {!confirmationModal.currentStatus ? (
-                  <CheckCircle className="w-6 h-6 text-green-600" />
-                ) : (
-                  <AlertTriangle className="w-6 h-6 text-yellow-600" />
-                )}
-              </div>
-              <div className="ml-4 flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                  {!confirmationModal.currentStatus ? 'Mark Field as Claimed' : 'Mark Field as Unclaimed'}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  {!confirmationModal.currentStatus
-                    ? 'Are you sure you want to mark this field as claimed? This will indicate that the field has a verified owner.'
-                    : 'Are you sure you want to mark this field as unclaimed? This will indicate that the field ownership is not verified.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-4 mb-6">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Field Name:</span>
-                  <span className="font-medium text-gray-900">{confirmationModal.fieldName}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Current Status:</span>
-                  <span className="font-medium text-gray-900">
-                    {confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">New Status:</span>
-                  <span className={`font-medium ${!confirmationModal.currentStatus ? 'text-green' : 'text-yellow'}`}>
-                    {!confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setConfirmationModal(null)}
-                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleToggleClaimed}
-                disabled={toggleClaimedMutation.isPending}
-                className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
-                  !confirmationModal.currentStatus
-                    ? 'bg-green hover:bg-green/80 disabled:bg-green'
-                    : 'bg-yellow hover:bg-yellow-700 disabled:bg-yellow'
-                }`}
-              >
-                {toggleClaimedMutation.isPending ? (
-                  <div className="flex items-center justify-center">
-                    <Spinner size="sm" className="mr-2" />
-                    Processing...
-                  </div>
-                ) : (
-                  !confirmationModal.currentStatus ? 'Mark as Claimed' : 'Mark as Unclaimed'
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </AdminLayout>
   );

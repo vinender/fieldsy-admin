@@ -109,7 +109,7 @@ export default function ReportDetail() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'resolved':
-        return 'bg-green-100 text-green-800 border-green-200';
+        return 'bg-green text-green border-green';
       case 'dismissed':
         return 'bg-gray-100 text-gray-800 border-gray-200';
       default:
@@ -120,7 +120,7 @@ export default function ReportDetail() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'resolved':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-green" />;
       case 'dismissed':
         return <XCircle className="w-5 h-5 text-gray-600" />;
       default:
@@ -194,7 +194,7 @@ export default function ReportDetail() {
                 <div className="flex gap-3">
                   <button
                     onClick={() => setConfirmationModal({ isOpen: true, status: 'resolved' })}
-                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-lg text-white bg-green-600 hover:bg-green-700 transition-colors shadow-sm"
+                    className="flex-1 inline-flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-lg text-white bg-green hover:bg-green transition-colors shadow-sm"
                   >
                     <CheckCircle className="w-4 h-4 mr-2" />
                     Mark as Resolved
@@ -252,7 +252,7 @@ export default function ReportDetail() {
                 value={reviewNotes}
                 onChange={(e) => setReviewNotes(e.target.value)}
                 placeholder="Add notes about your review decision..."
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green/50 resize-none"
                 rows={4}
                 disabled={report.status !== 'pending'}
               />
@@ -377,11 +377,11 @@ export default function ReportDetail() {
               <div className="flex items-start mb-4">
                 <div
                   className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                    confirmationModal.status === 'resolved' ? 'bg-green-100' : 'bg-gray-100'
+                    confirmationModal.status === 'resolved' ? 'bg-green' : 'bg-gray-100'
                   }`}
                 >
                   {confirmationModal.status === 'resolved' ? (
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <CheckCircle className="w-6 h-6 text-green" />
                   ) : (
                     <XCircle className="w-6 h-6 text-gray-600" />
                   )}
@@ -423,7 +423,7 @@ export default function ReportDetail() {
                   disabled={updating}
                   className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${
                     confirmationModal.status === 'resolved'
-                      ? 'bg-green-600 hover:bg-green-700 disabled:bg-green-400'
+                      ? 'bg-green hover:bg-green disabled:bg-green'
                       : 'bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400'
                   }`}
                 >

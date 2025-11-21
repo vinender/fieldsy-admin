@@ -21,6 +21,7 @@ import { useAdminNotifications } from '@/hooks/useNotifications';
 import { useSocket } from '@/hooks/useSocket';
 import NotificationSidebar from './NotificationSidebar';
 import ProfileSidebar from './ProfileSidebar';
+import BackButton from '@/components/common/BackButton';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -50,6 +51,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   });
 
   const unreadCount = notificationsData?.unreadCount || 0;
+  const isDashboard = router.pathname === '/dashboard';
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
@@ -80,9 +82,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-green text-white transform transition-transform duration-200 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-dark-green text-white transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
@@ -105,11 +106,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    active
+                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${active
                       ? 'bg-light-green text-white rounded-[16px]'
                       : 'text-cream hover:bg-green-hover hover:text-white'
-                  }`}
+                    }`}
                 >
                   <Icon className="w-5 h-5" />
                   <span className="font-medium text-white text-sm">{item.label}</span>
@@ -144,6 +144,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               >
                 <Menu className="w-6 h-6 text-gray-600" />
               </button>
+
+              {!isDashboard && <BackButton size="sm" />}
             </div>
 
             <div className="flex items-center space-x-4">

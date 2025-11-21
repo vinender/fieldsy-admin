@@ -49,6 +49,7 @@ export interface Field {
   _count?: {
     bookings: number;
   };
+  clientsCount?: number;
 }
 
 export interface Booking {

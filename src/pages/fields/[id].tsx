@@ -2,16 +2,16 @@ import React, { useState, useEffect } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import { useFieldDetails } from '@/hooks/useFields';
+import { useFieldDetails, useToggleFieldClaimed } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useFieldReviews } from '@/hooks/useReviews';
-import { Star } from 'lucide-react';
+import { Star, AlertTriangle, CheckCircle } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 
 // Reusable Card Component
-const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string; [key: string]: any }) => {
+const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string;[key: string]: any }) => {
   return (
     <div className={`bg-white rounded-lg border border-gray-200 ${className}`} {...props}>
       {children}
@@ -36,8 +36,8 @@ const ImageGallery = ({ images }: { images: string[] }) => {
     <div className="grid grid-cols-6 gap-4">
       {images.map((img, index) => (
         <div key={index} className="aspect-square rounded-lg overflow-hidden bg-gray-100">
-          <img 
-            src={getImageUrl(img)} 
+          <img
+            src={getImageUrl(img)}
             alt={`Field image ${index + 1}`}
             className="w-full h-full object-cover"
           />
@@ -53,8 +53,8 @@ const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date
     <Card className="p-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <img 
-            src={avatar || 'https://via.placeholder.com/40'} 
+          <img
+            src={avatar || 'https://via.placeholder.com/40'}
             alt={name}
             className="w-10 h-10 rounded-full object-cover"
           />
@@ -65,9 +65,9 @@ const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date
         </div>
         <div className="flex gap-1">
           {[...Array(5)].map((_, i) => (
-            <img src='/star.svg' 
-              key={i} 
-              size={16} 
+            <img src='/star.svg'
+              key={i}
+              size={16}
               className={i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
             />
           ))}
@@ -116,6 +116,35 @@ export default function FieldDetails() {
   const { data: fieldResponse, isLoading: fieldLoading } = useFieldDetails(id as string);
   const field = fieldResponse?.data || fieldResponse; // Handle both wrapped and unwrapped responses
   const { data: reviewsData, isLoading: reviewsLoading } = useFieldReviews(id as string);
+  const toggleClaimedMutation = useToggleFieldClaimed();
+  const [confirmationModal, setConfirmationModal] = useState<{
+    isOpen: boolean;
+    fieldId: string;
+    fieldName: string;
+    currentStatus: boolean;
+  } | null>(null);
+
+  const openClaimedConfirmationModal = (fieldId: string, fieldName: string, currentStatus: boolean) => {
+    setConfirmationModal({
+      isOpen: true,
+      fieldId,
+      fieldName,
+      currentStatus,
+    });
+  };
+
+  const handleToggleClaimed = () => {
+    if (!confirmationModal) return;
+
+    toggleClaimedMutation.mutate(
+      { fieldId: confirmationModal.fieldId, isClaimed: !confirmationModal.currentStatus },
+      {
+        onSuccess: () => {
+          setConfirmationModal(null);
+        },
+      }
+    );
+  };
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -151,7 +180,7 @@ export default function FieldDetails() {
 
   // Booking policies from API (already parsed on backend)
   const bookingPolicies: string[] = field.policies || [];
-  
+
   // Format earnings data from booking history with new columns
   const earningsData = field.recentBookings?.slice(0, 10).map((b: any) => [
     `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
@@ -164,9 +193,7 @@ export default function FieldDetails() {
   ]) || [];
 
   // Calculate total earnings
-  const totalEarnings = field.recentBookings?.reduce((sum: number, b: any) => 
-    sum + (b.totalPrice || 0), 0
-  ) || 0;
+  const totalEarnings = field.totalEarnings || 0;
 
   // Format reviews from API data
   const reviews = reviewsData?.reviews || [];
@@ -187,14 +214,32 @@ export default function FieldDetails() {
     return maxRatingCount > 0 ? (count / maxRatingCount) * 100 : 0;
   };
 
-  console.log(';;field',field)
+  console.log(';;field', field)
 
   return (
     <AdminLayout>
       <div className="bg-light min-h-screen">
         <div className="p-6">
           {/* Page Title */}
-          <h1 className="text-2xl font-semibold text-gray-900 mb-6"><span className="text-[#8D8D8D] font-semibold">Field Overview / </span>Field Details</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-semibold text-gray-900"><span className="text-[#8D8D8D] font-semibold">Field Overview / </span>Field Details</h1>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">
+                {field.isClaimed ? 'Claimed' : 'Not Claimed'}
+              </span>
+              <button
+                onClick={() => openClaimedConfirmationModal(field.id, field.name, field.isClaimed || false)}
+                disabled={toggleClaimedMutation.isPending}
+                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isClaimed ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                />
+              </button>
+            </div>
+          </div>
 
           {/* Field Overview */}
           <div className="mb-6">
@@ -203,7 +248,7 @@ export default function FieldDetails() {
               <div className="grid grid-cols-4 gap-8">
                 <InfoCard label="Name" value={field.name || "N/A"} />
                 <InfoCard label="Size" value={field.size || "N/A"} />
-                <InfoCard label="Price" value={field.price ?`${formatCurrency(field.price)}/${field.bookingDuration}` : "N/A"} />
+                <InfoCard label="Price" value={field.price ? `${formatCurrency(field.price)}/${field.bookingDuration}` : "N/A"} />
                 <InfoCard label="Status" value={field.isActive ? "Active" : "Inactive"} />
               </div>
               <div className="grid grid-cols-5 gap-8 mt-6">
@@ -223,19 +268,19 @@ export default function FieldDetails() {
                   value={
                     field.amenities?.length
                       ? field.amenities.map((amenity: any) => {
-                          // Handle both object and string formats
-                          if (typeof amenity === 'string') {
-                            return amenity;
-                          }
-                          return amenity?.label || amenity?.name || amenity?.value || String(amenity);
-                        }).join(', ')
+                        // Handle both object and string formats
+                        if (typeof amenity === 'string') {
+                          return amenity;
+                        }
+                        return amenity?.label || amenity?.name || amenity?.value || String(amenity);
+                      }).join(', ')
                       : "N/A"
                   }
                 />
               </div>
             </Card>
           </div>
-          
+
           {/* Location Info */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Location</h2>
@@ -248,7 +293,7 @@ export default function FieldDetails() {
               </div>
             </Card>
           </div>
-          
+
           {/* Field Owner Info */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Owner Info</h2>
@@ -256,8 +301,8 @@ export default function FieldDetails() {
               <div className="flex items-center gap-20">
                 <div className="flex items-center gap-4">
                   {field.owner?.image ? (
-                    <img 
-                      src={getImageUrl(field.owner.image)} 
+                    <img
+                      src={getImageUrl(field.owner.image)}
                       alt="Owner"
                       className="w-12 h-12 rounded-lg object-cover"
                     />
@@ -278,7 +323,7 @@ export default function FieldDetails() {
               </div>
             </Card>
           </div>
-          
+
           {/* Field Images */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Images</h2>
@@ -290,7 +335,7 @@ export default function FieldDetails() {
               )}
             </Card>
           </div>
-          
+
           {/* Description */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Description</h2>
@@ -300,7 +345,7 @@ export default function FieldDetails() {
               </p>
             </Card>
           </div>
-          
+
           {/* Community Safety Rules */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Community Safety Rules</h2>
@@ -311,8 +356,8 @@ export default function FieldDetails() {
                     <div key={index} className="flex items-start gap-3">
                       <div className="mt-1 flex-shrink-0">
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <circle cx="10" cy="10" r="10" fill="#22C55E"/>
-                          <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          <circle cx="10" cy="10" r="10" fill="#22C55E" />
+                          <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                       </div>
                       <p className="text-base text-[#192215]">{rule}</p>
@@ -324,7 +369,7 @@ export default function FieldDetails() {
               )}
             </Card>
           </div>
-          
+
           {/* Booking Policies */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Booking Policies</h2>
@@ -334,8 +379,8 @@ export default function FieldDetails() {
                   <div key={index} className="flex items-start gap-3">
                     <div className="mt-1 flex-shrink-0">
                       <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <circle cx="10" cy="10" r="10" fill="#22C55E"/>
-                        <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <circle cx="10" cy="10" r="10" fill="#22C55E" />
+                        <path d="M14 7L8.5 12.5L6 10" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </div>
                     <p className="text-base text-[#192215]">{policy}</p>
@@ -344,7 +389,7 @@ export default function FieldDetails() {
               </div>
             </Card>
           </div>
-          
+
           {/* Earnings History - Moved under Booking Policies */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Earnings History</h2>
@@ -354,7 +399,7 @@ export default function FieldDetails() {
                 <p className="text-sm text-gray-500">Total Earnings: <span className="font-semibold text-[#192215]">{formatCurrency(totalEarnings)}</span></p>
               </div>
               {earningsData.length > 0 ? (
-                <Table 
+                <Table
                   headers={['Order ID', 'Payment ID', 'Date and Time', 'Clients', 'Dogs', 'Amount', 'Status']}
                   rows={earningsData}
                 />
@@ -365,17 +410,17 @@ export default function FieldDetails() {
               )}
             </Card>
           </div>
-          
+
           {/* Reviews & Ratings */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Reviews & Ratings</h2>
             <Card className="p-5">
               <h3 className="text-lg font-semibold mb-4">
-                {totalReviews > 0 
+                {totalReviews > 0
                   ? `Over ${totalReviews} results with an average of ${averageRating.toFixed(1)} star reviews`
                   : 'No reviews yet'}
               </h3>
-              
+
               {/* Rating Overview */}
               <div className="flex gap-8 mb-8">
                 <div className="flex flex-col items-center">
@@ -383,22 +428,22 @@ export default function FieldDetails() {
                   <p className="text-3xl font-semibold">{averageRating.toFixed(1)}</p>
                   <div className="flex gap-1 my-2">
                     {[...Array(5)].map((_, i) => (
-                      <img src='/star.svg' 
-                        key={i} 
-                        size={16} 
+                      <img src='/star.svg'
+                        key={i}
+                        size={16}
                         className={i < Math.round(averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
                       />
                     ))}
                   </div>
                   <p className="text-sm text-gray-500">{totalReviews} Reviews</p>
                 </div>
-                
+
                 <div className="flex-1">
                   {[5, 4, 3, 2, 1].map((stars) => (
                     <div key={stars} className="flex items-center gap-3 mb-2">
                       <span className="text-sm text-gray-600 w-12">{stars} Star</span>
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className="h-full bg-yellow-400 transition-all duration-300"
                           style={{
                             width: `${getRatingPercentage(stars)}%`
@@ -412,7 +457,7 @@ export default function FieldDetails() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Review Cards */}
               {reviewsLoading ? (
                 <div className="space-y-4">
@@ -440,7 +485,7 @@ export default function FieldDetails() {
               ) : reviews.length > 0 ? (
                 <div className="space-y-4">
                   {reviews.slice(0, 5).map((review: any) => (
-                    <ReviewCard 
+                    <ReviewCard
                       key={review.id}
                       name={review.user?.name || 'Anonymous'}
                       date={formatDate(review.createdAt)}
@@ -464,6 +509,83 @@ export default function FieldDetails() {
           </div>
         </div>
       </div>
+
+      {/* Claim Status Confirmation Modal */}
+      {confirmationModal?.isOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
+            <div className="flex items-start mb-4">
+              <div
+                className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${!confirmationModal.currentStatus ? 'bg-green-100' : 'bg-yellow-100'
+                  }`}
+              >
+                {!confirmationModal.currentStatus ? (
+                  <CheckCircle className="w-6 h-6 text-green-600" />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 text-yellow-600" />
+                )}
+              </div>
+              <div className="ml-4 flex-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  {!confirmationModal.currentStatus ? 'Mark Field as Claimed' : 'Mark Field as Unclaimed'}
+                </h3>
+                <p className="text-sm text-gray-600">
+                  {!confirmationModal.currentStatus
+                    ? 'Are you sure you want to mark this field as claimed? This will indicate that the field has a verified owner.'
+                    : 'Are you sure you want to mark this field as unclaimed? This will indicate that the field ownership is not verified.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-6">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Field Name:</span>
+                  <span className="font-medium text-gray-900">{confirmationModal.fieldName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Current Status:</span>
+                  <span className="font-medium text-gray-900">
+                    {confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">New Status:</span>
+                  <span className={`font-medium ${!confirmationModal.currentStatus ? 'text-green' : 'text-yellow'}`}>
+                    {!confirmationModal.currentStatus ? 'Claimed' : 'Unclaimed'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmationModal(null)}
+                className="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleToggleClaimed}
+                disabled={toggleClaimedMutation.isPending}
+                className={`flex-1 px-4 py-2.5 text-sm font-semibold text-white rounded-lg transition-colors shadow-sm ${!confirmationModal.currentStatus
+                  ? 'bg-green hover:bg-green/80 disabled:bg-green'
+                  : 'bg-yellow hover:bg-yellow-700 disabled:bg-yellow'
+                  }`}
+              >
+                {toggleClaimedMutation.isPending ? (
+                  <div className="flex items-center justify-center">
+                    <Spinner size="sm" className="mr-2" />
+                    Processing...
+                  </div>
+                ) : (
+                  !confirmationModal.currentStatus ? 'Mark as Claimed' : 'Mark as Unclaimed'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 }
