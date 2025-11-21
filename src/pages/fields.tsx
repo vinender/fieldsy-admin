@@ -231,7 +231,6 @@ export default function Fields() {
                       <TableHead>Field & Owner</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Field Price</TableHead>
-                      <TableHead>Clients</TableHead>
                       <TableHead>Earnings</TableHead>
                       <TableHead>Max Dogs</TableHead>
                       <TableHead>Joined On</TableHead>
@@ -280,9 +279,6 @@ export default function Fields() {
                               per dog/{field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'}
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-gray-900">
-                          {field.clientsCount || 0}
                         </TableCell>
                         <TableCell className="font-medium text-gray-900">
                           {formatCurrency(field.totalEarnings || 0)}
@@ -345,33 +341,35 @@ export default function Fields() {
       </div>
 
       {/* Filter Modal */}
-      {showFilters && (
-        <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setShowFilters(false)}
-          />
-
-          {/* Modal Content */}
-          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+      {
+        showFilters && (
+          <>
+            {/* Overlay */}
             <div
-              ref={filterRef}
-              className="pointer-events-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Suspense fallback={<div className="w-[320px] bg-white p-4 rounded-2xl shadow-lg animate-pulse h-96" />}>
-                <FieldsFilterComponent
-                  onFiltersChange={setActiveFilters}
-                  initialFilters={activeFilters}
-                  showApplyButton={true}
-                  onClose={() => setShowFilters(false)}
-                />
-              </Suspense>
+              className="fixed inset-0 bg-black bg-opacity-50 z-40"
+              onClick={() => setShowFilters(false)}
+            />
+
+            {/* Modal Content */}
+            <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+              <div
+                ref={filterRef}
+                className="pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Suspense fallback={<div className="w-[320px] bg-white p-4 rounded-2xl shadow-lg animate-pulse h-96" />}>
+                  <FieldsFilterComponent
+                    onFiltersChange={setActiveFilters}
+                    initialFilters={activeFilters}
+                    showApplyButton={true}
+                    onClose={() => setShowFilters(false)}
+                  />
+                </Suspense>
+              </div>
             </div>
-          </div>
-        </>
-      )}
-    </AdminLayout>
+          </>
+        )
+      }
+    </AdminLayout >
   );
 }
