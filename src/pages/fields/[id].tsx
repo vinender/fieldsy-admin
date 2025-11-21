@@ -224,7 +224,7 @@ export default function FieldDetails() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold text-gray-900"><span className="text-[#8D8D8D] font-semibold">Field Overview / </span>Field Details</h1>
             <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">
+              <span className={`text-sm font-medium text-gray-700 ${field.isClaimed ? 'text-green' : 'text-yellow'}`}>
                 {field.isClaimed ? 'Claimed' : 'Not Claimed'}
               </span>
               <button
@@ -293,6 +293,7 @@ export default function FieldDetails() {
               </div>
             </Card>
           </div>
+
 
           {/* Field Owner Info */}
           <div className="mb-6">
