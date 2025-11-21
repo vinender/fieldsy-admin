@@ -9,6 +9,7 @@ import { Star, AlertTriangle, CheckCircle } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
+import { AmenityIcon } from '@/components/ui/AmenityIcon';
 
 // Reusable Card Component
 const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string;[key: string]: any }) => {
@@ -266,15 +267,25 @@ export default function FieldDetails() {
                 <InfoCard
                   label="Amenities"
                   value={
-                    field.amenities?.length
-                      ? field.amenities.map((amenity: any) => {
-                        // Handle both object and string formats
-                        if (typeof amenity === 'string') {
-                          return amenity;
-                        }
-                        return amenity?.label || amenity?.name || amenity?.value || String(amenity);
-                      }).join(', ')
-                      : "N/A"
+                    field.amenities?.length ? (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {field.amenities.map((amenity: any, index: number) => {
+                          const name = typeof amenity === 'string' ? amenity : (amenity?.label || amenity?.name || amenity?.value);
+                          const icon = typeof amenity === 'object' ? amenity?.icon : null;
+
+                          return (
+                            <div key={index} className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
+                              {icon && (
+                                <div className="w-4 h-4">
+                                  <AmenityIcon src={icon} alt={name} fillColor="#22C55E" />
+                                </div>
+                              )}
+                              <span className="text-sm font-medium text-gray-700">{name}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : "N/A"
                   }
                 />
               </div>

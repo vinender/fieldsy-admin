@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [chartsLoading, setChartsLoading] = useState(false);
   const [reports, setReports] = useState<any[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
+  console.log('reports', reports);
 
   useEffect(() => {
     if (!adminLoading) {
@@ -62,7 +63,7 @@ export default function Dashboard() {
           }
         }
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         setTotalRevenue(data.totalRevenue || 0);
@@ -76,7 +77,7 @@ export default function Dashboard() {
             }
           }
         );
-        
+
         if (bookingsResponse.ok) {
           const bookingsData = await bookingsResponse.json();
           const total = bookingsData.bookings?.reduce((sum: number, booking: any) => {
@@ -104,7 +105,7 @@ export default function Dashboard() {
           }
         }
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         setBookingStats(data.chartData || []);
@@ -129,7 +130,7 @@ export default function Dashboard() {
           }
         }
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         setFieldUtilizationStats(data.chartData || []);
@@ -171,21 +172,21 @@ export default function Dashboard() {
     try {
       setLoadingBookings(true);
       const token = localStorage.getItem('adminToken');
-      
+
       // Fetch all bookings from admin endpoint (already sorted by most recent)
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/admin/bookings?limit=5`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         const bookingsArray = data.bookings || [];
-        
+
         // The API already returns bookings sorted by createdAt desc, so just take first 5
         const recentBookings = bookingsArray.slice(0, 5);
-        
+
         const transformedBookings: BookingData[] = recentBookings.map((booking: any) => ({
           id: booking.id || booking._id,
           fieldName: booking.field?.name || 'Unknown Field',
@@ -194,17 +195,17 @@ export default function Dashboard() {
           timeSlot: `${booking.startTime || '00:00'}-${booking.endTime || '00:00'}`,
           status: booking.status || 'PENDING',
           duration: calculateDuration(booking.startTime, booking.endTime),
-          date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', { 
-            day: 'numeric', 
-            month: 'short', 
-            year: 'numeric' 
+          date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
           }),
           dogs: booking.numberOfDogs || 1,
           price: booking.totalPrice || 0,
           recurring: booking.isRecurring ? 'Yes' : 'No',
           customerName: booking.user?.name || 'Unknown'
         }));
-        
+
         setBookings(transformedBookings);
       } else {
         console.error('Failed to fetch bookings:', response.status);
@@ -214,11 +215,11 @@ export default function Dashboard() {
             'Authorization': `Bearer ${token}`
           }
         });
-        
+
         if (statsResponse.ok) {
           const statsData = await statsResponse.json();
           const recentBookings = statsData.stats?.recentBookings || [];
-          
+
           const transformedBookings: BookingData[] = recentBookings.slice(0, 5).map((booking: any) => ({
             id: booking.id || booking._id,
             fieldName: booking.field?.name || 'Unknown Field',
@@ -227,17 +228,17 @@ export default function Dashboard() {
             timeSlot: `${booking.startTime || '00:00'}-${booking.endTime || '00:00'}`,
             status: booking.status || 'PENDING',
             duration: calculateDuration(booking.startTime, booking.endTime),
-            date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', { 
-              day: 'numeric', 
-              month: 'short', 
-              year: 'numeric' 
+            date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric'
             }),
             dogs: booking.numberOfDogs || 1,
             price: booking.totalPrice || 0,
             recurring: booking.isRecurring ? 'Yes' : 'No',
             customerName: booking.user?.name || 'Unknown'
           }));
-          
+
           setBookings(transformedBookings);
         } else {
           setBookings([]);
@@ -252,11 +253,11 @@ export default function Dashboard() {
 
   const calculateDuration = (startTime: string, endTime: string) => {
     if (!startTime || !endTime) return '1 hr';
-    
+
     const start = new Date(`2000-01-01 ${startTime}`);
     const end = new Date(`2000-01-01 ${endTime}`);
     const diff = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
-    
+
     if (diff < 1) {
       return `${Math.round(diff * 60)}min`;
     } else {
@@ -275,30 +276,30 @@ export default function Dashboard() {
   }
 
   const statsData = [
-    { 
-      title: 'Active Fields', 
-      value: stats?.totalFields || 0, 
+    {
+      title: 'Active Fields',
+      value: stats?.totalFields || 0,
       change: stats?.growth?.fields || 0,
       icon: '/dashboard/active-fields.svg',
       useImage: true
     },
-    { 
-      title: 'Registered Users', 
-      value: stats?.totalUsers || 0, 
+    {
+      title: 'Registered Users',
+      value: stats?.totalUsers || 0,
       change: stats?.growth?.users || 0,
       icon: '/dashboard/users.svg',
       useImage: true
     },
-    { 
-      title: 'Upcoming Bookings', 
-      value: stats?.upcomingBookings || 0, 
+    {
+      title: 'Upcoming Bookings',
+      value: stats?.upcomingBookings || 0,
       change: stats?.growth?.upcomingBookings || 0,
       icon: '/dashboard/bookings.svg',
       useImage: true
     },
-    { 
-      title: 'Total Revenue', 
-      value: formatCurrency(totalRevenue || stats?.totalRevenue || 0), 
+    {
+      title: 'Total Revenue',
+      value: formatCurrency(totalRevenue || stats?.totalRevenue || 0),
       change: stats?.growth?.revenue || 0,
       icon: '/dashboard/revenue.svg',
       useImage: true
@@ -306,15 +307,15 @@ export default function Dashboard() {
   ];
 
   const userSegments = [
-    { 
-      label: 'Field Owners', 
-      value: stats?.fieldOwners || 0, 
-      color: 'bg-[#3a6b22]' 
+    {
+      label: 'Field Owners',
+      value: stats?.fieldOwners || 0,
+      color: 'bg-[#3a6b22]'
     },
-    { 
-      label: 'Dog Owners', 
-      value: stats?.dogOwners || 0, 
-      color: 'bg-[#8fb366]' 
+    {
+      label: 'Dog Owners',
+      value: stats?.dogOwners || 0,
+      color: 'bg-[#8fb366]'
     }
   ];
 
@@ -323,9 +324,9 @@ export default function Dashboard() {
       <div className="bg-light min-h-screen p-3 sm:p-4 md:p-6">
         <div className="max-w-[1400px] mx-auto">
           {/* Header */}
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
-            <h1 className="text-[#192215] text-2xl sm:text-3xl font-bold">Admin Dashboard</h1>
-            <div className="overflow-x-auto">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+            <h1 className="text-[#192215] text-xl sm:text-2xl md:text-3xl font-bold">Admin Dashboard</h1>
+            <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
               <TimePeriodToggle
                 periods={['Today', 'Weekly', 'Monthly', 'Yearly']}
                 activePeriod={activePeriod}
@@ -335,18 +336,18 @@ export default function Dashboard() {
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
             {statsData.map((stat, idx) => (
-              <StatsCardNew 
-                key={idx} 
-                {...stat} 
+              <StatsCardNew
+                key={idx}
+                {...stat}
                 loading={statsLoading}
               />
             ))}
           </div>
 
           {/* Charts Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8">
             <LineChart
               title="Field Utilization"
               data={fieldUtilizationStats}
@@ -358,7 +359,7 @@ export default function Dashboard() {
               loading={chartsLoading || statsLoading}
               showLines={false}
             />
-            
+
             <LineChart
               title="Booking Status"
               data={bookingStats}
@@ -370,26 +371,28 @@ export default function Dashboard() {
               loading={chartsLoading || statsLoading}
               showLines={true}
             />
-            
-            <DonutChart
-              total={(stats?.fieldOwners || 0) + (stats?.dogOwners || 0)}
-              segments={userSegments}
-              loading={chartsLoading || statsLoading}
-            />
+
+            <div className="md:col-span-2 xl:col-span-1">
+              <DonutChart
+                total={(stats?.fieldOwners || 0) + (stats?.dogOwners || 0)}
+                segments={userSegments}
+                loading={chartsLoading || statsLoading}
+              />
+            </div>
           </div>
 
           {/* Bookings Table */}
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
-              <h2 className="text-[#192215] text-xl sm:text-2xl font-bold">Bookings Overview</h2>
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+              <h2 className="text-[#192215] text-lg sm:text-xl md:text-2xl font-bold">Bookings Overview</h2>
               <button
                 onClick={() => router.push('/bookings')}
-                className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap"
+                className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap self-start sm:self-auto"
               >
                 View All →
               </button>
             </div>
-            
+
             {/* Desktop Table */}
             <div className="hidden lg:block bg-white rounded-2xl overflow-hidden border border-black/10 shadow-md">
               {/* Table Header */}
@@ -408,7 +411,7 @@ export default function Dashboard() {
                   <span className="w-[88px]">Action</span>
                 </div>
               </div>
-              
+
               {/* Table Body */}
               <div className="px-6 max-h-[400px] overflow-y-auto">
                 {loadingBookings ? (
@@ -443,10 +446,10 @@ export default function Dashboard() {
                     <div className="flex justify-between items-start mb-3">
                       <div className="flex items-center gap-3">
                         {booking.image && (
-                          <img 
-                            src={booking.image} 
-                            alt="" 
-                            className="w-12 h-12 rounded-lg object-cover" 
+                          <img
+                            src={booking.image}
+                            alt=""
+                            className="w-12 h-12 rounded-lg object-cover"
                           />
                         )}
                         <div>
@@ -458,18 +461,17 @@ export default function Dashboard() {
                           </p>
                         </div>
                       </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
-                        booking.status === 'COMPLETED' ? 'bg-[#3a6b22]/10 text-[#3a6b22] border-[#3a6b22]/12' :
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium border ${booking.status === 'COMPLETED' ? 'bg-[#3a6b22]/10 text-[#3a6b22] border-[#3a6b22]/12' :
                         booking.status === 'CONFIRMED' ? 'bg-[#8fb366]/10 text-[#8fb366] border-[#8fb366]/12' :
-                        booking.status === 'PENDING' ? 'bg-[#f6bd01]/10 text-[#ffbd00] border-[#ffcc26]/16' :
-                        'bg-red-50 text-red-500 border-red-200'
-                      }`}>
+                          booking.status === 'PENDING' ? 'bg-[#f6bd01]/10 text-[#ffbd00] border-[#ffcc26]/16' :
+                            'bg-red-50 text-red-500 border-red-200'
+                        }`}>
                         {booking.status === 'COMPLETED' ? 'Completed' :
-                         booking.status === 'CONFIRMED' ? 'Confirmed' :
-                         booking.status === 'PENDING' ? 'Pending' : 'Cancelled'}
+                          booking.status === 'CONFIRMED' ? 'Confirmed' :
+                            booking.status === 'PENDING' ? 'Pending' : 'Cancelled'}
                       </span>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-2 text-sm mb-3">
                       <div>
                         <span className="text-[#575757] text-xs">ID:</span>
@@ -496,12 +498,12 @@ export default function Dashboard() {
                         <span className="text-[#20130b] ml-1 font-semibold">£{booking.price.toFixed(2)}</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-[#575757] text-xs">
                         Recurring: {booking.recurring}
                       </span>
-                      <button 
+                      <button
                         onClick={() => router.push(`/bookings/${booking.id}`)}
                         className="bg-[#3a6b22] hover:bg-[#2d5419] transition-colors text-white text-xs font-semibold px-4 py-2 rounded-full"
                       >
@@ -515,12 +517,12 @@ export default function Dashboard() {
           </div>
 
           {/* User Reports Table */}
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
-              <h2 className="text-[#192215] text-xl sm:text-2xl font-bold">Recent User Reports</h2>
+          <div className="mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+              <h2 className="text-[#192215] text-lg sm:text-xl md:text-2xl font-bold">Recent User Reports</h2>
               <button
                 onClick={() => router.push('/reports')}
-                className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap"
+                className="text-[#3a6b22] hover:text-[#2d5419] text-sm font-medium whitespace-nowrap self-start sm:self-auto"
               >
                 View All →
               </button>
@@ -530,10 +532,9 @@ export default function Dashboard() {
             <div className="hidden lg:block bg-white rounded-2xl overflow-hidden border border-black/10 shadow-md">
               {/* Table Header */}
               <div className="bg-[#ebebeb] px-6 py-3">
-                <div className="grid grid-cols-6 gap-4 text-[#575757] text-xs">
+                <div className="grid grid-cols-5 gap-4 text-[#575757] text-xs">
                   <span>Reporter</span>
                   <span>Reported User</span>
-                  <span>Role</span>
                   <span>Reason</span>
                   <span>Date</span>
                   <span className="text-center">Action</span>
@@ -554,7 +555,7 @@ export default function Dashboard() {
                   reports.map((report) => (
                     <div
                       key={report.id}
-                      className="grid grid-cols-6 gap-4 py-4 border-b border-gray-100 last:border-b-0 items-center text-sm"
+                      className="grid grid-cols-5 gap-4 py-4 border-b border-gray-100 last:border-b-0 items-center text-sm"
                     >
                       <div className="flex items-center gap-2">
                         {report.reporter?.image ? (
@@ -569,7 +570,14 @@ export default function Dashboard() {
                           </div>
                         )}
                         <div>
-                          <p className="text-[#20130b] font-medium text-xs">{report.reporter?.name}</p>
+                          <p className="text-[#20130b] font-medium text-xs">
+                            {report.reporter?.name}
+                            {report.reporter?.role && (
+                              <span className="text-[#575757] font-normal ml-1">
+                                ({report.reporter.role.toLowerCase().replace('_', ' ')})
+                              </span>
+                            )}
+                          </p>
                           <p className="text-[#575757] text-xs">{report.reporter?.email}</p>
                         </div>
                       </div>
@@ -587,14 +595,17 @@ export default function Dashboard() {
                           </div>
                         )}
                         <div>
-                          <p className="text-[#20130b] font-medium text-xs">{report.reportedUser?.name}</p>
+                          <p className="text-[#20130b] font-medium text-xs">
+                            {report.reportedUser?.name}
+                            {report.reportedUser?.role && (
+                              <span className="text-[#575757] font-normal ml-1">
+                                ({report.reportedUser.role.toLowerCase().replace('_', ' ')})
+                              </span>
+                            )}
+                          </p>
                           <p className="text-[#575757] text-xs">{report.reportedUser?.email}</p>
                         </div>
                       </div>
-
-                      <span className="text-[#20130b] text-xs capitalize">
-                        {report.reportedUser?.role?.toLowerCase().replace('_', ' ')}
-                      </span>
 
                       <div>
                         <p className="text-[#20130b] font-medium text-xs">{report.reportOption}</p>
@@ -659,7 +670,14 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div>
-                            <p className="text-[#20130b] font-medium text-xs">{report.reporter?.name}</p>
+                            <p className="text-[#20130b] font-medium text-xs">
+                              {report.reporter?.name}
+                              {report.reporter?.role && (
+                                <span className="text-[#575757] font-normal ml-1">
+                                  ({report.reporter.role.toLowerCase().replace('_', ' ')})
+                                </span>
+                              )}
+                            </p>
                             <p className="text-[#575757] text-xs">{report.reporter?.email}</p>
                           </div>
                         </div>
@@ -680,7 +698,14 @@ export default function Dashboard() {
                             </div>
                           )}
                           <div>
-                            <p className="text-[#20130b] font-medium text-xs">{report.reportedUser?.name}</p>
+                            <p className="text-[#20130b] font-medium text-xs">
+                              {report.reportedUser?.name}
+                              {report.reportedUser?.role && (
+                                <span className="text-[#575757] font-normal ml-1">
+                                  ({report.reportedUser.role.toLowerCase().replace('_', ' ')})
+                                </span>
+                              )}
+                            </p>
                             <p className="text-[#575757] text-xs">{report.reportedUser?.email}</p>
                           </div>
                         </div>
