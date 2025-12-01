@@ -14,14 +14,29 @@ interface BookingDetailsResponse {
   booking: Booking;
 }
 
+// Filter types for bookings
+interface BookingFilters {
+  searchName?: string;
+  status?: string;
+  dateRange?: string;
+}
+
 // Get all bookings
-export const useBookings = (page: number = 1, limit: number = 10, searchName?: string) => {
+export const useBookings = (page: number = 1, limit: number = 10, filters?: BookingFilters) => {
   return useQuery({
-    queryKey: ['bookings', page, limit, searchName],
+    queryKey: ['bookings', page, limit, filters],
     queryFn: async () => {
       const params: any = { page, limit };
-      if (searchName && searchName.trim()) {
-        params.searchName = searchName.trim();
+      if (filters?.searchName && filters.searchName.trim()) {
+        params.searchName = filters.searchName.trim();
+      }
+      // Only send status if not 'All'
+      if (filters?.status && filters.status !== 'All') {
+        params.status = filters.status;
+      }
+      // Only send dateRange if not 'All'
+      if (filters?.dateRange && filters.dateRange !== 'All') {
+        params.dateRange = filters.dateRange;
       }
       const response = await api.get<BookingsResponse>('/admin/bookings', { params });
       return response.data;

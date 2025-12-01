@@ -14,7 +14,8 @@ import {
   Package,
   ChevronRight,
   FileText,
-  MessageSquare
+  MessageSquare,
+  CreditCard
 } from 'lucide-react';
 import { useLogout, useVerifyAdmin } from '@/hooks/useAuth';
 import { useAdminNotifications } from '@/hooks/useNotifications';
@@ -56,6 +57,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard' },
     { icon: Calendar, label: 'Bookings', href: '/bookings' },
+    { icon: CreditCard, label: 'Transactions', href: '/transactions' },
     { icon: MapPin, label: 'Fields', href: '/fields' },
     { icon: Users, label: 'Dog Owners', href: '/dog-owners' },
     { icon: Users, label: 'Field Owners', href: '/field-owners' },

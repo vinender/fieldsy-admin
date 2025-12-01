@@ -39,7 +39,9 @@ const ALLOWED_NOTIFICATION_TYPES = new Set([
   'recurring_booking_failed',
   'subscription_cancelled',
   'subscription_canceled',
-  'subscription_auto_cancelled'
+  'subscription_auto_cancelled',
+  // Admin alerts (field address changes, etc.)
+  'admin_alert'
 ]);
 
 const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClose }) => {
@@ -85,6 +87,8 @@ const NotificationSidebar: React.FC<NotificationSidebarProps> = ({ isOpen, onClo
         return 'border-yellow-300 bg-yellow-50';
       case 'review_posted':
         return 'border-purple-300 bg-purple-50';
+      case 'admin_alert':
+        return 'border-orange-300 bg-orange-50';
       default:
         return 'border-gray-300 bg-gray-50';
     }

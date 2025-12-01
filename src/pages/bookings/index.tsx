@@ -22,7 +22,11 @@ export default function Bookings() {
   const filterRef = useRef<HTMLDivElement>(null);
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: bookingsData, isLoading: bookingsLoading } = useBookings(page, 10, debouncedSearchTerm);
+  const { data: bookingsData, isLoading: bookingsLoading } = useBookings(page, 10, {
+    searchName: debouncedSearchTerm,
+    status: activeFilters.bookingStatus,
+    dateRange: activeFilters.dateRange
+  });
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -45,11 +49,11 @@ export default function Bookings() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  // Reset to page 1 when debounced search term changes
+  // Reset to page 1 when debounced search term or filters change
   useEffect(() => {
-    console.log('Debounced search term changed, resetting to page 1:', debouncedSearchTerm);
+    console.log('Filters changed, resetting to page 1:', { debouncedSearchTerm, activeFilters });
     setPage(1);
-  }, [debouncedSearchTerm]);
+  }, [debouncedSearchTerm, activeFilters]);
 
   // Log when bookings data changes
   useEffect(() => {
@@ -86,45 +90,8 @@ export default function Bookings() {
     );
   }
 
-  // Apply client-side filters (status and date range only - name search is server-side)
-  const filteredBookings = bookingsData?.bookings?.filter(booking => {
-    // Booking status filter
-    if (activeFilters.bookingStatus !== 'All') {
-      if (booking.status.toLowerCase() !== activeFilters.bookingStatus.toLowerCase()) {
-        return false;
-      }
-    }
-
-    // Date range filter
-    if (activeFilters.dateRange !== 'All') {
-      const bookingDate = new Date(booking.date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      switch (activeFilters.dateRange) {
-        case 'Today':
-          if (bookingDate.toDateString() !== today.toDateString()) return false;
-          break;
-        case 'This Week':
-          const weekStart = new Date(today);
-          weekStart.setDate(today.getDate() - today.getDay());
-          if (bookingDate < weekStart) return false;
-          break;
-        case 'This Month':
-          if (bookingDate.getMonth() !== today.getMonth() ||
-              bookingDate.getFullYear() !== today.getFullYear()) return false;
-          break;
-        case 'Last Month':
-          const lastMonth = new Date(today);
-          lastMonth.setMonth(today.getMonth() - 1);
-          if (bookingDate.getMonth() !== lastMonth.getMonth() ||
-              bookingDate.getFullYear() !== lastMonth.getFullYear()) return false;
-          break;
-      }
-    }
-
-    return true;
-  }) || [];
+  // Bookings are now filtered server-side, just use the data directly
+  const bookings = bookingsData?.bookings || [];
 
   const handleFiltersChange = (newFilters: any) => {
     setActiveFilters(newFilters);
@@ -189,7 +156,7 @@ export default function Bookings() {
 
         {/* Bookings Table */}
         <TableContainer>
-          <BookingsTable bookings={filteredBookings} />
+          <BookingsTable bookings={bookings} />
           
           {/* Pagination */}
           {bookingsData && bookingsData.pages > 1 && (

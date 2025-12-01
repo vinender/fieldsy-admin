@@ -11,6 +11,12 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { AmenityIcon } from '@/components/ui/AmenityIcon';
 
+// Capitalize first letter of each word separated by hyphens (e.g., "post-and-wire" -> "Post-And-Wire")
+const capitalizeFirst = (str: string | null | undefined): string => {
+  if (!str) return 'N/A';
+  return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
+};
+
 // Reusable Card Component
 const Card = ({ children, className = '', ...props }: { children: React.ReactNode; className?: string;[key: string]: any }) => {
   return (
@@ -248,21 +254,21 @@ export default function FieldDetails() {
             <Card className="p-5">
               <div className="grid grid-cols-4 gap-8">
                 <InfoCard label="Name" value={field.name || "N/A"} />
-                <InfoCard label="Size" value={field.size || "N/A"} />
-                <InfoCard label="Price" value={field.price ? `${formatCurrency(field.price)}/${field.bookingDuration}` : "N/A"} />
+                <InfoCard label="Size" value={capitalizeFirst(field.size)} />
+                <InfoCard label="Price" value={field.price ? `${formatCurrency(field.price)}/${capitalizeFirst(field.bookingDuration)}` : "N/A"} />
                 <InfoCard label="Status" value={field.isActive ? "Active" : "Inactive"} />
               </div>
               <div className="grid grid-cols-5 gap-8 mt-6">
-                <InfoCard label="Terrain Type" value={field.terrainType || "N/A"} />
-                <InfoCard label="Fence Type" value={field.fenceType || "N/A"} />
-                <InfoCard label="Fence Size" value={field.fenceSize || "N/A"} />
-                <InfoCard label="Surface Type" value={field.surfaceType || "N/A"} />
+                <InfoCard label="Terrain Type" value={capitalizeFirst(field.terrainType)} />
+                <InfoCard label="Fence Type" value={capitalizeFirst(field.fenceType)} />
+                <InfoCard label="Fence Size" value={capitalizeFirst(field.fenceSize)} />
+                <InfoCard label="Surface Type" value={capitalizeFirst(field.surfaceType)} />
                 <InfoCard label="Opening Hours" value={field.openingTime && field.closingTime ? `${field.openingTime} - ${field.closingTime}` : "N/A"} />
               </div>
               <div className="grid grid-cols-5 gap-8 mt-6">
-                <InfoCard label="Booking Duration" value={field.bookingDuration || "N/A"} />
+                <InfoCard label="Booking Duration" value={capitalizeFirst(field.bookingDuration)} />
                 <InfoCard label="Max Dogs" value={field.maxDogs || "N/A"} />
-                <InfoCard label="Operating Days" value={field.operatingDays?.length ? field.operatingDays.join(', ') : "N/A"} />
+                <InfoCard label="Operating Days" value={field.operatingDays?.length ? field.operatingDays.map((day: string) => capitalizeFirst(day)).join(', ') : "N/A"} />
                 {/* <InfoCard label="Instant Booking" value={field.instantBooking ? "Yes" : "No"} /> */}
                 <InfoCard
                   label="Amenities"
