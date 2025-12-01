@@ -3,7 +3,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { Search, Filter, Download, ArrowUpRight, ArrowDownLeft, RefreshCw, X, ChevronDown, ExternalLink, Eye } from 'lucide-react';
+import { Search, Filter, Download, ArrowUpRight, ArrowDownLeft, RefreshCw, X, ChevronDown, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -27,11 +27,25 @@ interface Transaction {
   amount: number;
   netAmount?: number;
   platformFee?: number;
+  commissionRate?: number;
   status: string;
   description?: string;
   stripePaymentIntentId?: string;
+  stripeChargeId?: string;
+  stripeBalanceTransactionId?: string;
   stripeRefundId?: string;
+  stripeTransferId?: string;
+  stripePayoutId?: string;
+  connectedAccountId?: string;
   createdAt: string;
+  // Lifecycle stage tracking
+  lifecycleStage?: string;
+  paymentReceivedAt?: string;
+  fundsAvailableAt?: string;
+  transferredAt?: string;
+  payoutInitiatedAt?: string;
+  payoutCompletedAt?: string;
+  refundedAt?: string;
   booking?: {
     id: string;
     date: string;
@@ -51,16 +65,141 @@ interface Transaction {
     name: string;
     email: string;
   };
+  fieldOwner?: {
+    id: string;
+    name: string;
+    email: string;
+  };
   // For payouts
-  stripePayoutId?: string;
   stripeAccountId?: string;
   arrivalDate?: string;
   failureCode?: string;
   failureMessage?: string;
   // For transfers
-  stripeTransferId?: string;
   destination?: string;
 }
+
+// Lifecycle stage definitions
+const LIFECYCLE_STAGES = {
+  PAYMENT_RECEIVED: 'PAYMENT_RECEIVED',
+  FUNDS_PENDING: 'FUNDS_PENDING',
+  FUNDS_AVAILABLE: 'FUNDS_AVAILABLE',
+  TRANSFERRED: 'TRANSFERRED',
+  PAYOUT_INITIATED: 'PAYOUT_INITIATED',
+  PAYOUT_COMPLETED: 'PAYOUT_COMPLETED',
+  REFUNDED: 'REFUNDED',
+  FAILED: 'FAILED',
+  CANCELLED: 'CANCELLED'
+} as const;
+
+const getLifecycleStageInfo = (stage?: string) => {
+  switch (stage) {
+    case LIFECYCLE_STAGES.PAYMENT_RECEIVED:
+      return { label: 'Payment Received', color: 'text-green-600', bgColor: 'bg-green-100', icon: CreditCard };
+    case LIFECYCLE_STAGES.FUNDS_PENDING:
+      return { label: 'Funds Pending', color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Clock };
+    case LIFECYCLE_STAGES.FUNDS_AVAILABLE:
+      return { label: 'Funds Available', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: Banknote };
+    case LIFECYCLE_STAGES.TRANSFERRED:
+      return { label: 'Transferred', color: 'text-purple-600', bgColor: 'bg-purple-100', icon: ArrowRight };
+    case LIFECYCLE_STAGES.PAYOUT_INITIATED:
+      return { label: 'Payout Initiated', color: 'text-indigo-600', bgColor: 'bg-indigo-100', icon: Building2 };
+    case LIFECYCLE_STAGES.PAYOUT_COMPLETED:
+      return { label: 'Payout Complete', color: 'text-green-700', bgColor: 'bg-green-200', icon: CheckCircle };
+    case LIFECYCLE_STAGES.REFUNDED:
+      return { label: 'Refunded', color: 'text-red-600', bgColor: 'bg-red-100', icon: RefreshCw };
+    case LIFECYCLE_STAGES.FAILED:
+      return { label: 'Failed', color: 'text-red-700', bgColor: 'bg-red-200', icon: AlertCircle };
+    case LIFECYCLE_STAGES.CANCELLED:
+      return { label: 'Cancelled', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: X };
+    default:
+      return { label: 'Unknown', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: Clock };
+  }
+};
+
+const getLifecycleStageOrder = (stage?: string): number => {
+  const order: Record<string, number> = {
+    [LIFECYCLE_STAGES.PAYMENT_RECEIVED]: 1,
+    [LIFECYCLE_STAGES.FUNDS_PENDING]: 2,
+    [LIFECYCLE_STAGES.FUNDS_AVAILABLE]: 3,
+    [LIFECYCLE_STAGES.TRANSFERRED]: 4,
+    [LIFECYCLE_STAGES.PAYOUT_INITIATED]: 5,
+    [LIFECYCLE_STAGES.PAYOUT_COMPLETED]: 6,
+    [LIFECYCLE_STAGES.REFUNDED]: -1,
+    [LIFECYCLE_STAGES.FAILED]: -2,
+    [LIFECYCLE_STAGES.CANCELLED]: -3,
+  };
+  return order[stage || ''] || 0;
+};
+
+// Lifecycle Timeline Component
+const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
+  const stages = [
+    { key: LIFECYCLE_STAGES.PAYMENT_RECEIVED, timestamp: transaction.paymentReceivedAt },
+    { key: LIFECYCLE_STAGES.FUNDS_PENDING, timestamp: null },
+    { key: LIFECYCLE_STAGES.FUNDS_AVAILABLE, timestamp: transaction.fundsAvailableAt },
+    { key: LIFECYCLE_STAGES.TRANSFERRED, timestamp: transaction.transferredAt },
+    { key: LIFECYCLE_STAGES.PAYOUT_INITIATED, timestamp: transaction.payoutInitiatedAt },
+    { key: LIFECYCLE_STAGES.PAYOUT_COMPLETED, timestamp: transaction.payoutCompletedAt },
+  ];
+
+  const currentStageOrder = getLifecycleStageOrder(transaction.lifecycleStage);
+  const isTerminal = ['REFUNDED', 'FAILED', 'CANCELLED'].includes(transaction.lifecycleStage || '');
+
+  if (isTerminal) {
+    const stageInfo = getLifecycleStageInfo(transaction.lifecycleStage);
+    const StageIcon = stageInfo.icon;
+    return (
+      <div className={`flex items-center space-x-2 px-3 py-2 rounded-lg ${stageInfo.bgColor}`}>
+        <StageIcon className={`w-5 h-5 ${stageInfo.color}`} />
+        <span className={`font-medium ${stageInfo.color}`}>{stageInfo.label}</span>
+        {transaction.refundedAt && (
+          <span className="text-xs text-gray-500">
+            {formatDate(transaction.refundedAt)}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {stages.map((stage, index) => {
+        const stageInfo = getLifecycleStageInfo(stage.key);
+        const StageIcon = stageInfo.icon;
+        const stageOrder = getLifecycleStageOrder(stage.key);
+        const isCompleted = currentStageOrder >= stageOrder;
+        const isCurrent = transaction.lifecycleStage === stage.key;
+
+        return (
+          <div key={stage.key} className="flex items-center space-x-3">
+            <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+              isCompleted ? stageInfo.bgColor : 'bg-gray-100'
+            }`}>
+              <StageIcon className={`w-4 h-4 ${isCompleted ? stageInfo.color : 'text-gray-400'}`} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
+                {stageInfo.label}
+                {isCurrent && (
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">
+                    Current
+                  </span>
+                )}
+              </p>
+              {stage.timestamp && (
+                <p className="text-xs text-gray-500">{formatDate(stage.timestamp)}</p>
+              )}
+            </div>
+            {index < stages.length - 1 && (
+              <div className={`w-px h-4 ml-4 ${isCompleted ? 'bg-green-300' : 'bg-gray-200'}`} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
 
 const getTypeIcon = (type: string) => {
   switch (type.toUpperCase()) {
@@ -326,6 +465,7 @@ export default function Transactions() {
                   <TableHead>Type</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Lifecycle</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Field / Description</TableHead>
                   <TableHead>Platform Fee</TableHead>
@@ -365,6 +505,26 @@ export default function Transactions() {
                       <span className={getStatusBadge(transaction.status)}>
                         {transaction.status}
                       </span>
+                    </TableCell>
+                    <TableCell>
+                      {transaction.lifecycleStage ? (
+                        <div className="flex items-center space-x-1.5">
+                          {(() => {
+                            const stageInfo = getLifecycleStageInfo(transaction.lifecycleStage);
+                            const StageIcon = stageInfo.icon;
+                            return (
+                              <>
+                                <StageIcon className={`w-3.5 h-3.5 ${stageInfo.color}`} />
+                                <span className={`text-xs font-medium ${stageInfo.color} ${stageInfo.bgColor} px-2 py-0.5 rounded-full`}>
+                                  {stageInfo.label}
+                                </span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {transaction.user ? (
@@ -608,8 +768,27 @@ export default function Transactions() {
                         <span className="font-medium">{formatCurrency(selectedTransaction.netAmount)}</span>
                       </div>
                     )}
+                    {selectedTransaction.commissionRate && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Commission Rate</span>
+                        <span className="font-medium">{selectedTransaction.commissionRate}%</span>
+                      </div>
+                    )}
                   </div>
                 </div>
+
+                {/* Payment Lifecycle Timeline */}
+                {selectedTransaction.type === 'PAYMENT' && selectedTransaction.lifecycleStage && (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-medium text-gray-900">Payment Lifecycle</h4>
+                      <p className="text-xs text-gray-500 mt-1">Track the flow of funds from payment to field owner bank</p>
+                    </div>
+                    <div className="p-4">
+                      <LifecycleTimeline transaction={selectedTransaction} />
+                    </div>
+                  </div>
+                )}
 
                 {/* User Info */}
                 {selectedTransaction.user && (

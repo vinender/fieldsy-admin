@@ -14,17 +14,29 @@ interface Transaction {
   amount: number;
   netAmount?: number;
   platformFee?: number;
+  commissionRate?: number;
   status: string;
   description?: string;
   stripePaymentIntentId?: string;
+  stripeChargeId?: string;
+  stripeBalanceTransactionId?: string;
   stripeRefundId?: string;
   stripePayoutId?: string;
   stripeTransferId?: string;
   stripeAccountId?: string;
+  connectedAccountId?: string;
   arrivalDate?: string;
   failureCode?: string;
   failureMessage?: string;
   createdAt: string;
+  // Lifecycle stage tracking
+  lifecycleStage?: string;
+  paymentReceivedAt?: string;
+  fundsAvailableAt?: string;
+  transferredAt?: string;
+  payoutInitiatedAt?: string;
+  payoutCompletedAt?: string;
+  refundedAt?: string;
   booking?: {
     id: string;
     date: string;
@@ -40,6 +52,11 @@ interface Transaction {
     };
   };
   user?: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  fieldOwner?: {
     id: string;
     name: string;
     email: string;
