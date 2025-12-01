@@ -28,6 +28,8 @@ interface Transaction {
   netAmount?: number;
   platformFee?: number;
   commissionRate?: number;
+  isCustomCommission?: boolean;
+  defaultCommissionRate?: number;
   status: string;
   description?: string;
   stripePaymentIntentId?: string;
@@ -215,7 +217,7 @@ const getTypeIcon = (type: string) => {
       return <RefreshCw className="w-4 h-4 text-gray-600" />;
   }
 };
-
+  
 const getTypeBadge = (type: string) => {
   const baseClasses = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium";
   switch (type.toUpperCase()) {
@@ -784,9 +786,22 @@ export default function Transactions() {
                       </div>
                     )}
                     {selectedTransaction.commissionRate && (
-                      <div className="flex justify-between">
+                      <div className="flex justify-between items-center">
                         <span className="text-gray-600">Commission Rate</span>
-                        <span className="font-medium">{selectedTransaction.commissionRate}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{selectedTransaction.commissionRate}%</span>
+                          {selectedTransaction.isCustomCommission ? (
+                            <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Custom</span>
+                          ) : (
+                            <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">Default</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    {selectedTransaction.defaultCommissionRate && selectedTransaction.isCustomCommission && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Default Rate at Time</span>
+                        <span className="text-gray-500">{selectedTransaction.defaultCommissionRate}%</span>
                       </div>
                     )}
                   </div>

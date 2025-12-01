@@ -15,6 +15,8 @@ interface Transaction {
   netAmount?: number;
   platformFee?: number;
   commissionRate?: number;
+  isCustomCommission?: boolean;
+  defaultCommissionRate?: number;
   status: string;
   description?: string;
   stripePaymentIntentId?: string;

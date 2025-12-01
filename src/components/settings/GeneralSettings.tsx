@@ -183,18 +183,35 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Commission Rate (%)
+          Default Commission Rate (%)
+          <span className="text-xs text-gray-500 ml-1">(Platform fee taken from each booking)</span>
         </label>
         <input
           type="number"
           name="defaultCommissionRate"
           value={formData.defaultCommissionRate}
-          onChange={handleChange}
-          min="0"
-          max="100"
-          step="0.1"
+          onChange={(e) => {
+            // Enforce whole numbers only (no decimals)
+            const value = Math.floor(Number(e.target.value));
+            // Clamp between 1 and 50
+            const clampedValue = Math.max(1, Math.min(50, value));
+            const syntheticEvent = {
+              target: {
+                name: 'defaultCommissionRate',
+                value: String(clampedValue),
+                type: 'number'
+              }
+            } as React.ChangeEvent<HTMLInputElement>;
+            handleChange(syntheticEvent);
+          }}
+          min="1"
+          max="50"
+          step="1"
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
         />
+        <p className="text-xs text-gray-500 mt-1">
+          Must be between 1% and 50% (whole numbers only). Custom rates can be set per field owner.
+        </p>
       </div>
 
       <div>

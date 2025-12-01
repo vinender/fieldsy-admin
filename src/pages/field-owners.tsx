@@ -457,14 +457,21 @@ export default function FieldOwners() {
                     </label>
                     <input
                       type="number"
-                      min="0"
-                      max="100"
-                      step="0.1"
+                      min="1"
+                      max="50"
+                      step="1"
                       value={customRate}
-                      onChange={(e) => setCustomRate(e.target.value)}
+                      onChange={(e) => {
+                        // Enforce whole numbers only (no decimals)
+                        const value = Math.floor(Number(e.target.value));
+                        // Clamp between 1 and 50
+                        const clampedValue = Math.max(1, Math.min(50, value));
+                        setCustomRate(String(clampedValue));
+                      }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green focus:border-green"
-                      placeholder="Enter commission rate"
+                      placeholder="Enter commission rate (1-50%)"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Must be between 1% and 50% (whole numbers only)</p>
                   </div>
                 )}
               </div>
@@ -512,14 +519,21 @@ export default function FieldOwners() {
                 </label>
                 <input
                   type="number"
-                  min="0"
-                  max="100"
-                  step="0.1"
+                  min="1"
+                  max="50"
+                  step="1"
                   value={newDefaultRate}
-                  onChange={(e) => setNewDefaultRate(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter default rate"
+                  onChange={(e) => {
+                    // Enforce whole numbers only (no decimals)
+                    const value = Math.floor(Number(e.target.value));
+                    // Clamp between 1 and 50
+                    const clampedValue = Math.max(1, Math.min(50, value));
+                    setNewDefaultRate(String(clampedValue));
+                  }}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-green focus:border-green"
+                  placeholder="Enter default rate (1-50%)"
                 />
+                <p className="text-xs text-gray-500 mt-1">Must be between 1% and 50% (whole numbers only)</p>
               </div>
               
               <div className="mt-6 flex justify-end gap-3">
