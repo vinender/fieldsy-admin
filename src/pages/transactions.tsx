@@ -95,7 +95,7 @@ const LIFECYCLE_STAGES = {
 const getLifecycleStageInfo = (stage?: string) => {
   switch (stage) {
     case LIFECYCLE_STAGES.PAYMENT_RECEIVED:
-      return { label: 'Payment Received', color: 'text-green-600', bgColor: 'bg-green-100', icon: CreditCard };
+      return { label: 'Payment Received', color: 'text-green', bgColor: 'bg-green', icon: CreditCard };
     case LIFECYCLE_STAGES.FUNDS_PENDING:
       return { label: 'Funds Pending', color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Clock };
     case LIFECYCLE_STAGES.FUNDS_AVAILABLE:
@@ -105,7 +105,7 @@ const getLifecycleStageInfo = (stage?: string) => {
     case LIFECYCLE_STAGES.PAYOUT_INITIATED:
       return { label: 'Payout Initiated', color: 'text-indigo-600', bgColor: 'bg-indigo-100', icon: Building2 };
     case LIFECYCLE_STAGES.PAYOUT_COMPLETED:
-      return { label: 'Payout Complete', color: 'text-green-700', bgColor: 'bg-green-200', icon: CheckCircle };
+      return { label: 'Payout Complete', color: 'text-green', bgColor: 'bg-green', icon: CheckCircle };
     case LIFECYCLE_STAGES.REFUNDED:
       return { label: 'Refunded', color: 'text-red-600', bgColor: 'bg-red-100', icon: RefreshCw };
     case LIFECYCLE_STAGES.FAILED:
@@ -182,7 +182,7 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
               <p className={`text-sm font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
                 {stageInfo.label}
                 {isCurrent && (
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green-100 text-green-700">
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green text-green">
                     Current
                   </span>
                 )}
@@ -192,7 +192,7 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
               )}
             </div>
             {index < stages.length - 1 && (
-              <div className={`w-px h-4 ml-4 ${isCompleted ? 'bg-green-300' : 'bg-gray-200'}`} />
+              <div className={`w-px h-4 ml-4 ${isCompleted ? 'bg-green' : 'bg-gray-200'}`} />
             )}
           </div>
         );
@@ -204,7 +204,7 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
 const getTypeIcon = (type: string) => {
   switch (type.toUpperCase()) {
     case 'PAYMENT':
-      return <ArrowDownLeft className="w-4 h-4 text-green-600" />;
+      return <ArrowDownLeft className="w-4 h-4 text-green" />;
     case 'REFUND':
       return <ArrowUpRight className="w-4 h-4 text-red-600" />;
     case 'PAYOUT':
@@ -220,7 +220,7 @@ const getTypeBadge = (type: string) => {
   const baseClasses = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium";
   switch (type.toUpperCase()) {
     case 'PAYMENT':
-      return `${baseClasses} bg-green-100 text-green-700 border border-green-200`;
+      return `${baseClasses} bg-green text-green border border-green`;
     case 'REFUND':
       return `${baseClasses} bg-red-100 text-red-700 border border-red-200`;
     case 'PAYOUT':
@@ -232,21 +232,36 @@ const getTypeBadge = (type: string) => {
   }
 };
 
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (status: string, type?: string) => {
   const baseClasses = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium";
-  switch (status.toUpperCase()) {
+  const upperStatus = status.toUpperCase();
+
+  // Special handling for refunds - yellow background
+  if (type?.toUpperCase() === 'REFUND') {
+    if (upperStatus === 'COMPLETED' || upperStatus === 'SUCCEEDED') {
+      return `${baseClasses} bg-yellow-200 text-yellow-800 border border-yellow-300`;
+    }
+    return `${baseClasses} bg-yellow-100 text-yellow-700 border border-yellow-200`;
+  }
+
+  switch (upperStatus) {
     case 'COMPLETED':
-    case 'PAID':
     case 'SUCCEEDED':
-      return `${baseClasses} bg-green-100 text-green-700 border border-green-200`;
+      return `${baseClasses} bg-green text-white border border-green`;
+    case 'PAID':
+      return `${baseClasses} bg-green text-white border border-green`;
     case 'PENDING':
+      return `${baseClasses} bg-amber-100 text-amber-700 border border-amber-200`;
     case 'PROCESSING':
     case 'IN_TRANSIT':
-      return `${baseClasses} bg-yellow-100 text-yellow-700 border border-yellow-200`;
+      return `${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`;
     case 'FAILED':
+      return `${baseClasses} bg-red-500 text-white border border-red-600`;
     case 'CANCELLED':
     case 'CANCELED':
       return `${baseClasses} bg-red-100 text-red-700 border border-red-200`;
+    case 'REFUNDED':
+      return `${baseClasses} bg-yellow-200 text-yellow-800 border border-yellow-300`;
     default:
       return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
   }
@@ -357,7 +372,7 @@ export default function Transactions() {
             >
               <RefreshCw className="w-4 h-4" />
             </button>
-            <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2">
+            <button className="bg-green text-white px-4 py-2 rounded-lg hover:bg-green transition-colors flex items-center space-x-2">
               <Download className="w-4 h-4" />
               <span>Export</span>
             </button>
@@ -368,7 +383,7 @@ export default function Transactions() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <ArrowDownLeft className="w-4 h-4 text-green-600" />
+              <ArrowDownLeft className="w-4 h-4 text-green" />
               <span className="text-sm text-gray-600">Payments</span>
             </div>
             <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.totalPayments)}</p>
@@ -398,7 +413,7 @@ export default function Transactions() {
             <div className="flex items-center space-x-2 mb-2">
               <span className="text-sm text-gray-600">Platform Revenue</span>
             </div>
-            <p className="text-xl font-bold text-green-600">{formatCurrency(stats.netRevenue)}</p>
+            <p className="text-xl font-bold text-green">{formatCurrency(stats.netRevenue)}</p>
           </div>
         </div>
 
@@ -413,7 +428,7 @@ export default function Transactions() {
                   placeholder="Search by user, field, or ID..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
                 />
               </div>
             </div>
@@ -426,7 +441,7 @@ export default function Transactions() {
                     onClick={() => setActiveFilters(prev => ({ ...prev, type }))}
                     className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
                       activeFilters.type === type
-                        ? 'bg-green-600 text-white'
+                        ? 'bg-green text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -438,14 +453,14 @@ export default function Transactions() {
                 onClick={() => setShowFilter(!showFilter)}
                 className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
                   activeFilterCount > 0
-                    ? 'border-green-500 bg-green-50 text-green-700'
+                    ? 'border-green bg-greentext-green'
                     : 'border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 <Filter className="w-4 h-4" />
                 <span>Filter</span>
                 {activeFilterCount > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-green-600 text-white text-xs rounded-full">
+                  <span className="ml-1 px-2 py-0.5 bg-green text-white text-xs rounded-full">
                     {activeFilterCount}
                   </span>
                 )}
@@ -489,7 +504,7 @@ export default function Transactions() {
                         <span className={`font-medium ${
                           transaction.type === 'REFUND' || transaction.type === 'PAYOUT'
                             ? 'text-red-600'
-                            : 'text-green-600'
+                            : 'text-green'
                         }`}>
                           {transaction.type === 'REFUND' || transaction.type === 'PAYOUT' ? '-' : '+'}
                           {formatCurrency(Math.abs(transaction.amount))}
@@ -502,7 +517,7 @@ export default function Transactions() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span className={getStatusBadge(transaction.status)}>
+                      <span className={getStatusBadge(transaction.status, transaction.type)}>
                         {transaction.status}
                       </span>
                     </TableCell>
@@ -560,7 +575,7 @@ export default function Transactions() {
                     </TableCell>
                     <TableCell>
                       {transaction.platformFee ? (
-                        <span className="text-green-600 font-medium">
+                        <span className="text-green font-medium">
                           {formatCurrency(transaction.platformFee)}
                         </span>
                       ) : (
@@ -575,7 +590,7 @@ export default function Transactions() {
                     <TableCell>
                       <button
                         onClick={() => setSelectedTransaction(transaction)}
-                        className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        className="p-2 text-gray-500 hover:text-green hover:bg-greenrounded-lg transition-colors"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -630,7 +645,7 @@ export default function Transactions() {
                   <select
                     value={activeFilters.type}
                     onChange={(e) => setActiveFilters(prev => ({ ...prev, type: e.target.value as TransactionType }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
                   >
                     <option value="ALL">All Types</option>
                     <option value="PAYMENT">Payments</option>
@@ -646,7 +661,7 @@ export default function Transactions() {
                   <select
                     value={activeFilters.status}
                     onChange={(e) => setActiveFilters(prev => ({ ...prev, status: e.target.value as TransactionStatus }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
                   >
                     <option value="ALL">All Statuses</option>
                     <option value="PENDING">Pending</option>
@@ -662,7 +677,7 @@ export default function Transactions() {
                   <select
                     value={activeFilters.dateRange}
                     onChange={(e) => setActiveFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
                   >
                     <option value="ALL">All Time</option>
                     <option value="today">Today</option>
@@ -683,7 +698,7 @@ export default function Transactions() {
                 </button>
                 <button
                   onClick={handleApplyFilters}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  className="flex-1 px-4 py-2 bg-green text-white rounded-lg hover:bg-green transition-colors"
                 >
                   Apply Filters
                 </button>
@@ -733,12 +748,12 @@ export default function Transactions() {
                     <p className={`text-2xl font-bold ${
                       selectedTransaction.type === 'REFUND' || selectedTransaction.type === 'PAYOUT'
                         ? 'text-red-600'
-                        : 'text-green-600'
+                        : 'text-green'
                     }`}>
                       {selectedTransaction.type === 'REFUND' || selectedTransaction.type === 'PAYOUT' ? '-' : '+'}
                       {formatCurrency(Math.abs(selectedTransaction.amount))}
                     </p>
-                    <span className={getStatusBadge(selectedTransaction.status)}>
+                    <span className={getStatusBadge(selectedTransaction.status, selectedTransaction.type)}>
                       {selectedTransaction.status}
                     </span>
                   </div>
@@ -757,7 +772,7 @@ export default function Transactions() {
                     {selectedTransaction.platformFee && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Platform Fee</span>
-                        <span className="font-medium text-green-600">
+                        <span className="font-medium text-green">
                           {formatCurrency(selectedTransaction.platformFee)}
                         </span>
                       </div>
@@ -853,7 +868,7 @@ export default function Transactions() {
                             href={`https://dashboard.stripe.com/test/payments/${selectedTransaction.stripePaymentIntentId}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-green-600 hover:text-green-700"
+                            className="text-green hover:text-green"
                           >
                             <ExternalLink className="w-4 h-4" />
                           </a>
