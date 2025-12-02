@@ -97,25 +97,25 @@ const LIFECYCLE_STAGES = {
 const getLifecycleStageInfo = (stage?: string) => {
   switch (stage) {
     case LIFECYCLE_STAGES.PAYMENT_RECEIVED:
-      return { label: 'Payment Received', color: 'text-green', bgColor: 'bg-green', icon: CreditCard };
+      return { label: 'Payment Received', color: 'text-white', bgColor: 'bg-green', icon: CreditCard };
     case LIFECYCLE_STAGES.FUNDS_PENDING:
-      return { label: 'Funds Pending', color: 'text-yellow-600', bgColor: 'bg-yellow-100', icon: Clock };
+      return { label: 'Funds Pending', color: 'text-yellow/80', bgColor: 'bg-yellow/20', icon: Clock };
     case LIFECYCLE_STAGES.FUNDS_AVAILABLE:
-      return { label: 'Funds Available', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: Banknote };
+      return { label: 'Funds Available', color: 'text-blue-600', bgColor: 'bg-blue-600/20', icon: Banknote };
     case LIFECYCLE_STAGES.TRANSFERRED:
-      return { label: 'Transferred', color: 'text-purple-600', bgColor: 'bg-purple-100', icon: ArrowRight };
+      return { label: 'Transferred', color: 'text-purple-600', bgColor: 'bg-purple-600/20', icon: ArrowRight };
     case LIFECYCLE_STAGES.PAYOUT_INITIATED:
-      return { label: 'Payout Initiated', color: 'text-indigo-600', bgColor: 'bg-indigo-100', icon: Building2 };
+      return { label: 'Payout Initiated', color: 'text-indigo-600', bgColor: 'bg-indigo-600/20', icon: Building2 };
     case LIFECYCLE_STAGES.PAYOUT_COMPLETED:
-      return { label: 'Payout Complete', color: 'text-green', bgColor: 'bg-green', icon: CheckCircle };
+      return { label: 'Payout Complete', color: 'text-white bg-green rounded-full  ', bgColor: 'bg-green', icon: CheckCircle };
     case LIFECYCLE_STAGES.REFUNDED:
-      return { label: 'Refunded', color: 'text-red-600', bgColor: 'bg-red-100', icon: RefreshCw };
+      return { label: 'Refunded', color: 'text-red', bgColor: 'bg-red/10', icon: RefreshCw };
     case LIFECYCLE_STAGES.FAILED:
-      return { label: 'Failed', color: 'text-red-700', bgColor: 'bg-red-200', icon: AlertCircle };
+      return { label: 'Failed', color: 'text-red', bgColor: 'bg-red/10', icon: AlertCircle };
     case LIFECYCLE_STAGES.CANCELLED:
-      return { label: 'Cancelled', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: X };
+      return { label: 'Cancelled', color: 'text-gray-600', bgColor: 'bg-gray-600/10', icon: X };
     default:
-      return { label: 'Unknown', color: 'text-gray-600', bgColor: 'bg-gray-100', icon: Clock };
+      return { label: 'Unknown', color: 'text-gray-600', bgColor: 'bg-gray-600/10', icon: Clock };
   }
 };
 
@@ -173,7 +173,7 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
         const isCompleted = currentStageOrder >= stageOrder;
         const isCurrent = transaction.lifecycleStage === stage.key;
 
-        return (
+        return (  
           <div key={stage.key} className="flex items-center space-x-3">
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
               isCompleted ? stageInfo.bgColor : 'bg-gray-100'
@@ -184,7 +184,7 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
               <p className={`text-sm font-medium ${isCompleted ? 'text-gray-900' : 'text-gray-400'}`}>
                 {stageInfo.label}
                 {isCurrent && (
-                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green text-green">
+                  <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs bg-green text-white">
                     Current
                   </span>
                 )}
@@ -203,12 +203,13 @@ const LifecycleTimeline = ({ transaction }: { transaction: Transaction }) => {
   );
 };
 
+
 const getTypeIcon = (type: string) => {
   switch (type.toUpperCase()) {
     case 'PAYMENT':
       return <ArrowDownLeft className="w-4 h-4 text-green" />;
     case 'REFUND':
-      return <ArrowUpRight className="w-4 h-4 text-red-600" />;
+      return <ArrowUpRight className="w-4 h-4 text-red" />;
     case 'PAYOUT':
       return <ArrowUpRight className="w-4 h-4 text-blue-600" />;
     case 'TRANSFER':
@@ -222,15 +223,15 @@ const getTypeBadge = (type: string) => {
   const baseClasses = "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium";
   switch (type.toUpperCase()) {
     case 'PAYMENT':
-      return `${baseClasses} bg-green text-green border border-green`;
+      return `${baseClasses} bg-green text-white border border-green`;
     case 'REFUND':
-      return `${baseClasses} bg-red-100 text-red-700 border border-red-200`;
+      return `${baseClasses} bg-red/10 text-red border border-red/50`;
     case 'PAYOUT':
-      return `${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`;
+      return `${baseClasses} bg-blue-600/10 text-blue-600 border border-blue-600/30`;
     case 'TRANSFER':
-      return `${baseClasses} bg-purple-100 text-purple-700 border border-purple-200`;
+      return `${baseClasses} bg-purple-600/10 text-purple-600 border border-purple-600/30`;
     default:
-      return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+      return `${baseClasses} bg-gray-600/10 text-gray-600 border border-gray-600/30`;
   }
 };
 
@@ -241,9 +242,9 @@ const getStatusBadge = (status: string, type?: string) => {
   // Special handling for refunds - yellow background
   if (type?.toUpperCase() === 'REFUND') {
     if (upperStatus === 'COMPLETED' || upperStatus === 'SUCCEEDED') {
-      return `${baseClasses} bg-yellow-200 text-yellow-800 border border-yellow-300`;
+      return `${baseClasses} bg-yellow/50 text-black/80 border border-yellow/70`;
     }
-    return `${baseClasses} bg-yellow-100 text-yellow-700 border border-yellow-200`;
+    return `${baseClasses} bg-yellow/20 text-yellow/80 border border-yellow/50`;
   }
 
   switch (upperStatus) {
@@ -253,19 +254,19 @@ const getStatusBadge = (status: string, type?: string) => {
     case 'PAID':
       return `${baseClasses} bg-green text-white border border-green`;
     case 'PENDING':
-      return `${baseClasses} bg-amber-100 text-amber-700 border border-amber-200`;
+      return `${baseClasses} bg-yellow/20 text-yellow/80 border border-yellow/50`;
     case 'PROCESSING':
     case 'IN_TRANSIT':
-      return `${baseClasses} bg-blue-100 text-blue-700 border border-blue-200`;
+      return `${baseClasses} bg-blue-600/10 text-blue-600 border border-blue-600/30`;
     case 'FAILED':
-      return `${baseClasses} bg-red-500 text-white border border-red-600`;
+      return `${baseClasses} bg-red text-white border border-red`;
     case 'CANCELLED':
     case 'CANCELED':
-      return `${baseClasses} bg-red-100 text-red-700 border border-red-200`;
+      return `${baseClasses} bg-red/10 text-red border border-red/50`;
     case 'REFUNDED':
-      return `${baseClasses} bg-yellow-200 text-yellow-800 border border-yellow-300`;
+      return `${baseClasses} bg-yellow/50 text-black border border-yellow/70`;
     default:
-      return `${baseClasses} bg-gray-100 text-gray-700 border border-gray-200`;
+      return `${baseClasses} bg-gray-600/10 text-gray-600 border border-gray-600/30`;
   }
 };
 
@@ -392,7 +393,7 @@ export default function Transactions() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <ArrowUpRight className="w-4 h-4 text-red-600" />
+              <ArrowUpRight className="w-4 h-4 text-red" />
               <span className="text-sm text-gray-600">Refunds</span>
             </div>
             <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.totalRefunds)}</p>
@@ -505,7 +506,7 @@ export default function Transactions() {
                       <div className="flex flex-col">
                         <span className={`font-medium ${
                           transaction.type === 'REFUND' || transaction.type === 'PAYOUT'
-                            ? 'text-red-600'
+                            ? 'text-red'
                             : 'text-green'
                         }`}>
                           {transaction.type === 'REFUND' || transaction.type === 'PAYOUT' ? '-' : '+'}
@@ -749,7 +750,7 @@ export default function Transactions() {
                   <div className="text-right">
                     <p className={`text-2xl font-bold ${
                       selectedTransaction.type === 'REFUND' || selectedTransaction.type === 'PAYOUT'
-                        ? 'text-red-600'
+                        ? 'text-red'
                         : 'text-green'
                     }`}>
                       {selectedTransaction.type === 'REFUND' || selectedTransaction.type === 'PAYOUT' ? '-' : '+'}
@@ -919,19 +920,19 @@ export default function Transactions() {
 
                 {/* Failure Info (if applicable) */}
                 {selectedTransaction.failureCode && (
-                  <div className="border border-red-200 bg-red-50 rounded-xl overflow-hidden">
-                    <div className="bg-red-100 px-4 py-3 border-b border-red-200">
-                      <h4 className="font-medium text-red-900">Failure Details</h4>
+                  <div className="border border-red/50 bg-red/5 rounded-xl overflow-hidden">
+                    <div className="bg-red/10 px-4 py-3 border-b border-red/50">
+                      <h4 className="font-medium text-red">Failure Details</h4>
                     </div>
                     <div className="p-4 space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-red-700">Error Code</span>
-                        <code className="bg-red-100 px-2 py-1 rounded text-xs text-red-800">
+                        <span className="text-red">Error Code</span>
+                        <code className="bg-red/10 px-2 py-1 rounded text-xs text-red">
                           {selectedTransaction.failureCode}
                         </code>
                       </div>
                       {selectedTransaction.failureMessage && (
-                        <p className="text-red-700 text-sm">{selectedTransaction.failureMessage}</p>
+                        <p className="text-red text-sm">{selectedTransaction.failureMessage}</p>
                       )}
                     </div>
                   </div>

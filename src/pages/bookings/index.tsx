@@ -34,12 +34,16 @@ export default function Bookings() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  // Debounce search term - only trigger when 3+ characters or empty
+  // Debounce search term - only trigger when 3+ characters, empty, or valid booking ID
   useEffect(() => {
     const timer = setTimeout(() => {
-      // Only set debounced term if searchTerm is empty or has 3+ characters
-      if (searchTerm.trim().length === 0 || searchTerm.trim().length >= 3) {
-        console.log('Setting debounced search term:', searchTerm);
+      const trimmedTerm = searchTerm.trim();
+      // Check if it's a valid MongoDB ObjectId (booking ID)
+      const isBookingId = /^[a-f0-9]{24}$/i.test(trimmedTerm);
+
+      // Trigger search if: empty, 3+ characters, or valid booking ID
+      if (trimmedTerm.length === 0 || trimmedTerm.length >= 3 || isBookingId) {
+        console.log('Setting debounced search term:', searchTerm, isBookingId ? '(booking ID)' : '');
         setDebouncedSearchTerm(searchTerm);
       } else {
         console.log('Search term too short, not triggering API:', searchTerm);
@@ -120,15 +124,15 @@ export default function Bookings() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search by name (min 3 characters)"
+                  placeholder="Search by name or booking ID"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              {searchTerm.length > 0 && searchTerm.length < 3 && (
+              {searchTerm.length > 0 && searchTerm.length < 3 && !/^[a-f0-9]{24}$/i.test(searchTerm) && (
                 <p className="text-xs text-gray-500 mt-1 ml-1">
-                  Type at least 3 characters to search
+                  Type at least 3 characters to search by name, or paste a full booking ID
                 </p>
               )}
             </div>
