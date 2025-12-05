@@ -5,8 +5,9 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, Type, HelpCircle, Edit2, Image, Layout } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Import all settings components
 import GeneralSettings from '@/components/settings/GeneralSettings';
@@ -26,6 +27,7 @@ export default function Settings() {
   const updatePlatformImagesMutation = useUpdatePlatformImages();
   const updateAboutSection = useUpdateAboutSection();
   const [activeTab, setActiveTab] = useState('general');
+  const [homePageSubTab, setHomePageSubTab] = useState('hero');
   const [hasChanges, setHasChanges] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [formData, setFormData] = useState({
@@ -353,9 +355,9 @@ export default function Settings() {
 
   const handleSave = async () => {
     const toastId = toast.loading('Saving settings...');
-    
+
     try {
-      if (activeTab === 'platform') {
+      if (activeTab === 'home-page' && homePageSubTab === 'platform') {
         // Save platform images separately
         await updatePlatformImagesMutation.mutateAsync({
           platformDogOwnersImage: formData.platformDogOwnersImage,
@@ -395,9 +397,7 @@ export default function Settings() {
 
   const tabs = [
     { id: 'general', label: 'General', icon: SettingsIcon },
-    { id: 'banner', label: 'Hero Banner', icon: Type },
-    { id: 'about', label: 'About Section', icon: Image },
-    { id: 'platform', label: 'Platform Section', icon: Layout },
+    { id: 'home-page', label: 'Home Page', icon: Home },
     { id: 'about-page', label: 'About Us Page', icon: Edit2 },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -465,35 +465,58 @@ export default function Settings() {
           <div className="flex-1">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
               {activeTab === 'general' && (
-                <GeneralSettings 
+                <GeneralSettings
                   formData={formData}
                   handleChange={handleChange}
                 />
               )}
 
-              {activeTab === 'banner' && (
-                <BannerSettings 
-                  formData={formData}
-                  setFormData={setFormData}
-                  setHasChanges={setHasChanges}
-                />
-              )}
+              {activeTab === 'home-page' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">Home Page Settings</h2>
+                    <p className="text-gray-600 mt-1">Manage the content displayed on the home page</p>
+                  </div>
 
-              {activeTab === 'about' && (
-                <AboutSectionSettings 
-                  formData={formData}
-                  setFormData={setFormData}
-                  setHasChanges={setHasChanges}
-                />
-              )}
+                  <Tabs value={homePageSubTab} onValueChange={setHomePageSubTab} className="w-full">
+                    <TabsList className="grid w-full grid-cols-3 mb-6">
+                      <TabsTrigger value="hero" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        Hero Section
+                      </TabsTrigger>
+                      <TabsTrigger value="about" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        About Section
+                      </TabsTrigger>
+                      <TabsTrigger value="platform" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        Platform Section
+                      </TabsTrigger>
+                    </TabsList>
 
-              {activeTab === 'platform' && (
-                <PlatformSettings 
-                  formData={formData}
-                  setFormData={setFormData}
-                  setHasChanges={setHasChanges}
-                  handleChange={handleChange}
-                />
+                    <TabsContent value="hero" className="mt-0">
+                      <BannerSettings
+                        formData={formData}
+                        setFormData={setFormData}
+                        setHasChanges={setHasChanges}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="about" className="mt-0">
+                      <AboutSectionSettings
+                        formData={formData}
+                        setFormData={setFormData}
+                        setHasChanges={setHasChanges}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="platform" className="mt-0">
+                      <PlatformSettings
+                        formData={formData}
+                        setFormData={setFormData}
+                        setHasChanges={setHasChanges}
+                        handleChange={handleChange}
+                      />
+                    </TabsContent>
+                  </Tabs>
+                </div>
               )}
 
               {activeTab === 'about-page' && (
@@ -539,7 +562,7 @@ export default function Settings() {
               )}
 
               {/* Save Button - Always visible when there are changes */}
-              {(activeTab === 'general' || activeTab === 'banner' || activeTab === 'about' || activeTab === 'platform' || activeTab === 'notifications') && (
+              {(activeTab === 'general' || activeTab === 'home-page' || activeTab === 'notifications') && (
                 <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
                   <div className="flex items-center justify-between">
                     <button

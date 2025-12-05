@@ -53,6 +53,36 @@ export const useToggleFieldClaimed = () => {
   });
 };
 
+// Toggle field blocked status (admin only)
+export const useToggleFieldBlocked = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (fieldId: string) => {
+      const response = await api.patch(`/fields/${fieldId}/toggle-blocked`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
+    },
+  });
+};
+
+// Toggle field approved status (admin only)
+export const useToggleFieldApproved = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (fieldId: string) => {
+      const response = await api.patch(`/fields/${fieldId}/toggle-approved`);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
+    },
+  });
+};
+
 // Get single field details for admin (with owner and booking data)
 export const useFieldDetails = (fieldId: string | undefined) => {
   return useQuery({

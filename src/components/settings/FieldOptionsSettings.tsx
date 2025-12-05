@@ -27,16 +27,24 @@ export default function FieldOptionsSettings() {
   const deleteMutation = useDeleteFieldOption();
 
   const categories = [
-    { value: 'fieldSize', label: 'Field Size', icon: '📏' },
-    { value: 'terrainType', label: 'Terrain Type', icon: '🏞️' },
-    { value: 'fenceType', label: 'Fence Type', icon: '🚧' },
-    { value: 'fenceSize', label: 'Fence Size', icon: '📐' },
-    { value: 'surfaceType', label: 'Surface Type', icon: '🌱' },
-    { value: 'openingDays', label: 'Opening Days', icon: '📅' },
+    { value: 'fieldSize', label: 'Field Size', icon: '📏', valuePlaceholder: 'e.g., small, medium, large, extra-large', labelPlaceholder: 'e.g., Small (up to 1 acre)' },
+    { value: 'terrainType', label: 'Terrain Type', icon: '🏞️', valuePlaceholder: 'e.g., flat, hilly, mixed, woodland', labelPlaceholder: 'e.g., Flat Open Field' },
+    { value: 'fenceType', label: 'Fence Type', icon: '🚧', valuePlaceholder: 'e.g., wooden, metal, wire, electric', labelPlaceholder: 'e.g., Wooden Post & Rail' },
+    { value: 'fenceSize', label: 'Fence Size', icon: '📐', valuePlaceholder: 'e.g., 4ft, 5ft, 6ft, 8ft', labelPlaceholder: 'e.g., 6ft (1.8m) High' },
+    { value: 'surfaceType', label: 'Surface Type', icon: '🌱', valuePlaceholder: 'e.g., grass, gravel, sand, mixed', labelPlaceholder: 'e.g., Natural Grass' },
+    { value: 'openingDays', label: 'Opening Days', icon: '📅', valuePlaceholder: 'e.g., weekdays, weekends, all-week', labelPlaceholder: 'e.g., Weekdays Only (Mon-Fri)' },
   ];
 
   const getCategoryLabel = (value: string) => {
     return categories.find(cat => cat.value === value)?.label || value;
+  };
+
+  const getValuePlaceholder = (categoryValue: string) => {
+    return categories.find(cat => cat.value === categoryValue)?.valuePlaceholder || 'e.g., option-value';
+  };
+
+  const getLabelPlaceholder = (categoryValue: string) => {
+    return categories.find(cat => cat.value === categoryValue)?.labelPlaceholder || 'e.g., Option Label';
   };
 
   const handleCreate = () => {
@@ -335,7 +343,7 @@ export default function FieldOptionsSettings() {
                   onChange={(e) => setFormData({ ...formData, value: e.target.value.toLowerCase().replace(/\s+/g, '-') })}
                   disabled={!!editingOption}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green focus:border-green font-mono text-sm disabled:bg-gray-50 disabled:text-gray-500"
-                  placeholder="e.g., extra-large, 10-plus-metres"
+                  placeholder={getValuePlaceholder(formData.category)}
                   required
                 />
                 {editingOption ? (
@@ -356,7 +364,7 @@ export default function FieldOptionsSettings() {
                   value={formData.label}
                   onChange={(e) => setFormData({ ...formData, label: e.target.value })}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green focus:border-green"
-                  placeholder="e.g., Extra Large (5+ acres)"
+                  placeholder={getLabelPlaceholder(formData.category)}
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1.5">This text will be shown to users in forms</p>

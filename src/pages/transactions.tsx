@@ -3,7 +3,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { Search, Filter, Download, ArrowUpRight, ArrowDownLeft, RefreshCw, X, ChevronDown, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
+import { Search, ArrowUpRight, ArrowDownLeft, RefreshCw, X, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -314,14 +314,12 @@ export default function Transactions() {
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
-  const [showFilter, setShowFilter] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState({
     type: 'ALL' as TransactionType,
     status: 'ALL' as TransactionStatus,
     dateRange: 'ALL'
   });
-  const filterRef = useRef<HTMLDivElement>(null);
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: transactionsData, isLoading: transactionsLoading, refetch } = useTransactions(page, 20, {
@@ -358,7 +356,7 @@ export default function Transactions() {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (showFilter || selectedTransactionId) {
+    if (selectedTransactionId) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -366,7 +364,7 @@ export default function Transactions() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [showFilter, selectedTransactionId]);
+  }, [selectedTransactionId]);
 
   if (adminLoading || transactionsLoading) {
     return (
@@ -387,42 +385,14 @@ export default function Transactions() {
     netRevenue: 0
   };
 
-  const handleApplyFilters = () => {
-    setShowFilter(false);
-  };
-
-  const handleResetFilters = () => {
-    setActiveFilters({
-      type: 'ALL',
-      status: 'ALL',
-      dateRange: 'ALL'
-    });
-  };
-
-  const activeFilterCount = Object.values(activeFilters).filter(v => v !== 'ALL').length;
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-            <p className="text-gray-600 mt-1">View all payments, refunds, payouts, and transfers</p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => refetch()}
-              className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              title="Refresh"
-            >
-              <RefreshCw className="w-4 h-4" />
-            </button>
-            <button className="bg-green text-white px-4 py-2 rounded-lg hover:bg-green transition-colors flex items-center space-x-2">
-              <Download className="w-4 h-4" />
-              <span>Export</span>
-            </button>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
+          <p className="text-gray-600 mt-1">View all payments, refunds, payouts, and transfers</p>
         </div>
 
         {/* Stats Cards */}
@@ -478,39 +448,21 @@ export default function Transactions() {
                 />
               </div>
             </div>
-            <div className="flex items-center space-x-3">
-              {/* Quick Type Filters */}
-              <div className="hidden md:flex items-center space-x-2">
-                {(['ALL', 'PAYMENT', 'REFUND', 'PAYOUT', 'TRANSFER'] as TransactionType[]).map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setActiveFilters(prev => ({ ...prev, type }))}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                      activeFilters.type === type
-                        ? 'bg-green text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {type === 'ALL' ? 'All' : type.charAt(0) + type.slice(1).toLowerCase()}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={() => setShowFilter(!showFilter)}
-                className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
-                  activeFilterCount > 0
-                    ? 'border-green bg-greentext-green'
-                    : 'border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-                <span>Filter</span>
-                {activeFilterCount > 0 && (
-                  <span className="ml-1 px-2 py-0.5 bg-green text-white text-xs rounded-full">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </button>
+            {/* Quick Type Filters */}
+            <div className="hidden md:flex items-center space-x-2">
+              {(['ALL', 'PAYMENT', 'REFUND', 'PAYOUT', 'TRANSFER'] as TransactionType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setActiveFilters(prev => ({ ...prev, type }))}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                    activeFilters.type === type
+                      ? 'bg-green text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {type === 'ALL' ? 'All' : type.charAt(0) + type.slice(1).toLowerCase()}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -660,98 +612,6 @@ export default function Transactions() {
         </TableContainer>
       </div>
 
-      {/* Filter Modal */}
-      {showFilter && (
-        <>
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setShowFilter(false)}
-          />
-          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
-            <div
-              ref={filterRef}
-              className="pointer-events-auto bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Filter Transactions</h3>
-                <button
-                  onClick={() => setShowFilter(false)}
-                  className="p-2 hover:bg-gray-100 rounded-lg"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {/* Type Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Type</label>
-                  <select
-                    value={activeFilters.type}
-                    onChange={(e) => setActiveFilters(prev => ({ ...prev, type: e.target.value as TransactionType }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
-                  >
-                    <option value="ALL">All Types</option>
-                    <option value="PAYMENT">Payments</option>
-                    <option value="REFUND">Refunds</option>
-                    <option value="PAYOUT">Payouts</option>
-                    <option value="TRANSFER">Transfers</option>
-                  </select>
-                </div>
-
-                {/* Status Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                  <select
-                    value={activeFilters.status}
-                    onChange={(e) => setActiveFilters(prev => ({ ...prev, status: e.target.value as TransactionStatus }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
-                  >
-                    <option value="ALL">All Statuses</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="COMPLETED">Completed</option>
-                    <option value="FAILED">Failed</option>
-                    <option value="CANCELLED">Cancelled</option>
-                  </select>
-                </div>
-
-                {/* Date Range Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
-                  <select
-                    value={activeFilters.dateRange}
-                    onChange={(e) => setActiveFilters(prev => ({ ...prev, dateRange: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green"
-                  >
-                    <option value="ALL">All Time</option>
-                    <option value="today">Today</option>
-                    <option value="week">This Week</option>
-                    <option value="month">This Month</option>
-                    <option value="quarter">This Quarter</option>
-                    <option value="year">This Year</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex space-x-3 mt-6">
-                <button
-                  onClick={handleResetFilters}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  Reset
-                </button>
-                <button
-                  onClick={handleApplyFilters}
-                  className="flex-1 px-4 py-2 bg-green text-white rounded-lg hover:bg-green transition-colors"
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* Transaction Detail Modal */}
       {selectedTransactionId && (

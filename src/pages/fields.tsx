@@ -2,11 +2,12 @@ import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
-import { useFields, useToggleFieldStatus } from '@/hooks/useFields';
+import { useFields, useToggleFieldBlocked, useToggleFieldApproved } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { MapPin, Search, Filter, AlertTriangle, CheckCircle } from 'lucide-react';
+import { MapPin, Search, Filter, X, AlertTriangle, Eye } from 'lucide-react';
 import { formatCurrency, formatMonthYear } from '@/lib/utils';
 import Spinner from '@/components/ui/Spinner';
+import { Field } from '@/types';
 import {
   FieldsTableSkeleton,
   AdminFieldsPageSkeleton
@@ -44,10 +45,15 @@ export default function Fields() {
     joinedDate: 'All',
     location: ''
   });
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
+  const [selectedFieldForBlock, setSelectedFieldForBlock] = useState<Field | null>(null);
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [selectedFieldForApprove, setSelectedFieldForApprove] = useState<Field | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, debouncedSearch);
-  const toggleStatusMutation = useToggleFieldStatus();
+  const toggleBlockedMutation = useToggleFieldBlocked();
+  const toggleApprovedMutation = useToggleFieldApproved();
 
   // Debounce search term
   useEffect(() => {
@@ -169,8 +175,46 @@ export default function Fields() {
   console.log('Active filters:', activeFilters);
   console.log('===========================================================');
 
-  const handleToggleStatus = (fieldId: string, currentStatus: boolean) => {
-    toggleStatusMutation.mutate({ fieldId, isActive: !currentStatus });
+  const handleBlockClick = (field: Field) => {
+    setSelectedFieldForBlock(field);
+    setBlockModalOpen(true);
+  };
+
+  const handleConfirmBlock = () => {
+    if (selectedFieldForBlock) {
+      toggleBlockedMutation.mutate(selectedFieldForBlock.id, {
+        onSuccess: () => {
+          setBlockModalOpen(false);
+          setSelectedFieldForBlock(null);
+        }
+      });
+    }
+  };
+
+  const handleCloseBlockModal = () => {
+    setBlockModalOpen(false);
+    setSelectedFieldForBlock(null);
+  };
+
+  const handleApproveClick = (field: Field) => {
+    setSelectedFieldForApprove(field);
+    setApproveModalOpen(true);
+  };
+
+  const handleConfirmApprove = () => {
+    if (selectedFieldForApprove) {
+      toggleApprovedMutation.mutate(selectedFieldForApprove.id, {
+        onSuccess: () => {
+          setApproveModalOpen(false);
+          setSelectedFieldForApprove(null);
+        }
+      });
+    }
+  };
+
+  const handleCloseApproveModal = () => {
+    setApproveModalOpen(false);
+    setSelectedFieldForApprove(null);
   };
 
   return (
@@ -194,7 +238,7 @@ export default function Fields() {
                   placeholder="Search fields..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
                 />
               </div>
             </div>
@@ -202,14 +246,14 @@ export default function Fields() {
               data-filter-button
               onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${showFilters || Object.values(activeFilters).some(v => v !== 'All')
-                ? 'bg-green-50 border-green-600 text-green-700'
+                ? 'bg-greenborder-green text-green'
                 : 'border-gray-300 hover:bg-gray-50'
                 }`}
             >
               <Filter className="w-4 h-4" />
               <span>Filter</span>
               {Object.values(activeFilters).filter(v => v !== 'All').length > 0 && (
-                <span className="ml-2 bg-green-600 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="ml-2 bg-green text-white text-xs px-2 py-0.5 rounded-full">
                   {Object.values(activeFilters).filter(v => v !== 'All').length}
                 </span>
               )}
@@ -234,9 +278,12 @@ export default function Fields() {
                       <TableHead>Field Price</TableHead>
                       <TableHead>Earnings</TableHead>
                       <TableHead>Max Dogs</TableHead>
+                      <TableHead>Entry Code</TableHead>
                       <TableHead>Joined On</TableHead>
                       <TableHead>Claimed</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Approved</TableHead>
+                      <TableHead>Block/Unblock</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -287,26 +334,65 @@ export default function Fields() {
                         <TableCell className="text-gray-500">
                           {field.maxDogs || 10}
                         </TableCell>
+                        <TableCell>
+                          {field.entryCode ? (
+                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                              {field.entryCode}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400 text-sm">Not set</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-gray-500">
                           {field.joinedOn || formatMonthYear(field.createdAt)}
                         </TableCell>
                         <TableCell>
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${field.isClaimed ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${field.isClaimed ? 'bg-green text-white' : 'bg-yellow text-black'
                               }`}
                           >
-                            {field.isClaimed ? 'Claimed' : 'Not Claimed'}
+                            {field.isClaimed ? 'Claimed' : 'Unclaimed'}
                           </span>
                         </TableCell>
+                        {/* Status - Read Only (controlled by field owner) */}
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${field.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                              }`}
+                          >
+                            {field.isActive ? 'Active' : 'Disabled'}
+                          </span>
+                        </TableCell>
+                        {/* Approved - Admin controlled (only for submitted fields) */}
+                        <TableCell>
+                          {field.isSubmitted ? (
+                            <button
+                              onClick={() => handleApproveClick(field)}
+                              disabled={toggleApprovedMutation.isPending}
+                              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                              style={{ backgroundColor: field.isApproved ? '#22c55e' : '#e5e7eb' }}
+                              title={field.isApproved ? 'Field is approved - Click to unapprove' : 'Field is not approved - Click to approve'}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isApproved ? 'translate-x-6' : 'translate-x-1'
+                                  }`}
+                              />
+                            </button>
+                          ) : (
+                            <span className="text-gray-400 text-xs">Not submitted</span>
+                          )}
+                        </TableCell>
+                        {/* Block/Unblock - Admin controlled */}
                         <TableCell>
                           <button
-                            onClick={() => handleToggleStatus(field.id, field.isActive)}
-                            disabled={toggleStatusMutation.isPending}
-                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
-                            style={{ backgroundColor: field.isActive ? '#4ade80' : '#e5e7eb' }}
+                            onClick={() => handleBlockClick(field)}
+                            disabled={toggleBlockedMutation.isPending}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+                            style={{ backgroundColor: field.isBlocked ? '#ef4444' : '#e5e7eb' }}
+                            title={field.isBlocked ? 'Field is blocked - Click to unblock' : 'Field is not blocked - Click to block'}
                           >
                             <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isActive ? 'translate-x-6' : 'translate-x-1'
+                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isBlocked ? 'translate-x-6' : 'translate-x-1'
                                 }`}
                             />
                           </button>
@@ -314,10 +400,10 @@ export default function Fields() {
                         <TableCell>
                           <button
                             onClick={() => router.push(`/fields/${field.id}`)}
-                            className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
-
+                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                            title="View Details"
                           >
-                            View Detail
+                            <Eye className="w-5 h-5" />
                           </button>
                         </TableCell>
                       </TableRow>
@@ -371,6 +457,204 @@ export default function Fields() {
           </>
         )
       }
+
+      {/* Block/Unblock Confirmation Modal */}
+      {blockModalOpen && selectedFieldForBlock && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={handleCloseBlockModal}
+          />
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${selectedFieldForBlock.isBlocked ? 'bg-green' : 'bg-red-100'}`}>
+                    <AlertTriangle className={`w-5 h-5 ${selectedFieldForBlock.isBlocked ? 'text-green' : 'text-red-600'}`} />
+                  </div>
+                  <h3 className="text-lg  font-semibold text-gray-900">
+                    {selectedFieldForBlock.isBlocked ? 'Unblock Field' : 'Block Field'}
+                  </h3>
+                </div>
+                <button
+                  onClick={handleCloseBlockModal}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6">
+                <p className="text-gray-600 mb-4">
+                  {selectedFieldForBlock.isBlocked ? (
+                    <>
+                      Are you sure you want to <span className="font-semibold text-green">unblock</span> this field?
+                      The field will become visible in public listings again.
+                    </>
+                  ) : (
+                    <>
+                      Are you sure you want to <span className="font-semibold text-red-600">block</span> this field?
+                      The field will be hidden from all public listings.
+                    </>
+                  )}
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    {selectedFieldForBlock.images && selectedFieldForBlock.images.length > 0 ? (
+                      <img
+                        src={selectedFieldForBlock.images[0]}
+                        alt={selectedFieldForBlock.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                        <MapPin className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedFieldForBlock.name}</p>
+                      <p className="text-sm text-gray-500">{selectedFieldForBlock.city}, {selectedFieldForBlock.state}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex gap-3 p-6 border-t border-gray-100">
+                <button
+                  onClick={handleCloseBlockModal}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button> 
+                <button
+                  onClick={handleConfirmBlock}
+                  disabled={toggleBlockedMutation.isPending}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${selectedFieldForBlock.isBlocked
+                    ? 'bg-green text-white hover:bg-green'
+                    : 'bg-red text-white hover:bg-red'
+                    }`}
+                >
+                  {toggleBlockedMutation.isPending ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Spinner size="sm" />
+                      {selectedFieldForBlock.isBlocked ? 'Unblocking...' : 'Blocking...'}
+                    </span>
+                  ) : (
+                    selectedFieldForBlock.isBlocked ? 'Unblock Field' : 'Block Field'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Approve/Unapprove Confirmation Modal */}
+      {approveModalOpen && selectedFieldForApprove && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50"
+            onClick={handleCloseApproveModal}
+          />
+          {/* Modal */}
+          <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
+            <div
+              className="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-full ${selectedFieldForApprove.isApproved ? 'bg-amber-100' : 'bg-green'}`}>
+                    <AlertTriangle className={`w-5 h-5 ${selectedFieldForApprove.isApproved ? 'text-amber-600' : 'text-white'}`} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {selectedFieldForApprove.isApproved ? 'Unapprove Field' : 'Approve Field'}
+                  </h3>
+                </div>
+                <button
+                  onClick={handleCloseApproveModal}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6">
+                <p className="text-gray-600 mb-4">
+                  {selectedFieldForApprove.isApproved ? (
+                    <>
+                      Are you sure you want to <span className="font-semibold text-amber-600">unapprove</span> this field?
+                      The field will be deactivated and hidden from public listings.
+                    </>
+                  ) : (
+                    <>
+                      Are you sure you want to <span className="font-semibold text-green">approve</span> this field?
+                      The field will become visible in public listings and the owner will be notified.
+                    </>
+                  )}
+                </p>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    {selectedFieldForApprove.images && selectedFieldForApprove.images.length > 0 ? (
+                      <img
+                        src={selectedFieldForApprove.images[0]}
+                        alt={selectedFieldForApprove.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center">
+                        <MapPin className="w-6 h-6 text-gray-400" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-medium text-gray-900">{selectedFieldForApprove.name}</p>
+                      <p className="text-sm text-gray-500">{selectedFieldForApprove.city}, {selectedFieldForApprove.state}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="flex gap-3 p-6 border-t border-gray-100">
+                <button
+                  onClick={handleCloseApproveModal}
+                  className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmApprove}
+                  disabled={toggleApprovedMutation.isPending}
+                  className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${selectedFieldForApprove.isApproved
+                    ? 'bg-amber-500 text-white hover:bg-amber-600'
+                    : 'bg-green text-white hover:opacity-90'
+                    }`}
+                >
+                  {toggleApprovedMutation.isPending ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Spinner size="sm" />
+                      {selectedFieldForApprove.isApproved ? 'Unapproving...' : 'Approving...'}
+                    </span>
+                  ) : (
+                    selectedFieldForApprove.isApproved ? 'Unapprove Field' : 'Approve Field'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </AdminLayout >
   );
 }

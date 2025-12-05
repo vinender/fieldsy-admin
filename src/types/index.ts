@@ -39,7 +39,11 @@ export interface Field {
   images: string[];
   availability: any[];
   isActive: boolean;
+  isBlocked?: boolean; // Admin can block fields from appearing in listings
+  isApproved?: boolean; // Admin approval status
+  isSubmitted?: boolean; // Field has been submitted for review
   isClaimed?: boolean;
+  entryCode?: string; // Entry code for the field
   owner: User;
   createdAt: string;
   bookingDuration?: string;
