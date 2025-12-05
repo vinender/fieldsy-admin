@@ -20,9 +20,10 @@ export default function Bookings() {
     dateRange: 'All'
   });
   const filterRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: bookingsData, isLoading: bookingsLoading } = useBookings(page, 10, {
+  const { data: bookingsData, isFetching } = useBookings(page, 10, {
     searchName: debouncedSearchTerm,
     status: activeFilters.bookingStatus,
     dateRange: activeFilters.dateRange
@@ -38,12 +39,15 @@ export default function Bookings() {
   useEffect(() => {
     const timer = setTimeout(() => {
       const trimmedTerm = searchTerm.trim();
-      // Check if it's a valid MongoDB ObjectId (booking ID)
-      const isBookingId = /^[a-f0-9]{24}$/i.test(trimmedTerm);
+      // Check if it's a valid MongoDB ObjectId (full booking ID - 24 hex characters)
+      const isFullBookingId = /^[a-f0-9]{24}$/i.test(trimmedTerm);
+      // Check if it's a short booking ID (6 hex characters, with or without # prefix)
+      const shortIdTerm = trimmedTerm.startsWith('#') ? trimmedTerm.slice(1) : trimmedTerm;
+      const isShortBookingId = /^[a-f0-9]{6}$/i.test(shortIdTerm);
 
-      // Trigger search if: empty, 3+ characters, or valid booking ID
-      if (trimmedTerm.length === 0 || trimmedTerm.length >= 3 || isBookingId) {
-        console.log('Setting debounced search term:', searchTerm, isBookingId ? '(booking ID)' : '');
+      // Trigger search if: empty, 3+ characters, full booking ID, or short booking ID
+      if (trimmedTerm.length === 0 || trimmedTerm.length >= 3 || isFullBookingId || isShortBookingId) {
+        console.log('Setting debounced search term:', searchTerm, isFullBookingId ? '(full booking ID)' : isShortBookingId ? '(short booking ID)' : '');
         setDebouncedSearchTerm(searchTerm);
       } else {
         console.log('Search term too short, not triggering API:', searchTerm);
@@ -84,7 +88,8 @@ export default function Bookings() {
     };
   }, [showFilter]);
 
-  if (adminLoading || bookingsLoading) {
+  // Only show full-page loading on initial admin verification
+  if (adminLoading) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center h-64">
@@ -123,16 +128,17 @@ export default function Bookings() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
+                  ref={searchInputRef}
                   type="text"
-                  placeholder="Search by name or booking ID"
+                  placeholder="Search by name or booking ID (e.g. #ABC123)"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
-              {searchTerm.length > 0 && searchTerm.length < 3 && !/^[a-f0-9]{24}$/i.test(searchTerm) && (
+              {searchTerm.length > 0 && searchTerm.length < 3 && !/^[a-f0-9]{24}$/i.test(searchTerm) && !/^#?[a-f0-9]{6}$/i.test(searchTerm) && (
                 <p className="text-xs text-gray-500 mt-1 ml-1">
-                  Type at least 3 characters to search by name, or paste a full booking ID
+                  Type at least 3 characters to search by name, or enter a booking ID (e.g. #ABC123)
                 </p>
               )}
             </div>
@@ -160,8 +166,16 @@ export default function Bookings() {
 
         {/* Bookings Table */}
         <TableContainer>
-          <BookingsTable bookings={bookings} />
-          
+          <div className="relative">
+            {/* Loading overlay for searches/filters - doesn't unmount the table */}
+            {isFetching && (
+              <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                <Spinner size="lg" />
+              </div>
+            )}
+            <BookingsTable bookings={bookings} />
+          </div>
+
           {/* Pagination */}
           {bookingsData && bookingsData.pages > 1 && (
             <TablePagination

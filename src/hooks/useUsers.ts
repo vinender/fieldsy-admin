@@ -33,7 +33,9 @@ export const useBlockUser = () => {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate both users and fieldOwners queries to update all relevant pages
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldOwners'] });
     },
   });
 };
@@ -48,7 +50,9 @@ export const useUnblockUser = () => {
       return response.data;
     },
     onSuccess: () => {
+      // Invalidate both users and fieldOwners queries to update all relevant pages
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['fieldOwners'] });
     },
   });
 };

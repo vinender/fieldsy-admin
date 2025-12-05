@@ -17,11 +17,14 @@ import {
   TableEmptyState,
   TablePagination,
 } from '@/components/ui/table';
+import ConfirmationModal from '@/components/modal/ConfirmationModal';
 
 export default function DogOwners() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
+  const [userToToggle, setUserToToggle] = useState<any>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: usersData, isLoading: usersLoading } = useUsers(page, 10, 'DOG_OWNER');
   const blockUserMutation = useBlockUser();
@@ -33,16 +36,25 @@ export default function DogOwners() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  const handleToggleBlock = async (user: any) => {
+  const handleToggleBlock = (user: any) => {
+    setUserToToggle(user);
+    setShowBlockConfirmModal(true);
+  };
+
+  const confirmToggleBlock = async () => {
+    if (!userToToggle) return;
+
     try {
-      if (user.isBlocked) {
-        await unblockUserMutation.mutateAsync(user.id);
+      if (userToToggle.isBlocked) {
+        await unblockUserMutation.mutateAsync(userToToggle.id);
       } else {
         await blockUserMutation.mutateAsync({
-          userId: user.id,
+          userId: userToToggle.id,
           reason: 'Blocked by admin'
         });
       }
+      setShowBlockConfirmModal(false);
+      setUserToToggle(null);
     } catch (error) {
       console.error('Error toggling block status:', error);
     }
@@ -260,6 +272,25 @@ export default function DogOwners() {
             </>
           )}
         </TableContainer>
+
+        {/* Block/Unblock Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showBlockConfirmModal}
+          onClose={() => {
+            setShowBlockConfirmModal(false);
+            setUserToToggle(null);
+          }}
+          onConfirm={confirmToggleBlock}
+          title={userToToggle?.isBlocked ? 'Unblock Dog Owner' : 'Block Dog Owner'}
+          message={
+            userToToggle?.isBlocked
+              ? `Are you sure you want to unblock ${userToToggle?.name || userToToggle?.email}? They will be able to access their account and make bookings again.`
+              : `Are you sure you want to block ${userToToggle?.name || userToToggle?.email}? They will not be able to access their account or make new bookings.`
+          }
+          confirmText={userToToggle?.isBlocked ? 'Unblock' : 'Block'}
+          isLoading={blockUserMutation.isPending || unblockUserMutation.isPending}
+          variant={userToToggle?.isBlocked ? 'info' : 'danger'}
+        />
       </div>
     </AdminLayout>
   );

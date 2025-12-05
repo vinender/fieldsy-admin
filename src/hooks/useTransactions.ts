@@ -12,11 +12,11 @@ interface Transaction {
   id: string;
   type: string;
   amount: number;
-  netAmount?: number;
-  platformFee?: number;
-  commissionRate?: number;
-  isCustomCommission?: boolean;
-  defaultCommissionRate?: number;
+  stripeFee?: number;
+  amountAfterStripeFee?: number;
+  platformFee?: number; // What Fieldsy keeps
+  fieldOwnerEarnings?: number; // What field owner receives
+  commissionRate?: number; // Platform commission percentage
   status: string;
   description?: string;
   stripePaymentIntentId?: string;
@@ -43,6 +43,17 @@ interface Transaction {
     id: string;
     date: string;
     timeSlot?: string;
+    startTime?: string;
+    endTime?: string;
+    numberOfDogs?: number;
+    totalPrice?: number;
+    status?: string;
+    paymentStatus?: string;
+    payoutStatus?: string;
+    payoutReleasedAt?: string;
+    cancellationReason?: string;
+    cancelledAt?: string;
+    createdAt?: string;
     field?: {
       id: string;
       name: string;
@@ -62,6 +73,34 @@ interface Transaction {
     id: string;
     name: string;
     email: string;
+  };
+  // Payment breakdown
+  paymentBreakdown?: {
+    grossAmount: number;
+    stripeProcessingFee: number;
+    amountAfterStripe: number;
+    platformCommission: number;
+    fieldOwnerAmount: number;
+    commissionRate: number;
+  };
+  // Related transactions for the same booking
+  relatedTransactions?: {
+    payment?: {
+      id: string;
+      amount: number;
+      status: string;
+      lifecycleStage?: string;
+      createdAt: string;
+      payoutCompletedAt?: string;
+    };
+    refund?: {
+      id: string;
+      amount: number;
+      status: string;
+      stripeRefundId?: string;
+      createdAt: string;
+      refundedAt?: string;
+    };
   };
 }
 
@@ -110,8 +149,13 @@ export function useTransactions(
   });
 }
 
+interface TransactionDetailsResponse {
+  success: boolean;
+  transaction: Transaction;
+}
+
 export function useTransactionDetails(id: string | null) {
-  return useQuery<Transaction>({
+  return useQuery<TransactionDetailsResponse>({
     queryKey: ['admin-transaction', id],
     queryFn: async () => {
       if (!id) throw new Error('Transaction ID is required');

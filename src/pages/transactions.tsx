@@ -15,7 +15,7 @@ import {
   TablePagination,
   TableEmptyState,
 } from '@/components/ui/table';
-import { useTransactions } from '@/hooks/useTransactions';
+import { useTransactions, useTransactionDetails } from '@/hooks/useTransactions';
 import { formatCurrency, formatDate } from '@/lib/utils';
 
 type TransactionType = 'ALL' | 'PAYMENT' | 'REFUND' | 'PAYOUT' | 'TRANSFER';
@@ -25,11 +25,11 @@ interface Transaction {
   id: string;
   type: string;
   amount: number;
-  netAmount?: number;
-  platformFee?: number;
-  commissionRate?: number;
-  isCustomCommission?: boolean;
-  defaultCommissionRate?: number;
+  stripeFee?: number;
+  amountAfterStripeFee?: number;
+  platformFee?: number; // What Fieldsy keeps
+  fieldOwnerEarnings?: number; // What field owner receives
+  commissionRate?: number; // Platform commission percentage
   status: string;
   description?: string;
   stripePaymentIntentId?: string;
@@ -52,6 +52,17 @@ interface Transaction {
     id: string;
     date: string;
     timeSlot?: string;
+    startTime?: string;
+    endTime?: string;
+    numberOfDogs?: number;
+    totalPrice?: number;
+    status?: string;
+    paymentStatus?: string;
+    payoutStatus?: string;
+    payoutReleasedAt?: string;
+    cancellationReason?: string;
+    cancelledAt?: string;
+    createdAt?: string;
     field?: {
       id: string;
       name: string;
@@ -79,6 +90,34 @@ interface Transaction {
   failureMessage?: string;
   // For transfers
   destination?: string;
+  // Payment breakdown
+  paymentBreakdown?: {
+    grossAmount: number;
+    stripeProcessingFee: number;
+    amountAfterStripe: number;
+    platformCommission: number;
+    fieldOwnerAmount: number;
+    commissionRate: number;
+  };
+  // Related transactions for the same booking
+  relatedTransactions?: {
+    payment?: {
+      id: string;
+      amount: number;
+      status: string;
+      lifecycleStage?: string;
+      createdAt: string;
+      payoutCompletedAt?: string;
+    };
+    refund?: {
+      id: string;
+      amount: number;
+      status: string;
+      stripeRefundId?: string;
+      createdAt: string;
+      refundedAt?: string;
+    };
+  };
 }
 
 // Lifecycle stage definitions
@@ -276,7 +315,7 @@ export default function Transactions() {
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [showFilter, setShowFilter] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState({
     type: 'ALL' as TransactionType,
     status: 'ALL' as TransactionStatus,
@@ -291,6 +330,10 @@ export default function Transactions() {
     status: activeFilters.status,
     dateRange: activeFilters.dateRange
   });
+
+  // Fetch full transaction details when a transaction is selected
+  const { data: transactionDetailsData, isLoading: detailsLoading } = useTransactionDetails(selectedTransactionId);
+  const selectedTransaction = transactionDetailsData?.transaction as Transaction | undefined;
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -315,7 +358,7 @@ export default function Transactions() {
 
   // Lock body scroll when modal is open
   useEffect(() => {
-    if (showFilter || selectedTransaction) {
+    if (showFilter || selectedTransactionId) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -323,7 +366,7 @@ export default function Transactions() {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [showFilter, selectedTransaction]);
+  }, [showFilter, selectedTransactionId]);
 
   if (adminLoading || transactionsLoading) {
     return (
@@ -482,11 +525,12 @@ export default function Transactions() {
                 <TableRow>
                   <TableHead>Type</TableHead>
                   <TableHead>Amount</TableHead>
+                  <TableHead>Stripe Fee</TableHead>
+                  <TableHead>Net (After Stripe)</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Lifecycle</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Field / Description</TableHead>
-                  <TableHead>Platform Fee</TableHead>
+                  <TableHead>Field Owner Earnings</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -503,46 +547,37 @@ export default function Transactions() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
-                        <span className={`font-medium ${
-                          transaction.type === 'REFUND' || transaction.type === 'PAYOUT'
-                            ? 'text-red'
-                            : 'text-green'
-                        }`}>
-                          {transaction.type === 'REFUND' || transaction.type === 'PAYOUT' ? '-' : '+'}
-                          {formatCurrency(Math.abs(transaction.amount))}
+                      <span className={`font-medium ${
+                        transaction.type === 'REFUND' || transaction.type === 'PAYOUT'
+                          ? 'text-red'
+                          : 'text-green'
+                      }`}>
+                        {transaction.type === 'REFUND' || transaction.type === 'PAYOUT' ? '-' : '+'}
+                        {formatCurrency(Math.abs(transaction.amount))}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {transaction.stripeFee ? (
+                        <span className="text-orange-600 font-medium">
+                          -{formatCurrency(transaction.stripeFee)}
                         </span>
-                        {transaction.netAmount && (
-                          <span className="text-xs text-gray-500">
-                            Net: {formatCurrency(transaction.netAmount)}
-                          </span>
-                        )}
-                      </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {transaction.amountAfterStripeFee ? (
+                        <span className="text-gray-900 font-medium">
+                          {formatCurrency(transaction.amountAfterStripeFee)}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className={getStatusBadge(transaction.status, transaction.type)}>
                         {transaction.status}
                       </span>
-                    </TableCell>
-                    <TableCell>
-                      {transaction.lifecycleStage ? (
-                        <div className="flex items-center space-x-1.5">
-                          {(() => {
-                            const stageInfo = getLifecycleStageInfo(transaction.lifecycleStage);
-                            const StageIcon = stageInfo.icon;
-                            return (
-                              <>
-                                <StageIcon className={`w-3.5 h-3.5 ${stageInfo.color}`} />
-                                <span className={`text-xs font-medium ${stageInfo.color} ${stageInfo.bgColor} px-2 py-0.5 rounded-full`}>
-                                  {stageInfo.label}
-                                </span>
-                              </>
-                            );
-                          })()}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">-</span>
-                      )}
                     </TableCell>
                     <TableCell>
                       {transaction.user ? (
@@ -577,10 +612,17 @@ export default function Transactions() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {transaction.platformFee ? (
-                        <span className="text-green font-medium">
-                          {formatCurrency(transaction.platformFee)}
-                        </span>
+                      {transaction.fieldOwnerEarnings ? (
+                        <div className="flex flex-col">
+                          <span className="text-blue-600 font-medium">
+                            {formatCurrency(transaction.fieldOwnerEarnings)}
+                          </span>
+                          {transaction.commissionRate !== undefined && transaction.commissionRate !== null && (
+                            <span className="text-xs text-gray-500">
+                              ({100 - transaction.commissionRate}% of net)
+                            </span>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
@@ -592,8 +634,8 @@ export default function Transactions() {
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => setSelectedTransaction(transaction)}
-                        className="p-2 text-gray-500 hover:text-green hover:bg-greenrounded-lg transition-colors"
+                        onClick={() => setSelectedTransactionId(transaction.id)}
+                        className="p-2 text-gray-500 hover:text-green hover:bg-green/10 rounded-lg transition-colors"
                         title="View Details"
                       >
                         <Eye className="w-4 h-4" />
@@ -712,11 +754,11 @@ export default function Transactions() {
       )}
 
       {/* Transaction Detail Modal */}
-      {selectedTransaction && (
+      {selectedTransactionId && (
         <>
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setSelectedTransaction(null)}
+            onClick={() => setSelectedTransactionId(null)}
           />
           <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none p-4">
             <div
@@ -726,13 +768,18 @@ export default function Transactions() {
               <div className="sticky top-0 bg-white border-b border-gray-100 px-6 py-4 flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-gray-900">Transaction Details</h3>
                 <button
-                  onClick={() => setSelectedTransaction(null)}
+                  onClick={() => setSelectedTransactionId(null)}
                   className="p-2 hover:bg-gray-100 rounded-lg"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
+              {detailsLoading ? (
+                <div className="p-6 flex items-center justify-center">
+                  <Spinner size="lg" />
+                </div>
+              ) : selectedTransaction ? (
               <div className="p-6 space-y-6">
                 {/* Transaction Summary */}
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
@@ -762,51 +809,207 @@ export default function Transactions() {
                   </div>
                 </div>
 
-                {/* Financial Breakdown */}
+                {/* Complete Payment Breakdown */}
                 <div className="border border-gray-200 rounded-xl overflow-hidden">
                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                    <h4 className="font-medium text-gray-900">Financial Breakdown</h4>
+                    <h4 className="font-medium text-gray-900">Complete Payment Breakdown</h4>
+                    <p className="text-xs text-gray-500 mt-1">Full breakdown of how the payment is distributed</p>
                   </div>
                   <div className="p-4 space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Gross Amount</span>
-                      <span className="font-medium">{formatCurrency(selectedTransaction.amount)}</span>
+                    {/* Dog Owner Paid */}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <span className="text-gray-900 font-medium">Dog Owner Paid</span>
+                        <p className="text-xs text-gray-500">Original payment amount</p>
+                      </div>
+                      <span className="font-bold text-lg text-gray-900">
+                        {formatCurrency(selectedTransaction.paymentBreakdown?.grossAmount || selectedTransaction.amount)}
+                      </span>
                     </div>
-                    {selectedTransaction.platformFee && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Platform Fee</span>
-                        <span className="font-medium text-green">
-                          {formatCurrency(selectedTransaction.platformFee)}
+
+                    <div className="border-t border-gray-100 pt-3">
+                      {/* Stripe Processing Fee */}
+                      {selectedTransaction.paymentBreakdown?.stripeProcessingFee !== undefined && (
+                        <div className="flex justify-between items-center text-sm mb-2">
+                          <div>
+                            <span className="text-gray-600">Stripe Processing Fee</span>
+                            <p className="text-xs text-gray-400">~1.5% + £0.20</p>
+                          </div>
+                          <span className="text-red font-medium">
+                            -{formatCurrency(selectedTransaction.paymentBreakdown.stripeProcessingFee)}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Field Owner Earnings */}
+                      <div className="flex justify-between items-center text-sm mb-2">
+                        <div>
+                          <span className="text-gray-600">Field Owner Earnings</span>
+                          <p className="text-xs text-gray-400">
+                            {100 - (selectedTransaction.paymentBreakdown?.commissionRate || selectedTransaction.commissionRate || 20)}% of amount after Stripe
+                          </p>
+                        </div>
+                        <span className="text-blue-600 font-medium">
+                          {formatCurrency(selectedTransaction.paymentBreakdown?.fieldOwnerAmount || selectedTransaction.fieldOwnerEarnings || 0)}
                         </span>
                       </div>
-                    )}
-                    {selectedTransaction.netAmount && (
-                      <div className="flex justify-between border-t pt-3">
-                        <span className="text-gray-600">Net to Field Owner</span>
-                        <span className="font-medium">{formatCurrency(selectedTransaction.netAmount)}</span>
-                      </div>
-                    )}
-                    {selectedTransaction.commissionRate && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600">Commission Rate</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-medium">{selectedTransaction.commissionRate}%</span>
-                          {selectedTransaction.isCustomCommission ? (
-                            <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded">Custom</span>
-                          ) : (
-                            <span className="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">Default</span>
-                          )}
+
+                      {/* Platform Revenue */}
+                      <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                        <div>
+                          <span className="text-gray-900 font-medium">Platform Revenue</span>
+                          <p className="text-xs text-gray-500">
+                            {selectedTransaction.paymentBreakdown?.commissionRate || selectedTransaction.commissionRate || 20}% of amount after Stripe
+                          </p>
                         </div>
+                        <span className="font-bold text-lg text-green">
+                          {formatCurrency(selectedTransaction.paymentBreakdown?.platformCommission || selectedTransaction.platformFee || 0)}
+                        </span>
                       </div>
-                    )}
-                    {selectedTransaction.defaultCommissionRate && selectedTransaction.isCustomCommission && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Default Rate at Time</span>
-                        <span className="text-gray-500">{selectedTransaction.defaultCommissionRate}%</span>
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </div>
+
+                {/* Booking Status & Cancellation/Payout Info */}
+                {selectedTransaction.booking && (
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                      <h4 className="font-medium text-gray-900">Booking Status</h4>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {/* Booking Created */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Booked On</span>
+                        <span className="font-medium">
+                          {selectedTransaction.booking.createdAt
+                            ? formatDate(selectedTransaction.booking.createdAt)
+                            : formatDate(selectedTransaction.createdAt)}
+                        </span>
+                      </div>
+
+                      {/* Booking Status */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">Booking Status</span>
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                          selectedTransaction.booking.status === 'CANCELLED'
+                            ? 'bg-red/10 text-red'
+                            : selectedTransaction.booking.status === 'COMPLETED'
+                            ? 'bg-green/10 text-green'
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {selectedTransaction.booking.status || 'CONFIRMED'}
+                        </span>
+                      </div>
+
+                      {/* If Cancelled - Show Cancellation Details */}
+                      {selectedTransaction.booking.status === 'CANCELLED' && (
+                        <>
+                          <div className="border-t border-gray-100 pt-3">
+                            <div className="bg-red/5 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center gap-2 text-red">
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="font-medium">Booking Cancelled</span>
+                              </div>
+                              {selectedTransaction.booking.cancelledAt && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Cancelled On</span>
+                                  <span className="font-medium">{formatDate(selectedTransaction.booking.cancelledAt)}</span>
+                                </div>
+                              )}
+                              {selectedTransaction.booking.cancellationReason && (
+                                <div className="text-sm">
+                                  <span className="text-gray-600">Reason: </span>
+                                  <span className="text-gray-900">{selectedTransaction.booking.cancellationReason}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Refund Status */}
+                          {selectedTransaction.relatedTransactions?.refund && (
+                            <div className="bg-yellow/10 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center gap-2 text-yellow-700">
+                                <RefreshCw className="w-4 h-4" />
+                                <span className="font-medium">Refund Processed</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Refund Amount</span>
+                                <span className="font-medium text-yellow-700">
+                                  {formatCurrency(selectedTransaction.relatedTransactions.refund.amount)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Refund Status</span>
+                                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                                  selectedTransaction.relatedTransactions.refund.status === 'COMPLETED' || selectedTransaction.relatedTransactions.refund.status === 'SUCCEEDED'
+                                    ? 'bg-green/10 text-green'
+                                    : 'bg-yellow/20 text-yellow-700'
+                                }`}>
+                                  {selectedTransaction.relatedTransactions.refund.status}
+                                </span>
+                              </div>
+                              {selectedTransaction.relatedTransactions.refund.refundedAt && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Refunded On</span>
+                                  <span>{formatDate(selectedTransaction.relatedTransactions.refund.refundedAt)}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* If NOT Cancelled - Show Payout Status */}
+                      {selectedTransaction.booking.status !== 'CANCELLED' && (
+                        <div className="border-t border-gray-100 pt-3 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-600">Payout Status</span>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                              selectedTransaction.booking.payoutStatus === 'RELEASED' || selectedTransaction.booking.payoutStatus === 'COMPLETED'
+                                ? 'bg-green text-white'
+                                : selectedTransaction.booking.payoutStatus === 'PENDING'
+                                ? 'bg-yellow/20 text-yellow-700'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}>
+                              {selectedTransaction.booking.payoutStatus || 'PENDING'}
+                            </span>
+                          </div>
+
+                          {selectedTransaction.booking.payoutStatus === 'RELEASED' || selectedTransaction.booking.payoutStatus === 'COMPLETED' ? (
+                            <div className="bg-green/10 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center gap-2 text-green">
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="font-medium">Payout Released to Field Owner</span>
+                              </div>
+                              {selectedTransaction.booking.payoutReleasedAt && (
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-gray-600">Released On</span>
+                                  <span className="font-medium">{formatDate(selectedTransaction.booking.payoutReleasedAt)}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Amount Released</span>
+                                <span className="font-medium text-green">
+                                  {formatCurrency(selectedTransaction.paymentBreakdown?.fieldOwnerAmount || selectedTransaction.fieldOwnerEarnings || 0)}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="bg-yellow/10 rounded-lg p-3 space-y-2">
+                              <div className="flex items-center gap-2 text-yellow-700">
+                                <Clock className="w-4 h-4" />
+                                <span className="font-medium">Payout Pending</span>
+                              </div>
+                              <p className="text-sm text-gray-600">
+                                The field owner has not received the payout yet. Payouts are typically released after the booking date.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Payment Lifecycle Timeline */}
                 {selectedTransaction.type === 'PAYMENT' && selectedTransaction.lifecycleStage && (
@@ -838,7 +1041,7 @@ export default function Transactions() {
                 {selectedTransaction.booking?.field && (
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-medium text-gray-900">Booking Details</h4>
+                      <h4 className="font-medium text-gray-900">Field & Booking Details</h4>
                     </div>
                     <div className="p-4 space-y-2">
                       <div className="flex justify-between">
@@ -849,14 +1052,38 @@ export default function Transactions() {
                         <span className="text-gray-600">Field Owner</span>
                         <span className="font-medium">{selectedTransaction.booking.field.owner?.name || 'N/A'}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Date</span>
-                        <span className="font-medium">{formatDate(selectedTransaction.booking.date)}</span>
-                      </div>
-                      {selectedTransaction.booking.timeSlot && (
+                      {selectedTransaction.booking.field.owner?.email && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Time Slot</span>
-                          <span className="font-medium">{selectedTransaction.booking.timeSlot}</span>
+                          <span className="text-gray-600">Owner Email</span>
+                          <span className="text-sm text-gray-500">{selectedTransaction.booking.field.owner.email}</span>
+                        </div>
+                      )}
+                      <div className="border-t border-gray-100 pt-2 mt-2">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Booking Date</span>
+                          <span className="font-medium">{formatDate(selectedTransaction.booking.date)}</span>
+                        </div>
+                      </div>
+                      {(selectedTransaction.booking.startTime || selectedTransaction.booking.timeSlot) && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Time</span>
+                          <span className="font-medium">
+                            {selectedTransaction.booking.startTime && selectedTransaction.booking.endTime
+                              ? `${selectedTransaction.booking.startTime} - ${selectedTransaction.booking.endTime}`
+                              : selectedTransaction.booking.timeSlot}
+                          </span>
+                        </div>
+                      )}
+                      {selectedTransaction.booking.numberOfDogs && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Number of Dogs</span>
+                          <span className="font-medium">{selectedTransaction.booking.numberOfDogs}</span>
+                        </div>
+                      )}
+                      {selectedTransaction.booking.totalPrice && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Booking Total</span>
+                          <span className="font-medium">{formatCurrency(selectedTransaction.booking.totalPrice)}</span>
                         </div>
                       )}
                     </div>
@@ -938,6 +1165,11 @@ export default function Transactions() {
                   </div>
                 )}
               </div>
+              ) : (
+                <div className="p-6 text-center text-gray-500">
+                  Transaction not found
+                </div>
+              )}
             </div>
           </div>
         </>

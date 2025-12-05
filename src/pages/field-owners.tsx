@@ -11,6 +11,7 @@ import {
   useUpdateDefaultCommission
 } from '@/hooks/useFieldOwners';
 import { useBlockUser, useUnblockUser } from '@/hooks/useUsers';
+import ConfirmationModal from '@/components/modal/ConfirmationModal';
 
 interface FieldOwner {
   id: string;
@@ -43,6 +44,8 @@ export default function FieldOwners() {
   const [useDefault, setUseDefault] = useState(false);
   const [showDefaultModal, setShowDefaultModal] = useState(false);
   const [newDefaultRate, setNewDefaultRate] = useState('');
+  const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
+  const [ownerToToggle, setOwnerToToggle] = useState<FieldOwner | null>(null);
 
   // React Query hooks
   const { data: fieldOwnersData, isLoading: fieldOwnersLoading } = useFieldOwners(currentPage, 10, searchTerm);
@@ -98,16 +101,25 @@ export default function FieldOwners() {
     }
   };
 
-  const handleToggleBlock = async (owner: FieldOwner) => {
+  const handleToggleBlock = (owner: FieldOwner) => {
+    setOwnerToToggle(owner);
+    setShowBlockConfirmModal(true);
+  };
+
+  const confirmToggleBlock = async () => {
+    if (!ownerToToggle) return;
+
     try {
-      if (owner.isBlocked) {
-        await unblockUserMutation.mutateAsync(owner.id);
+      if (ownerToToggle.isBlocked) {
+        await unblockUserMutation.mutateAsync(ownerToToggle.id);
       } else {
         await blockUserMutation.mutateAsync({
-          userId: owner.id,
+          userId: ownerToToggle.id,
           reason: 'Blocked by admin'
         });
       }
+      setShowBlockConfirmModal(false);
+      setOwnerToToggle(null);
     } catch (error) {
       console.error('Error toggling block status:', error);
     }
@@ -512,7 +524,7 @@ export default function FieldOwners() {
                   </p>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Default Commission Rate (%)
@@ -535,7 +547,7 @@ export default function FieldOwners() {
                 />
                 <p className="text-xs text-gray-500 mt-1">Must be between 1% and 50% (whole numbers only)</p>
               </div>
-              
+
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setShowDefaultModal(false)}
@@ -554,6 +566,25 @@ export default function FieldOwners() {
             </div>
           </div>
         )}
+
+        {/* Block/Unblock Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={showBlockConfirmModal}
+          onClose={() => {
+            setShowBlockConfirmModal(false);
+            setOwnerToToggle(null);
+          }}
+          onConfirm={confirmToggleBlock}
+          title={ownerToToggle?.isBlocked ? 'Unblock Field Owner' : 'Block Field Owner'}
+          message={
+            ownerToToggle?.isBlocked
+              ? `Are you sure you want to unblock ${ownerToToggle?.name || ownerToToggle?.email}? They will be able to access their account and manage their fields again.`
+              : `Are you sure you want to block ${ownerToToggle?.name || ownerToToggle?.email}? They will not be able to access their account or receive bookings.`
+          }
+          confirmText={ownerToToggle?.isBlocked ? 'Unblock' : 'Block'}
+          isLoading={blockUserMutation.isPending || unblockUserMutation.isPending}
+          variant={ownerToToggle?.isBlocked ? 'info' : 'danger'}
+        />
       </div>
     </AdminLayout>
   );
