@@ -23,7 +23,7 @@ interface FieldOwner {
   isUsingDefault: boolean;
   fieldsCount: number;
   createdAt: string;
-  isBlocked?: boolean;
+  isBlocked: boolean;
   blockedAt?: string | null;
   blockReason?: string | null;
 }
@@ -201,6 +201,9 @@ export default function FieldOwners() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Block/Unblock
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
@@ -208,7 +211,7 @@ export default function FieldOwners() {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {fieldOwnersLoading ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center">
+                      <td colSpan={7} className="px-6 py-4 text-center">
                         <div className="flex justify-center">
                           <Spinner size="lg" />
                         </div>
@@ -216,7 +219,7 @@ export default function FieldOwners() {
                     </tr>
                   ) : fieldOwners.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
                         No field owners found
                       </td>
                     </tr>
@@ -260,35 +263,35 @@ export default function FieldOwners() {
                             {owner.isBlocked ? 'Blocked' : 'Active'}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleToggleBlock(owner)}
+                            disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+                              owner.isBlocked
+                                ? 'bg-red focus:ring-red'
+                                : 'bg-green focus:ring-green'
+                            } ${
+                              blockUserMutation.isPending || unblockUserMutation.isPending
+                                ? 'opacity-50 cursor-not-allowed'
+                                : ''
+                            }`}
+                          >
+                            <span
+                              className={`${
+                                owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                            />
+                          </button>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleEditCommission(owner)}
-                              className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
-                            >
-                              <Edit className="w-4 h-4 mr-1" />
-                              Edit Commission
-                            </button>
-                            <button
-                              onClick={() => handleToggleBlock(owner)}
-                              disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                                owner.isBlocked
-                                  ? 'bg-gray-300 focus:ring-gray-500'
-                                  : 'bg-green focus:ring-green'
-                              } ${
-                                blockUserMutation.isPending || unblockUserMutation.isPending
-                                  ? 'opacity-50 cursor-not-allowed'
-                                  : ''
-                              }`}
-                            >
-                              <span
-                                className={`${
-                                  owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
-                                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
-                              />
-                            </button>
-                          </div>
+                          <button
+                            onClick={() => handleEditCommission(owner)}
+                            className="inline-flex items-center px-[20px] py-[10px] text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
+                          >
+                            <Edit className="w-4 h-4 mr-1" />
+                            Edit Commission
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -381,7 +384,7 @@ export default function FieldOwners() {
                         disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
                           owner.isBlocked
-                            ? 'bg-gray-300 focus:ring-gray-500'
+                            ? 'bg-red focus:ring-red'
                             : 'bg-green focus:ring-green'
                         } ${
                           blockUserMutation.isPending || unblockUserMutation.isPending

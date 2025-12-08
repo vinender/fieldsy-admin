@@ -13,7 +13,8 @@ export default function Bookings() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Actual search query sent to API
+  const [searchField, setSearchField] = useState<'all' | 'booking' | 'user' | 'field'>('all');
   const [showFilter, setShowFilter] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     bookingStatus: 'All',
@@ -24,7 +25,7 @@ export default function Bookings() {
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: bookingsData, isFetching } = useBookings(page, 10, {
-    searchName: debouncedSearchTerm,
+    searchName: searchQuery,
     status: activeFilters.bookingStatus,
     dateRange: activeFilters.dateRange
   });
@@ -35,33 +36,24 @@ export default function Bookings() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  // Debounce search term - only trigger when 3+ characters, empty, or valid booking ID
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const trimmedTerm = searchTerm.trim();
-      // Check if it's a valid MongoDB ObjectId (full booking ID - 24 hex characters)
-      const isFullBookingId = /^[a-f0-9]{24}$/i.test(trimmedTerm);
-      // Check if it's a short booking ID (6 hex characters, with or without # prefix)
-      const shortIdTerm = trimmedTerm.startsWith('#') ? trimmedTerm.slice(1) : trimmedTerm;
-      const isShortBookingId = /^[a-f0-9]{6}$/i.test(shortIdTerm);
-
-      // Trigger search if: empty, 3+ characters, full booking ID, or short booking ID
-      if (trimmedTerm.length === 0 || trimmedTerm.length >= 3 || isFullBookingId || isShortBookingId) {
-        console.log('Setting debounced search term:', searchTerm, isFullBookingId ? '(full booking ID)' : isShortBookingId ? '(short booking ID)' : '');
-        setDebouncedSearchTerm(searchTerm);
-      } else {
-        console.log('Search term too short, not triggering API:', searchTerm);
-      }
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
-
-  // Reset to page 1 when debounced search term or filters change
-  useEffect(() => {
-    console.log('Filters changed, resetting to page 1:', { debouncedSearchTerm, activeFilters });
+  // Handle search execution
+  const handleSearch = () => {
+    setSearchQuery(searchTerm);
     setPage(1);
-  }, [debouncedSearchTerm, activeFilters]);
+  };
+
+  // Handle search on Enter key
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Reset to page 1 when searchQuery or filters change
+  useEffect(() => {
+    console.log('Filters changed, resetting to page 1:', { searchQuery, activeFilters });
+    setPage(1);
+  }, [searchQuery, activeFilters]);
 
   // Log when bookings data changes
   useEffect(() => {
@@ -70,10 +62,10 @@ export default function Bookings() {
         total: bookingsData.total,
         pages: bookingsData.pages,
         bookingsCount: bookingsData.bookings?.length,
-        searchTerm: debouncedSearchTerm
+        searchQuery: searchQuery
       });
     }
-  }, [bookingsData, debouncedSearchTerm]);
+  }, [bookingsData, searchQuery]);
 
   // Lock body scroll when filter modal is open
   useEffect(() => {
@@ -123,27 +115,45 @@ export default function Bookings() {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex-1 max-w-lg">
-              <div className="relative">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 gap-3">
+            <div className="flex-1 flex gap-2">
+              {/* Search Field Dropdown */}
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value as 'all' | 'booking' | 'user' | 'field')}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent bg-white text-sm"
+              >
+                <option value="all">All Fields</option>
+                <option value="booking">Booking ID</option>
+                <option value="user">User Name</option>
+                <option value="field">Field Name</option>
+              </select>
+
+              {/* Search Input */}
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search by name or booking ID (e.g. #ABC123)"
+                  placeholder={`Search by ${searchField === 'all' ? 'booking ID, user, or field' : searchField === 'booking' ? 'booking ID' : searchField === 'user' ? 'user name' : 'field name'}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onKeyPress={handleKeyPress}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
                 />
               </div>
-              {searchTerm.length > 0 && searchTerm.length < 3 && !/^[a-f0-9]{24}$/i.test(searchTerm) && !/^#?[a-f0-9]{6}$/i.test(searchTerm) && (
-                <p className="text-xs text-gray-500 mt-1 ml-1">
-                  Type at least 3 characters to search by name, or enter a booking ID (e.g. #ABC123)
-                </p>
-              )}
+
+              {/* Search Button */}
+              <button
+                onClick={handleSearch}
+                className="px-6 py-2 bg-green text-white rounded-lg hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors font-medium"
+              >
+                Search
+              </button>
             </div>
+
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setShowFilter(!showFilter)}
                 className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
                   showFilter || Object.values(activeFilters).some(v => v !== 'All')
@@ -159,7 +169,7 @@ export default function Bookings() {
                   </span>
                 )}
               </button>
-              
+
             </div>
           </div>
         </div>

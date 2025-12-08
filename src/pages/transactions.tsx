@@ -48,6 +48,13 @@ interface Transaction {
   payoutInitiatedAt?: string;
   payoutCompletedAt?: string;
   refundedAt?: string;
+  // Booking-centric fields
+  bookingId?: string;
+  hasRefund?: boolean;
+  refundAmount?: number;
+  refundStatus?: string;
+  payoutStatus?: string;
+  payoutReleasedAt?: string;
   booking?: {
     id: string;
     date: string;
@@ -313,7 +320,8 @@ export default function Transactions() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Actual search query sent to API
+  const [searchField, setSearchField] = useState<'all' | 'booking' | 'user' | 'field'>('all');
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState({
     type: 'ALL' as TransactionType,
@@ -323,7 +331,7 @@ export default function Transactions() {
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: transactionsData, isLoading: transactionsLoading, refetch } = useTransactions(page, 20, {
-    search: debouncedSearchTerm,
+    search: searchQuery,
     type: activeFilters.type,
     status: activeFilters.status,
     dateRange: activeFilters.dateRange
@@ -339,20 +347,23 @@ export default function Transactions() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchTerm.trim().length === 0 || searchTerm.trim().length >= 3) {
-        setDebouncedSearchTerm(searchTerm);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  // Handle search execution
+  const handleSearch = () => {
+    setSearchQuery(searchTerm);
+    setPage(1);
+  };
+
+  // Handle search on Enter key
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearchTerm, activeFilters]);
+  }, [searchQuery, activeFilters]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -396,7 +407,7 @@ export default function Transactions() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center space-x-2 mb-2">
               <ArrowDownLeft className="w-4 h-4 text-green" />
@@ -420,13 +431,6 @@ export default function Transactions() {
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
             <div className="flex items-center space-x-2 mb-2">
-              <RefreshCw className="w-4 h-4 text-purple-600" />
-              <span className="text-sm text-gray-600">Transfers</span>
-            </div>
-            <p className="text-xl font-bold text-gray-900">{formatCurrency(stats.totalTransfers)}</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div className="flex items-center space-x-2 mb-2">
               <span className="text-sm text-gray-600">Platform Revenue</span>
             </div>
             <p className="text-xl font-bold text-green">{formatCurrency(stats.netRevenue)}</p>
@@ -435,34 +439,41 @@ export default function Transactions() {
 
         {/* Filters and Search */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex-1 max-w-lg">
-              <div className="relative">
+          {/* Search Section */}
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="flex-1 flex gap-2">
+              {/* Search Field Dropdown */}
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value as 'all' | 'booking' | 'user' | 'field')}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent bg-white text-sm"
+              >
+                <option value="all">All Fields</option>
+                <option value="booking">Booking ID</option>
+                <option value="user">User Name</option>
+                <option value="field">Field Name</option>
+              </select>
+
+              {/* Search Input */}
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search by user, field, or ID..."
+                  placeholder={`Search by ${searchField === 'all' ? 'booking ID, user, or field' : searchField === 'booking' ? 'booking ID' : searchField === 'user' ? 'user name' : 'field name'}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
                 />
               </div>
-            </div>
-            {/* Quick Type Filters */}
-            <div className="hidden md:flex items-center space-x-2">
-              {(['ALL', 'PAYMENT', 'REFUND', 'PAYOUT', 'TRANSFER'] as TransactionType[]).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setActiveFilters(prev => ({ ...prev, type }))}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    activeFilters.type === type
-                      ? 'bg-green text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {type === 'ALL' ? 'All' : type.charAt(0) + type.slice(1).toLowerCase()}
-                </button>
-              ))}
+
+              {/* Search Button */}
+              <button
+                onClick={handleSearch}
+                className="px-6 py-2 bg-green text-white rounded-lg hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors font-medium"
+              >
+                Search
+              </button>
             </div>
           </div>
         </div>
@@ -475,39 +486,44 @@ export default function Transactions() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Booking ID</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Stripe Fee</TableHead>
                   <TableHead>Net (After Stripe)</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>User</TableHead>
-                  <TableHead>Field / Description</TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Refund Status</TableHead>
+                  <TableHead>Payout Status</TableHead>
                   <TableHead>Field Owner Earnings</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Booking Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {transactions.map((transaction: Transaction) => (
                   <TableRow key={transaction.id}>
+                    {/* Booking ID */}
                     <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {getTypeIcon(transaction.type)}
-                        <span className={getTypeBadge(transaction.type)}>
-                          {transaction.type}
+                      <div className="flex flex-col">
+                        <span className="font-mono text-sm font-medium text-gray-900">
+                          #{transaction.bookingId?.slice(-4) || '-'}
                         </span>
+                        {transaction.booking?.date && (
+                          <span className="text-xs text-gray-500">
+                            {new Date(transaction.booking.date).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short'
+                            })}
+                          </span>
+                        )}
                       </div>
                     </TableCell>
+                    {/* Amount */}
                     <TableCell>
-                      <span className={`font-medium ${
-                        transaction.type === 'REFUND' || transaction.type === 'PAYOUT'
-                          ? 'text-red'
-                          : 'text-green'
-                      }`}>
-                        {transaction.type === 'REFUND' || transaction.type === 'PAYOUT' ? '-' : '+'}
-                        {formatCurrency(Math.abs(transaction.amount))}
+                      <span className="font-medium text-green">
+                        +{formatCurrency(Math.abs(transaction.amount))}
                       </span>
                     </TableCell>
+                    {/* Stripe Fee */}
                     <TableCell>
                       {transaction.stripeFee ? (
                         <span className="text-orange-600 font-medium">
@@ -517,6 +533,7 @@ export default function Transactions() {
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
+                    {/* Net After Stripe */}
                     <TableCell>
                       {transaction.amountAfterStripeFee ? (
                         <span className="text-gray-900 font-medium">
@@ -526,43 +543,51 @@ export default function Transactions() {
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
+                    {/* Payment Status */}
                     <TableCell>
-                      <span className={getStatusBadge(transaction.status, transaction.type)}>
+                      <span className={getStatusBadge(transaction.status, 'PAYMENT')}>
                         {transaction.status}
                       </span>
                     </TableCell>
+                    {/* Refund Status */}
                     <TableCell>
-                      {transaction.user ? (
+                      {transaction.hasRefund ? (
                         <div className="flex flex-col">
-                          <span className="font-medium text-gray-900 truncate max-w-[150px]">
-                            {transaction.user.name || 'N/A'}
+                          <span className={getStatusBadge(transaction.refundStatus || 'PENDING', 'REFUND')}>
+                            {transaction.refundStatus}
                           </span>
-                          <span className="text-xs text-gray-500 truncate max-w-[150px]">
-                            {transaction.user.email}
-                          </span>
+                          {transaction.refundAmount && (
+                            <span className="text-xs text-red mt-1">
+                              -{formatCurrency(transaction.refundAmount)}
+                            </span>
+                          )}
                         </div>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-gray-400 text-sm">No refund</span>
                       )}
                     </TableCell>
+                    {/* Payout Status */}
                     <TableCell>
-                      <div className="flex flex-col max-w-[200px]">
-                        {transaction.booking?.field ? (
-                          <>
-                            <span className="font-medium text-gray-900 truncate">
-                              {transaction.booking.field.name}
-                            </span>
-                            <span className="text-xs text-gray-500 truncate">
-                              {transaction.booking.field.owner?.name || 'Unknown owner'}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-gray-500 truncate">
-                            {transaction.description || '-'}
+                      {transaction.payoutStatus ? (
+                        <div className="flex flex-col">
+                          <span className={getStatusBadge(transaction.payoutStatus, 'PAYOUT')}>
+                            {transaction.payoutStatus}
                           </span>
-                        )}
-                      </div>
+                          {transaction.payoutReleasedAt && (
+                            <span className="text-xs text-gray-500 mt-1">
+                              {new Date(transaction.payoutReleasedAt).toLocaleDateString('en-GB', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-sm">Pending</span>
+                      )}
                     </TableCell>
+                    {/* Field Owner Earnings */}
                     <TableCell>
                       {transaction.fieldOwnerEarnings ? (
                         <div className="flex flex-col">
@@ -579,11 +604,37 @@ export default function Transactions() {
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
+                    {/* Booking Date */}
                     <TableCell>
-                      <span className="text-gray-600">
-                        {formatDate(transaction.createdAt)}
-                      </span>
+                      <div className="flex flex-col">
+                        {transaction.booking?.date ? (
+                          <>
+                            <span className="text-gray-900 font-medium">
+                              {new Date(transaction.booking.date).toLocaleDateString('en-GB', {
+                                weekday: 'short',
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                              })}
+                            </span>
+                            {transaction.booking.startTime && transaction.booking.endTime && (
+                              <span className="text-xs text-gray-500">
+                                {transaction.booking.startTime} - {transaction.booking.endTime}
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <span className="text-gray-600">
+                            {new Date(transaction.createdAt).toLocaleDateString('en-GB', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        )}
+                      </div>
                     </TableCell>
+                    {/* Actions */}
                     <TableCell>
                       <button
                         onClick={() => setSelectedTransactionId(transaction.id)}
@@ -884,49 +935,100 @@ export default function Transactions() {
                   </div>
                 )}
 
-                {/* User Info */}
-                {selectedTransaction.user && (
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-medium text-gray-900">Customer</h4>
+                {/* User and Field Owner Details Side by Side */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Dog Owner (Customer) */}
+                  {selectedTransaction.user && (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h4 className="font-medium text-gray-900">Dog Owner (Customer)</h4>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 bg-green/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-semibold text-green">
+                              {selectedTransaction.user.name?.charAt(0).toUpperCase() || 'U'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">
+                              {selectedTransaction.user.name || 'N/A'}
+                            </p>
+                            <p className="text-sm text-gray-600 truncate">
+                              {selectedTransaction.user.email}
+                            </p>
+                            {selectedTransaction.user.id && (
+                              <p className="text-xs text-gray-400 mt-1 font-mono truncate">
+                                ID: {selectedTransaction.user.id.substring(0, 12)}...
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <p className="font-medium text-gray-900">{selectedTransaction.user.name || 'N/A'}</p>
-                      <p className="text-gray-600">{selectedTransaction.user.email}</p>
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Booking/Field Info */}
+                  {/* Field Owner */}
+                  {selectedTransaction.booking?.field?.owner && (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden">
+                      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                        <h4 className="font-medium text-gray-900">Field Owner</h4>
+                      </div>
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className="w-12 h-12 bg-blue-600/10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg font-semibold text-blue-600">
+                              {selectedTransaction.booking.field.owner.name?.charAt(0).toUpperCase() || 'O'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-gray-900 truncate">
+                              {selectedTransaction.booking.field.owner.name || 'N/A'}
+                            </p>
+                            <p className="text-sm text-gray-600 truncate">
+                              {selectedTransaction.booking.field.owner.email}
+                            </p>
+                            {selectedTransaction.booking.field.owner.id && (
+                              <p className="text-xs text-gray-400 mt-1 font-mono truncate">
+                                ID: {selectedTransaction.booking.field.owner.id.substring(0, 12)}...
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Field & Booking Details */}
                 {selectedTransaction.booking?.field && (
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
                     <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                       <h4 className="font-medium text-gray-900">Field & Booking Details</h4>
                     </div>
-                    <div className="p-4 space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Field</span>
-                        <span className="font-medium">{selectedTransaction.booking.field.name}</span>
+                    <div className="p-4 space-y-3">
+                      <div className="flex justify-between items-start">
+                        <span className="text-gray-600">Field Name</span>
+                        <span className="font-medium text-right">{selectedTransaction.booking.field.name}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Field Owner</span>
-                        <span className="font-medium">{selectedTransaction.booking.field.owner?.name || 'N/A'}</span>
-                      </div>
-                      {selectedTransaction.booking.field.owner?.email && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Owner Email</span>
-                          <span className="text-sm text-gray-500">{selectedTransaction.booking.field.owner.email}</span>
-                        </div>
-                      )}
-                      <div className="border-t border-gray-100 pt-2 mt-2">
+
+                      <div className="border-t border-gray-100 pt-3">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Booking Date</span>
-                          <span className="font-medium">{formatDate(selectedTransaction.booking.date)}</span>
+                          <span className="font-medium">
+                            {new Date(selectedTransaction.booking.date).toLocaleDateString('en-GB', {
+                              weekday: 'long',
+                              day: '2-digit',
+                              month: 'long',
+                              year: 'numeric'
+                            })}
+                          </span>
                         </div>
                       </div>
+
                       {(selectedTransaction.booking.startTime || selectedTransaction.booking.timeSlot) && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Time</span>
+                          <span className="text-gray-600">Time Slot</span>
                           <span className="font-medium">
                             {selectedTransaction.booking.startTime && selectedTransaction.booking.endTime
                               ? `${selectedTransaction.booking.startTime} - ${selectedTransaction.booking.endTime}`
@@ -934,16 +1036,18 @@ export default function Transactions() {
                           </span>
                         </div>
                       )}
+
                       {selectedTransaction.booking.numberOfDogs && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">Number of Dogs</span>
                           <span className="font-medium">{selectedTransaction.booking.numberOfDogs}</span>
                         </div>
                       )}
+
                       {selectedTransaction.booking.totalPrice && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Booking Total</span>
-                          <span className="font-medium">{formatCurrency(selectedTransaction.booking.totalPrice)}</span>
+                        <div className="flex justify-between border-t border-gray-100 pt-3">
+                          <span className="text-gray-600 font-medium">Booking Total</span>
+                          <span className="font-bold text-lg text-gray-900">{formatCurrency(selectedTransaction.booking.totalPrice)}</span>
                         </div>
                       )}
                     </div>

@@ -37,7 +37,8 @@ export default function Fields() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchQuery, setSearchQuery] = useState(''); // Actual search query sent to API
+  const [searchField, setSearchField] = useState<'all' | 'name' | 'owner'>('all');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     claimStatus: 'All',
@@ -51,19 +52,22 @@ export default function Fields() {
   const [selectedFieldForApprove, setSelectedFieldForApprove] = useState<Field | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, debouncedSearch);
+  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, searchQuery);
   const toggleBlockedMutation = useToggleFieldBlocked();
   const toggleApprovedMutation = useToggleFieldApproved();
 
-  // Debounce search term
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      setPage(1); // Reset to first page when searching
-    }, 500);
+  // Handle search execution
+  const handleSearch = () => {
+    setSearchQuery(searchTerm);
+    setPage(1);
+  };
 
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  // Handle search on Enter key
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -229,19 +233,41 @@ export default function Fields() {
 
         {/* Search and Filter */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
-            <div className="flex-1 max-w-lg">
-              <div className="relative">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 gap-3">
+            <div className="flex-1 flex gap-2">
+              {/* Search Field Dropdown */}
+              <select
+                value={searchField}
+                onChange={(e) => setSearchField(e.target.value as 'all' | 'name' | 'owner')}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent bg-white text-sm"
+              >
+                <option value="all">All Fields</option>
+                <option value="name">Field Name</option>
+                <option value="owner">Owner Name</option>
+              </select>
+
+              {/* Search Input */}
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search fields..."
+                  placeholder={`Search by ${searchField === 'all' ? 'field or owner name' : searchField === 'name' ? 'field name' : 'owner name'}...`}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
                 />
               </div>
+
+              {/* Search Button */}
+              <button
+                onClick={handleSearch}
+                className="px-6 py-2 bg-green text-white rounded-lg hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors font-medium"
+              >
+                Search
+              </button>
             </div>
+
             <button
               data-filter-button
               onClick={() => setShowFilters(!showFilters)}
