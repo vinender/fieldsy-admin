@@ -49,6 +49,14 @@ export default function Bookings() {
     }
   };
 
+  // Reset search query when search term is cleared
+  useEffect(() => {
+    if (searchTerm === '' && searchQuery !== '') {
+      setSearchQuery('');
+      setPage(1);
+    }
+  }, [searchTerm, searchQuery]);
+
   // Reset to page 1 when searchQuery or filters change
   useEffect(() => {
     console.log('Filters changed, resetting to page 1:', { searchQuery, activeFilters });

@@ -69,6 +69,14 @@ export default function Fields() {
     }
   };
 
+  // Reset search query when search term is cleared
+  useEffect(() => {
+    if (searchTerm === '' && searchQuery !== '') {
+      setSearchQuery('');
+      setPage(1);
+    }
+  }, [searchTerm, searchQuery]);
+
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
       router.push('/login');

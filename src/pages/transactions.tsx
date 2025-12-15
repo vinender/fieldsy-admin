@@ -3,7 +3,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { Search, ArrowUpRight, ArrowDownLeft, RefreshCw, X, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, X, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -319,9 +319,6 @@ const getStatusBadge = (status: string, type?: string) => {
 export default function Transactions() {
   const router = useRouter();
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchQuery, setSearchQuery] = useState(''); // Actual search query sent to API
-  const [searchField, setSearchField] = useState<'all' | 'booking' | 'user' | 'field'>('all');
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState({
     type: 'ALL' as TransactionType,
@@ -331,7 +328,6 @@ export default function Transactions() {
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: transactionsData, isLoading: transactionsLoading, refetch } = useTransactions(page, 20, {
-    search: searchQuery,
     type: activeFilters.type,
     status: activeFilters.status,
     dateRange: activeFilters.dateRange
@@ -347,23 +343,10 @@ export default function Transactions() {
     }
   }, [admin, adminLoading, adminError, router]);
 
-  // Handle search execution
-  const handleSearch = () => {
-    setSearchQuery(searchTerm);
-    setPage(1);
-  };
-
-  // Handle search on Enter key
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
   // Reset to page 1 when filters change
   useEffect(() => {
     setPage(1);
-  }, [searchQuery, activeFilters]);
+  }, [activeFilters]);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -434,47 +417,6 @@ export default function Transactions() {
               <span className="text-sm text-gray-600">Platform Revenue</span>
             </div>
             <p className="text-xl font-bold text-green">{formatCurrency(stats.netRevenue)}</p>
-          </div>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          {/* Search Section */}
-          <div className="flex flex-col md:flex-row gap-3">
-            <div className="flex-1 flex gap-2">
-              {/* Search Field Dropdown */}
-              <select
-                value={searchField}
-                onChange={(e) => setSearchField(e.target.value as 'all' | 'booking' | 'user' | 'field')}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent bg-white text-sm"
-              >
-                <option value="all">All Fields</option>
-                <option value="booking">Booking ID</option>
-                <option value="user">User Name</option>
-                <option value="field">Field Name</option>
-              </select>
-
-              {/* Search Input */}
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder={`Search by ${searchField === 'all' ? 'booking ID, user, or field' : searchField === 'booking' ? 'booking ID' : searchField === 'user' ? 'user name' : 'field name'}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green focus:border-transparent"
-                />
-              </div>
-
-              {/* Search Button */}
-              <button
-                onClick={handleSearch}
-                className="px-6 py-2 bg-green text-white rounded-lg hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors font-medium"
-              >
-                Search
-              </button>
-            </div>
           </div>
         </div>
 
