@@ -8,6 +8,7 @@ import { useBookings } from '@/hooks/useBookings';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { Search, Filter, Download } from 'lucide-react';
 import { TableContainer, TablePagination } from '@/components/ui/table';
+import { BookingsTableSkeleton } from '@/components/skeletons/AdminBookingsSkeleton';
 
 export default function Bookings() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function Bookings() {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: bookingsData, isFetching } = useBookings(page, 10, {
+  const { data: bookingsData, isLoading: bookingsLoading, isFetching } = useBookings(page, 10, {
     searchName: searchQuery,
     status: activeFilters.bookingStatus,
     dateRange: activeFilters.dateRange
@@ -183,28 +184,32 @@ export default function Bookings() {
         </div>
 
         {/* Bookings Table */}
-        <TableContainer>
-          <div className="relative">
-            {/* Loading overlay for searches/filters - doesn't unmount the table */}
-            {isFetching && (
-              <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-                <Spinner size="lg" />
-              </div>
-            )}
-            <BookingsTable bookings={bookings} />
-          </div>
+        {bookingsLoading ? (
+          <BookingsTableSkeleton />
+        ) : (
+          <TableContainer>
+            <div className="relative">
+              {/* Loading overlay for searches/filters - doesn't unmount the table */}
+              {isFetching && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                  <Spinner size="lg" />
+                </div>
+              )}
+              <BookingsTable bookings={bookings} />
+            </div>
 
-          {/* Pagination */}
-          {bookingsData && bookingsData.pages > 1 && (
-            <TablePagination
-              currentPage={page}
-              totalPages={bookingsData.pages}
-              totalItems={bookingsData.total}
-              itemsPerPage={10}
-              onPageChange={setPage}
-            />
-          )}
-        </TableContainer>
+            {/* Pagination */}
+            {bookingsData && bookingsData.pages > 1 && (
+              <TablePagination
+                currentPage={page}
+                totalPages={bookingsData.pages}
+                totalItems={bookingsData.total}
+                itemsPerPage={10}
+                onPageChange={setPage}
+              />
+            )}
+          </TableContainer>
+        )}
       </div>
 
       {/* Filter Modal */}
