@@ -39,7 +39,7 @@ export const useToggleFieldStatus = () => {
   });
 };
 
-// Toggle field claimed status
+// Toggle field claimed status with optimistic update
 export const useToggleFieldClaimed = () => {
   const queryClient = useQueryClient();
 
@@ -48,7 +48,36 @@ export const useToggleFieldClaimed = () => {
       const response = await api.patch(`/fields/${fieldId}`, { isClaimed });
       return response.data;
     },
-    onSuccess: () => {
+    onMutate: async ({ fieldId, isClaimed }) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['admin-field', fieldId] });
+      await queryClient.cancelQueries({ queryKey: ['fields'] });
+
+      // Snapshot the previous value
+      const previousField = queryClient.getQueryData(['admin-field', fieldId]);
+
+      // Optimistically update the cache
+      queryClient.setQueryData(['admin-field', fieldId], (old: any) => {
+        if (!old) return old;
+        // Handle both wrapped and unwrapped response formats
+        if (old.data) {
+          return { ...old, data: { ...old.data, isClaimed } };
+        }
+        return { ...old, isClaimed };
+      });
+
+      // Return context with the previous value
+      return { previousField };
+    },
+    onError: (err, { fieldId }, context) => {
+      // Rollback on error
+      if (context?.previousField) {
+        queryClient.setQueryData(['admin-field', fieldId], context.previousField);
+      }
+    },
+    onSettled: (data, error, { fieldId }) => {
+      // Always refetch after error or success to ensure data is in sync
+      queryClient.invalidateQueries({ queryKey: ['admin-field', fieldId] });
       queryClient.invalidateQueries({ queryKey: ['fields'] });
     },
   });
