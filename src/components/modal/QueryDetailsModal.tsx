@@ -116,7 +116,7 @@ export default function QueryDetailsModal({
             {/* Message */}
             <div>
               <label className="text-sm font-medium text-gray-500">Message</label>
-              <div className="mt-2 bg-gray-50 rounded-xl p-4">
+              <div className="mt-2 bg-gray-50 rounded-xl p-4 max-h-48 overflow-y-auto">
                 <p className="text-gray-900 whitespace-pre-wrap">{query.message}</p>
               </div>
             </div>
@@ -129,7 +129,7 @@ export default function QueryDetailsModal({
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as any)}
-                className={`w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-medium ${
+                className={`w-48 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-medium ${
                   status === 'new' ? 'text-blue-700 bg-blue-50' :
                   status === 'in-progress' ? 'text-yellow-700 bg-yellow-50' :
                   status === 'resolved' ? 'text-green-700 bg-green-50' :

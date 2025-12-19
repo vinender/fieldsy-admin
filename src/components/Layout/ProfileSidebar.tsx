@@ -10,6 +10,9 @@ import {
 import { useVerifyAdmin, useUpdateAdminProfile, useUploadAdminProfileImage, useDeleteAdminProfileImage } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
+// UK phone number length limits (excluding +44 country code)
+const UK_PHONE_MAX_LENGTH = 11;
+
 interface ProfileSidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,9 +47,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
   }, [admin]);
 
   const handleInputChange = (field: string, value: string) => {
-    // For phone number, only allow digits
+    // For phone number, only allow digits and enforce max length
     if (field === 'phoneNumber') {
-      const numericValue = value.replace(/\D/g, '');
+      const numericValue = value.replace(/\D/g, '').slice(0, UK_PHONE_MAX_LENGTH);
       setFormData(prev => ({
         ...prev,
         [field]: numericValue
@@ -344,6 +347,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
                         value={formData.phoneNumber}
                         onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                         placeholder="Enter phone number"
+                        maxLength={UK_PHONE_MAX_LENGTH}
                         className="flex-1 ml-2 sm:ml-3 bg-white text-sm sm:text-[15px] border-none outline-none focus:outline-none focus:ring-0 focus:border-none"
                       />
                     </div>
