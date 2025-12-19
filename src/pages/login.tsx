@@ -78,14 +78,15 @@ export default function Login() {
           className="object-cover"
           priority
         />
+        
         {/* Overlay with branding */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-10 left-10 right-10 text-white">
-          <h2 className="text-4xl font-bold mb-4">Welcome to Fieldsy Admin</h2>
-          <p className="text-lg text-white/90">
-            Manage your dog fields, bookings, and users all in one place.
-          </p>
-        </div>
+          <div className="absolute bottom-10 left-10 right-10 text-white">
+            <h2 className="text-4xl font-bold mb-4">Welcome to Fieldsy Admin</h2>
+            <p className="text-lg text-white/90">
+              Manage your dog fields, bookings, and users all in one place.
+            </p>
+          </div>
       </div>
 
       {/* Right Side - Login Form */}
