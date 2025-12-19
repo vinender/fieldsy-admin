@@ -48,12 +48,12 @@ export default function Login() {
     console.log('=== Login button clicked ===');
     console.log('Email:', formData.email);
     console.log('Password length:', formData.password.length);
-    
+
     if (!validateForm()) {
       console.log('Validation failed:', errors);
       return;
     }
-    
+
     console.log('Validation passed, calling login mutation...');
     loginMutation.mutate(formData);
   };
@@ -68,117 +68,133 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-light-cream to-cream flex items-center justify-center px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {/* Logo */}
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-6">
-              <Image
-                src="/logo/logo.svg"
-                alt="Fieldsy Logo"
-                width={180}
-                height={60}
-                priority
-              />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
-            <p className="text-gray-600 mt-2">Welcome back to Fieldsy Admin</p>
-          </div>
+    <div className="min-h-screen flex">
+      {/* Left Side - Splash Image */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-green">
+        <Image
+          src="/splash.png"
+          alt="Fieldsy - Dog Fields"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Overlay with branding */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        <div className="absolute bottom-10 left-10 right-10 text-white">
+          <h2 className="text-4xl font-bold mb-4">Welcome to Fieldsy Admin</h2>
+          <p className="text-lg text-white/90">
+            Manage your dog fields, bookings, and users all in one place.
+          </p>
+        </div>
+      </div>
 
-          {/* NOT A FORM - Just a div */}
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onKeyPress={handleKeyPress}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green ${
-                  errors.email ? 'border-red' : 'border-gray-300'
-                }`}
-                placeholder="admin@fieldsy.com"
-                autoComplete="email"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-500">{errors.email}</p>
-              )}
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 bg-gradient-to-br from-light-cream to-cream">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-2xl shadow-xl p-8">
+            {/* Logo */}
+            <div className="text-center mb-8">
+              <div className="flex justify-center mb-6">
+                <Image
+                  src="/logo/logo.svg"
+                  alt="Fieldsy Logo"
+                  width={180}
+                  height={60}
+                  priority
+                />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">Admin Login</h1>
+              <p className="text-gray-600 mt-2">Welcome back to Fieldsy Admin</p>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
+            {/* NOT A FORM - Just a div */}
+            <div className="space-y-6">
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
+                </label>
                 <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  name="password"
-                  value={formData.password}
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={formData.email}
                   onChange={handleChange}
                   onKeyPress={handleKeyPress}
-                  className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green ${
-                    errors.password ? 'border-red' : 'border-gray-300'
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green ${
+                    errors.email ? 'border-red' : 'border-gray-300'
                   }`}
-                  placeholder="Enter your password"
-                  autoComplete="current-password"
+                  placeholder="admin@fieldsy.com"
+                  autoComplete="email"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                )}
               </div>
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    onKeyPress={handleKeyPress}
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green ${
+                      errors.password ? 'border-red' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                )}
+              </div>
+
+              {loginMutation.isError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">
+                    Invalid email or password. Please try again.
+                  </p>
+                </div>
               )}
+
+              {/* Just a regular button, not a submit button */}
+              <button
+                type="button"
+                onClick={handleLogin}
+                disabled={loginMutation.isPending}
+                className="w-full bg-green text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {loginMutation.isPending ? (
+                  <>
+                    <Spinner size="sm" />
+                    <span>Logging in...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn className="w-5 h-5" />
+                    <span>Login</span>
+                  </>
+                )}
+              </button>
             </div>
-
-            {loginMutation.isError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">
-                  Invalid email or password. Please try again.
-                </p>
-              </div>
-            )}
-
-            {/* Just a regular button, not a submit button */}
-            <button
-              type="button"
-              onClick={handleLogin}
-              disabled={loginMutation.isPending}
-              className="w-full bg-green text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loginMutation.isPending ? (
-                <>
-                  <Spinner size="sm" />
-                  <span>Logging in...</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-5 h-5" />
-                  <span>Login</span>
-                </>
-              )}
-            </button>
           </div>
-
-          {/* <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Admin accounts can only be created via CLI script
-            </p>
-          </div> */}
         </div>
       </div>
     </div>

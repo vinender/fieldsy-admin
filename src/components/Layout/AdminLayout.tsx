@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   Calendar,
@@ -90,7 +91,13 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-green-darker">
-            <h1 className="text-xl font-bold">Fieldsy Admin</h1>
+            <Image
+              src="/logo/logo-cream.png"
+              alt="Fieldsy Admin"
+              width={120}
+              height={40}
+              priority
+            />
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden"
