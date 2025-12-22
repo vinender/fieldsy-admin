@@ -706,9 +706,9 @@ export default function Transactions() {
                       </div>
 
                       {/* Note about field owner payouts */}
-                      <p className="text-xs text-gray-500 mt-3 italic">
+                      {/* <p className="text-xs text-gray-500 mt-3 italic">
                         Field owner payouts are handled by Stripe automatically. Check Payout History for details.
-                      </p>
+                      </p> */}
                     </div>
                   </div>
                 </div>
