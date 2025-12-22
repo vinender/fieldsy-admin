@@ -392,7 +392,7 @@ export default function Transactions() {
         {/* Page Header */}
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600 mt-1">View all payments, refunds, payouts, and transfers</p>
+          <p className="text-gray-600 mt-1">View all payments and refunds. For field owner payouts, check their Payout History.</p>
         </div>
 
         {/* Stats Cards */}
@@ -438,10 +438,9 @@ export default function Transactions() {
                   <TableHead>Amount</TableHead>
                   <TableHead>Stripe Fee</TableHead>
                   <TableHead>Net (After Stripe)</TableHead>
+                  <TableHead>Platform Fee</TableHead>
                   <TableHead>Payment Status</TableHead>
                   <TableHead>Refund Status</TableHead>
-                  <TableHead>Payout Status</TableHead>
-                  <TableHead>Field Owner Earnings</TableHead>
                   <TableHead>Recurring</TableHead>
                   <TableHead>Booking Date</TableHead>
                   <TableHead>Actions</TableHead>
@@ -492,6 +491,23 @@ export default function Transactions() {
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
+                    {/* Platform Fee */}
+                    <TableCell>
+                      {transaction.platformFee ? (
+                        <div className="flex flex-col">
+                          <span className="text-green font-medium">
+                            {formatCurrency(transaction.platformFee)}
+                          </span>
+                          {transaction.commissionRate !== undefined && transaction.commissionRate !== null && (
+                            <span className="text-xs text-gray-500">
+                              ({transaction.commissionRate}%)
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
                     {/* Payment Status */}
                     <TableCell>
                       <span className={getStatusBadge(transaction.status, 'PAYMENT')}>
@@ -513,79 +529,6 @@ export default function Transactions() {
                         </div>
                       ) : (
                         <span className="text-gray-400 text-sm">No refund</span>
-                      )}
-                    </TableCell>
-                    {/* Payout Status - Enhanced with Transfer info */}
-                    <TableCell>
-                      <div className="flex flex-col">
-                        {/* For cancelled/refunded bookings, show N/A */}
-                        {transaction.booking?.status === 'CANCELLED' || transaction.hasRefund ? (
-                          <span className="text-gray-400 text-sm">N/A</span>
-                        ) : transaction.lifecycleStage && !['PAYMENT_RECEIVED', 'FUNDS_PENDING'].includes(transaction.lifecycleStage) ? (
-                          <>
-                            {(() => {
-                              const stageInfo = getLifecycleStageInfo(transaction.lifecycleStage);
-                              const StageIcon = stageInfo.icon;
-                              return (
-                                <div className="flex items-center gap-1.5">
-                                  <StageIcon className={`w-3.5 h-3.5 ${stageInfo.color}`} />
-                                  <span className={`text-xs font-medium ${stageInfo.color} ${stageInfo.bgColor} px-2 py-0.5 rounded-full`}>
-                                    {stageInfo.label}
-                                  </span>
-                                </div>
-                              );
-                            })()}
-                            {/* Show transfer ID if transferred */}
-                            {transaction.stripeTransferId && (
-                              <span className="text-xs text-gray-400 mt-1 font-mono">
-                                {transaction.stripeTransferId.slice(0, 12)}...
-                              </span>
-                            )}
-                            {/* Show transferred date */}
-                            {transaction.transferredAt && (
-                              <span className="text-xs text-gray-500 mt-0.5">
-                                {new Date(transaction.transferredAt).toLocaleDateString('en-GB', {
-                                  day: '2-digit',
-                                  month: 'short'
-                                })}
-                              </span>
-                            )}
-                          </>
-                        ) : transaction.payoutStatus && transaction.payoutStatus !== 'PENDING' ? (
-                          <>
-                            <span className={getStatusBadge(transaction.payoutStatus, 'PAYOUT')}>
-                              {transaction.payoutStatus}
-                            </span>
-                            {transaction.payoutReleasedAt && (
-                              <span className="text-xs text-gray-500 mt-1">
-                                {new Date(transaction.payoutReleasedAt).toLocaleDateString('en-GB', {
-                                  day: '2-digit',
-                                  month: 'short',
-                                  year: 'numeric'
-                                })}
-                              </span>
-                            )}
-                          </>
-                        ) : (
-                          <span className="text-gray-400 text-sm">Pending</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    {/* Field Owner Earnings */}
-                    <TableCell>
-                      {transaction.fieldOwnerEarnings ? (
-                        <div className="flex flex-col">
-                          <span className="text-blue-600 font-medium">
-                            {formatCurrency(transaction.fieldOwnerEarnings)}
-                          </span>
-                          {transaction.commissionRate !== undefined && transaction.commissionRate !== null && (
-                            <span className="text-xs text-gray-500">
-                              ({100 - transaction.commissionRate}% of net)
-                            </span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
                     {/* Recurring */}
@@ -749,31 +692,23 @@ export default function Transactions() {
                         </div>
                       )}
 
-                      {/* Field Owner Earnings */}
-                      <div className="flex justify-between items-center text-sm mb-2">
-                        <div>
-                          <span className="text-gray-600">Field Owner Earnings</span>
-                          <p className="text-xs text-gray-400">
-                            {100 - (selectedTransaction.paymentBreakdown?.commissionRate || selectedTransaction.commissionRate || 20)}% of amount after Stripe
-                          </p>
-                        </div>
-                        <span className="text-blue-600 font-medium">
-                          {formatCurrency(selectedTransaction.paymentBreakdown?.fieldOwnerAmount || selectedTransaction.fieldOwnerEarnings || 0)}
-                        </span>
-                      </div>
-
                       {/* Platform Revenue */}
                       <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                         <div>
                           <span className="text-gray-900 font-medium">Platform Revenue</span>
                           <p className="text-xs text-gray-500">
-                            {selectedTransaction.paymentBreakdown?.commissionRate || selectedTransaction.commissionRate || 20}% of amount after Stripe
+                            {selectedTransaction.paymentBreakdown?.commissionRate || selectedTransaction.commissionRate || 20}% commission
                           </p>
                         </div>
                         <span className="font-bold text-lg text-green">
                           {formatCurrency(selectedTransaction.paymentBreakdown?.platformCommission || selectedTransaction.platformFee || 0)}
                         </span>
                       </div>
+
+                      {/* Note about field owner payouts */}
+                      <p className="text-xs text-gray-500 mt-3 italic">
+                        Field owner payouts are handled by Stripe automatically. Check Payout History for details.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -866,130 +801,6 @@ export default function Transactions() {
                           )}
                         </>
                       )}
-
-                      {/* If NOT Cancelled - Show Payout Status */}
-                      {selectedTransaction.booking.status !== 'CANCELLED' && (
-                        <div className="border-t border-gray-100 pt-3 space-y-2">
-                          {/* Determine effective payout status from booking.payoutStatus or lifecycleStage */}
-                          {(() => {
-                            const bookingPayoutStatus = selectedTransaction.booking.payoutStatus;
-                            const lifecycleStage = selectedTransaction.lifecycleStage;
-
-                            // Determine the effective status
-                            let effectiveStatus = bookingPayoutStatus || 'PENDING';
-                            let isCompleted = bookingPayoutStatus === 'RELEASED' || bookingPayoutStatus === 'COMPLETED';
-                            let isTransferred = false;
-                            let isProcessing = bookingPayoutStatus === 'PROCESSING';
-
-                            // Check lifecycle stage for more detail
-                            if (lifecycleStage === 'PAYOUT_COMPLETED') {
-                              isCompleted = true;
-                              effectiveStatus = 'COMPLETED';
-                            } else if (lifecycleStage === 'PAYOUT_INITIATED') {
-                              isProcessing = true;
-                              effectiveStatus = 'PROCESSING';
-                            } else if (lifecycleStage === 'TRANSFERRED') {
-                              isTransferred = true;
-                              effectiveStatus = 'TRANSFERRED';
-                            }
-
-                            return (
-                              <>
-                                <div className="flex justify-between items-center">
-                                  <span className="text-gray-600">Payout Status</span>
-                                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                    isCompleted
-                                      ? 'bg-green text-white'
-                                      : isTransferred
-                                      ? 'bg-purple-600/20 text-purple-600'
-                                      : isProcessing
-                                      ? 'bg-blue-600/20 text-blue-600'
-                                      : 'bg-yellow/20 text-yellow-700'
-                                  }`}>
-                                    {effectiveStatus}
-                                  </span>
-                                </div>
-
-                                {isCompleted ? (
-                                  <div className="bg-green/10 rounded-lg p-3 space-y-2">
-                                    <div className="flex items-center gap-2 text-green">
-                                      <CheckCircle className="w-4 h-4" />
-                                      <span className="font-medium">Payout Released to Field Owner</span>
-                                    </div>
-                                    {(selectedTransaction.booking.payoutReleasedAt || selectedTransaction.payoutCompletedAt) && (
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Released On</span>
-                                        <span className="font-medium">{formatDate(selectedTransaction.booking.payoutReleasedAt || selectedTransaction.payoutCompletedAt!)}</span>
-                                      </div>
-                                    )}
-                                    <div className="flex justify-between text-sm">
-                                      <span className="text-gray-600">Amount Released</span>
-                                      <span className="font-medium text-green">
-                                        {formatCurrency(selectedTransaction.paymentBreakdown?.fieldOwnerAmount || selectedTransaction.fieldOwnerEarnings || 0)}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ) : isTransferred ? (
-                                  <div className="bg-purple-600/10 rounded-lg p-3 space-y-2">
-                                    <div className="flex items-center gap-2 text-purple-600">
-                                      <ArrowRight className="w-4 h-4" />
-                                      <span className="font-medium">Transferred to Field Owner Account</span>
-                                    </div>
-                                    {selectedTransaction.transferredAt && (
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Transferred On</span>
-                                        <span className="font-medium">{formatDate(selectedTransaction.transferredAt)}</span>
-                                      </div>
-                                    )}
-                                    {selectedTransaction.stripeTransferId && (
-                                      <div className="flex justify-between text-sm">
-                                        <span className="text-gray-600">Transfer ID</span>
-                                        <code className="bg-gray-100 px-2 py-0.5 rounded text-xs">{selectedTransaction.stripeTransferId}</code>
-                                      </div>
-                                    )}
-                                    <p className="text-sm text-gray-600">
-                                      Funds have been transferred. Payout to bank account is pending.
-                                    </p>
-                                  </div>
-                                ) : isProcessing ? (
-                                  <div className="bg-blue-600/10 rounded-lg p-3 space-y-2">
-                                    <div className="flex items-center gap-2 text-blue-600">
-                                      <Building2 className="w-4 h-4" />
-                                      <span className="font-medium">Payout Processing</span>
-                                    </div>
-                                    <p className="text-sm text-gray-600">
-                                      Payout is being processed and will arrive in the field owner's bank account shortly.
-                                    </p>
-                                  </div>
-                                ) : (
-                                  <div className="bg-yellow/10 rounded-lg p-3 space-y-2">
-                                    <div className="flex items-center gap-2 text-yellow-700">
-                                      <Clock className="w-4 h-4" />
-                                      <span className="font-medium">Payout Pending</span>
-                                    </div>
-                                    <p className="text-sm text-gray-600">
-                                      The field owner has not received the payout yet. Payouts are typically released after the booking date.
-                                    </p>
-                                  </div>
-                                )}
-                              </>
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Payment Lifecycle Timeline */}
-                {selectedTransaction.type === 'PAYMENT' && selectedTransaction.lifecycleStage && (
-                  <div className="border border-gray-200 rounded-xl overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                      <h4 className="font-medium text-gray-900">Payment Lifecycle</h4>
-                      <p className="text-xs text-gray-500 mt-1">Track the flow of funds from payment to field owner bank</p>
-                    </div>
-                    <div className="p-4">
-                      <LifecycleTimeline transaction={selectedTransaction} />
                     </div>
                   </div>
                 )}
