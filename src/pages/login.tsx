@@ -54,8 +54,14 @@ export default function Login() {
       return;
     }
 
+    // Trim whitespace from inputs
+    const trimmedData = {
+      email: formData.email.trim(),
+      password: formData.password.trim(),
+    };
+
     console.log('Validation passed, calling login mutation...');
-    loginMutation.mutate(formData);
+    loginMutation.mutate(trimmedData);
   };
 
   // Handle Enter key press
