@@ -50,7 +50,7 @@ export default function QueryDetailsModal({
       case 'in-progress':
         return 'bg-yellow-100 text-yellow-700 border border-yellow-300';
       case 'resolved':
-        return 'bg-green-100 text-green-700 border border-green-300';
+        return 'bg-green-100 text-green border border-green-300';
       default:
         return 'bg-gray-100 text-gray-700 border border-gray-300';
     }
@@ -132,13 +132,13 @@ export default function QueryDetailsModal({
                 className={`w-48 px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent font-medium ${
                   status === 'new' ? 'text-blue-700 bg-blue-50' :
                   status === 'in-progress' ? 'text-yellow-700 bg-yellow-50' :
-                  status === 'resolved' ? 'text-green-700 bg-green-50' :
+                  status === 'resolved' ? 'text-green bg-green-50' :
                   'text-gray-700 bg-white'
                 }`}
               >
                 <option value="new" className="text-blue-700 bg-white">New</option>
                 <option value="in-progress" className="text-yellow-700 bg-white">In Progress</option>
-                <option value="resolved" className="text-green-700 bg-white">Resolved</option>
+                <option value="resolved" className="text-green bg-white">Resolved</option>
               </select>
             </div>
 

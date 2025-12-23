@@ -97,7 +97,7 @@ export default function DogOwners() {
                 <p className="text-sm font-medium text-gray-600">Total Dog Owners</p>
                 <p className="text-2xl font-bold text-gray-900 mt-2">{usersData?.total || 0}</p>
               </div>
-              <Dog className="w-8 h-8 text-green-600" />
+              <Dog className="w-8 h-8 text-green" />
             </div>
           </div>
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">

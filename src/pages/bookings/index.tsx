@@ -166,7 +166,7 @@ export default function Bookings() {
                 onClick={() => setShowFilter(!showFilter)}
                 className={`flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors ${
                   showFilter || Object.values(activeFilters).some(v => v !== 'All')
-                    ? 'border-green-500 bg-green-50 text-green-700'
+                    ? 'border-green-500 bg-green-50 text-green'
                     : 'border-gray-300 hover:bg-gray-50'
                 }`}
               >

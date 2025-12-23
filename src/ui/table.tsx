@@ -120,7 +120,7 @@ const DataTable = ({
                 type="checkbox"
                 checked={selectAll}
                 onChange={handleSelectAll}
-                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                className="w-4 h-4 rounded border-gray-300 text-green focus:ring-green-500"
               />
             </div>
           )}
@@ -150,7 +150,7 @@ const DataTable = ({
                     type="checkbox"
                     checked={activeSelectedRows.includes(row.id)}
                     onChange={() => handleSelectRow(row.id)}
-                    className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                    className="w-4 h-4 rounded border-gray-300 text-green focus:ring-green-500"
                   />
                 </div>
               )}

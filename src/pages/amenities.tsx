@@ -196,7 +196,7 @@ export default function AmenitiesPage() {
                         <button
                           onClick={() => handleToggleActive(amenity)}
                           className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${amenity.isActive
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 text-green'
                             : 'bg-gray-100 text-gray-800'
                             }`}
                         >

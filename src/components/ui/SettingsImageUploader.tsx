@@ -173,7 +173,7 @@ export function SettingsImageUploader({
         </div>
       )}
       {success && (
-        <div className="mb-2 p-2 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">
+        <div className="mb-2 p-2 bg-green-50 border border-green-200 text-green rounded-lg text-sm">
           {success}
         </div>
       )}

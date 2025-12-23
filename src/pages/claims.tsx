@@ -75,7 +75,7 @@ export default function Claims() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'APPROVED':
-        return <CheckCircle className="w-5 h-5 text-green-600" />;
+        return <CheckCircle className="w-5 h-5 text-green" />;
       case 'REJECTED':
         return <XCircle className="w-5 h-5 text-red-600" />;
       default:
@@ -86,7 +86,7 @@ export default function Claims() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'APPROVED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-green';
       case 'REJECTED':
         return 'bg-red-100 text-red-800';
       default:
@@ -141,11 +141,11 @@ export default function Claims() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600">Approved</p>
-                <p className="text-2xl font-bold text-green-600 mt-1">
+                <p className="text-2xl font-bold text-green mt-1">
                   {claims.filter(c => c.status === 'APPROVED').length}
                 </p>
               </div>
-              <CheckCircle className="w-10 h-10 text-green-400" />
+              <CheckCircle className="w-10 h-10 text-green" />
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -209,7 +209,7 @@ export default function Claims() {
                       </TableCell>
                       <TableCell>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          claim.isLegalOwner ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                          claim.isLegalOwner ? 'bg-green-100 text-green' : 'bg-gray-100 text-gray-800'
                         }`}>
                           {claim.isLegalOwner ? 'Yes' : 'No'}
                         </span>
@@ -305,7 +305,7 @@ export default function Claims() {
                   confirmationModal.status === 'APPROVED' ? 'bg-green-100' : 'bg-red-100'
                 }`}>
                   {confirmationModal.status === 'APPROVED' ? (
-                    <CheckCircle className="w-6 h-6 text-green-600" />
+                    <CheckCircle className="w-6 h-6 text-green" />
                   ) : (
                     <AlertTriangle className="w-6 h-6 text-red-600" />
                   )}
