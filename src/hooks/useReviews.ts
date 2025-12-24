@@ -43,7 +43,7 @@ export const useFieldReviews = (fieldId: string | undefined) => {
     queryKey: ['field-reviews', fieldId],
     queryFn: async () => {
       if (!fieldId) throw new Error('Field ID is required');
-      
+
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${API_URL}/reviews/field/${fieldId}`, {
         headers: {
@@ -56,7 +56,22 @@ export const useFieldReviews = (fieldId: string | undefined) => {
         throw new Error('Failed to fetch field reviews');
       }
 
-      return response.json();
+      const result = await response.json();
+
+      // Handle nested API response structure
+      // API returns: { success: true, data: { reviews, pagination, stats: { averageRating, totalReviews, ratingDistribution } } }
+      // We need to flatten it to: { reviews, total, averageRating, ratingDistribution }
+      if (result.success && result.data) {
+        return {
+          reviews: result.data.reviews || [],
+          total: result.data.stats?.totalReviews || result.data.pagination?.total || 0,
+          averageRating: result.data.stats?.averageRating || 0,
+          ratingDistribution: result.data.stats?.ratingDistribution || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        };
+      }
+
+      // Fallback for direct response format
+      return result;
     },
     enabled: !!fieldId,
     staleTime: 5 * 60 * 1000, // 5 minutes

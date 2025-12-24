@@ -5,16 +5,39 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFieldDetails, useToggleFieldClaimed } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useFieldReviews } from '@/hooks/useReviews';
-import { Star, AlertTriangle, CheckCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { getImageUrl, getImageUrls } from '@/utils/imageUrl';
 import { AmenityIcon } from '@/components/ui/AmenityIcon';
+import { RatingStars } from '@/components/common/RatingStars';
 
 // Capitalize first letter of each word separated by hyphens (e.g., "post-and-wire" -> "Post-And-Wire")
 const capitalizeFirst = (str: string | null | undefined): string => {
   if (!str) return 'N/A';
   return str.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
+};
+
+// Convert 24hr time to 12hr format with AM/PM
+const formatTo12Hour = (time: string | null | undefined): string => {
+  if (!time) return '';
+
+  // Handle if already in 12hr format
+  if (time.includes('AM') || time.includes('PM')) {
+    return time;
+  }
+
+  // Parse 24hr format (e.g., "14:00" or "9:00")
+  const [hourStr, minuteStr] = time.split(':');
+  let hour = parseInt(hourStr, 10);
+  const minute = minuteStr || '00';
+
+  if (isNaN(hour)) return time;
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12; // Convert 0 to 12, 13-23 to 1-11
+
+  return `${hour}:${minute.padStart(2, '0')} ${period}`;
 };
 
 // Reusable Card Component
@@ -56,29 +79,31 @@ const ImageGallery = ({ images }: { images: string[] }) => {
 
 // Review Card Component
 const ReviewCard = ({ name, date, rating, review, avatar }: { name: string; date: string; rating: number; review: string; avatar?: string }) => {
+  const [imageError, setImageError] = useState(false);
+
+  const hasValidAvatar = avatar && !avatar.includes('default-avatar') && !avatar.includes('placeholder') && !imageError;
+
+  // Fallback to /user.svg when no valid avatar
+  const fallbackAvatar = '/user.svg';
+
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-3">
-          <img
-            src={avatar || 'https://via.placeholder.com/40'}
-            alt={name}
-            className="w-10 h-10 rounded-full object-cover"
-          />
+          <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 flex items-center justify-center">
+            <img
+              src={hasValidAvatar ? avatar : fallbackAvatar}
+              alt={name}
+              className={hasValidAvatar ? "w-full h-full object-cover" : "w-6 h-6"}
+              onError={() => setImageError(true)}
+            />
+          </div>
           <div>
             <p className="font-medium text-gray-900">{name}</p>
             <p className="text-sm text-gray-500">{date}</p>
           </div>
         </div>
-        <div className="flex gap-1">
-          {[...Array(5)].map((_, i) => (
-            <img src='/star.svg'
-              key={i}
-              size={16}
-              className={i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-            />
-          ))}
-        </div>
+        <RatingStars rating={rating} size={16} />
       </div>
       <p className="text-sm text-gray-600 leading-relaxed">{review}</p>
     </Card>
@@ -130,6 +155,8 @@ export default function FieldDetails() {
     fieldName: string;
     currentStatus: boolean;
   } | null>(null);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const AMENITY_LIMIT = 6; // Number of amenities to show initially
 
   const openClaimedConfirmationModal = (fieldId: string, fieldName: string, currentStatus: boolean) => {
     setConfirmationModal({
@@ -189,18 +216,26 @@ export default function FieldDetails() {
   const bookingPolicies: string[] = field.policies || [];
 
   // Format earnings data from booking history with new columns
-  const earningsData = field.recentBookings?.slice(0, 10).map((b: any) => [
-    `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
-    b.paymentIntentId ? `#${b.paymentIntentId.slice(-8).toUpperCase()}` : 'N/A',  // Payment ID
-    formatDate(b.date) + ' at ' + b.startTime,  // Date and Time
-    b.user?.name || 'Unknown',  // Clients
-    b.numberOfDogs?.toString() || '1',  // Dogs
-    formatCurrency(b.totalPrice || 0),  // Amount
-    <StatusBadge status={b.paymentStatus || b.status} />  // Status
-  ]) || [];
+  const earningsData = field.recentBookings?.slice(0, 10).map((b: any) => {
+    // For completed bookings, use stored commission; for others, show dynamic calculation
+    const commission = b.platformCommission || (b.totalPrice * 0.2); // Default 20% if not stored
+    const ownerAmount = b.fieldOwnerAmount || (b.totalPrice - commission);
 
-  // Calculate total earnings
-  const totalEarnings = field.totalEarnings || 0;
+    return [
+      `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
+      b.paymentIntentId ? `#${b.paymentIntentId.slice(-8).toUpperCase()}` : 'N/A',  // Payment ID
+      formatDate(b.date) + ' at ' + b.startTime,  // Date and Time
+      b.user?.name || 'Unknown',  // Clients
+      b.numberOfDogs?.toString() || '1',  // Dogs
+      formatCurrency(b.totalPrice || 0),  // Total Amount
+      formatCurrency(commission),  // Commission
+      formatCurrency(ownerAmount),  // Owner Earnings
+      <StatusBadge status={b.paymentStatus || b.status} />  // Status
+    ];
+  }) || [];
+
+  // Calculate total earnings (field owner's actual earnings)
+  const totalEarnings = field.totalOwnerEarnings || field.totalEarnings || 0;
 
   // Format reviews from API data
   const reviews = reviewsData?.reviews || [];
@@ -230,32 +265,36 @@ export default function FieldDetails() {
           {/* Page Title */}
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-semibold text-gray-900"><span className="text-[#8D8D8D] font-semibold">Field Overview / </span>Field Details</h1>
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-medium text-gray-700 ${field.isClaimed ? 'text-green' : 'text-yellow'}`}>
-                {field.isClaimed ? 'Claimed' : 'Not Claimed'}
-              </span>
-              <button
-                onClick={() => openClaimedConfirmationModal(field.id, field.name, field.isClaimed || false)}
-                disabled={toggleClaimedMutation.isPending}
-                className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
-                style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isClaimed ? 'translate-x-6' : 'translate-x-1'
-                    }`}
-                />
-              </button>
-            </div>
+            {/* Only show claimed toggle if field is approved */}
+            {field.isApproved && (
+              <div className="flex items-center gap-3">
+                <span className={`text-sm font-medium text-gray-700 ${field.isClaimed ? 'text-green' : 'text-yellow'}`}>
+                  {field.isClaimed ? 'Claimed' : 'Not Claimed'}
+                </span>
+                <button
+                  onClick={() => openClaimedConfirmationModal(field.id, field.name, field.isClaimed || false)}
+                  disabled={toggleClaimedMutation.isPending}
+                  className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
+                  style={{ backgroundColor: field.isClaimed ? '#4ade80' : '#e5e7eb' }}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isClaimed ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                  />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Field Overview */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Overview</h2>
             <Card className="p-5">
-              <div className="grid grid-cols-4 gap-8">
+              <div className="grid grid-cols-5 gap-8">
                 <InfoCard label="Name" value={field.name || "N/A"} />
                 <InfoCard label="Size" value={capitalizeFirst(field.size)} />
-                <InfoCard label="Price" value={field.price ? `${formatCurrency(field.price)}/${capitalizeFirst(field.bookingDuration)}` : "N/A"} />
+                <InfoCard label="Price (30 min/dog)" value={field.price30min ? `${formatCurrency(field.price30min)}` : (field.price ? `${formatCurrency(field.price)}` : "N/A")} />
+                <InfoCard label="Price (1 hr/dog)" value={field.price1hr ? `${formatCurrency(field.price1hr)}` : (field.price ? `${formatCurrency(field.price * 2)}` : "N/A")} />
                 <InfoCard label="Status" value={field.isActive ? "Active" : "Inactive"} />
               </div>
               <div className="grid grid-cols-5 gap-8 mt-6">
@@ -263,37 +302,58 @@ export default function FieldDetails() {
                 <InfoCard label="Fence Type" value={capitalizeFirst(field.fenceType)} />
                 <InfoCard label="Fence Size" value={capitalizeFirst(field.fenceSize)} />
                 <InfoCard label="Surface Type" value={capitalizeFirst(field.surfaceType)} />
-                <InfoCard label="Opening Hours" value={field.openingTime && field.closingTime ? `${field.openingTime} - ${field.closingTime}` : "N/A"} />
+                <InfoCard label="Opening Hours" value={field.openingTime && field.closingTime ? `${formatTo12Hour(field.openingTime)} - ${formatTo12Hour(field.closingTime)}` : "N/A"} />
               </div>
-              <div className="grid grid-cols-5 gap-8 mt-6">
+              <div className="grid grid-cols-4 gap-8 mt-6">
                 <InfoCard label="Booking Duration" value={capitalizeFirst(field.bookingDuration)} />
                 <InfoCard label="Max Dogs" value={field.maxDogs || "N/A"} />
                 <InfoCard label="Operating Days" value={field.operatingDays?.length ? field.operatingDays.map((day: string) => capitalizeFirst(day)).join(', ') : "N/A"} />
-                {/* <InfoCard label="Instant Booking" value={field.instantBooking ? "Yes" : "No"} /> */}
-                <InfoCard
-                  label="Amenities"
-                  value={
-                    field.amenities?.length ? (
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {field.amenities.map((amenity: any, index: number) => {
-                          const name = typeof amenity === 'string' ? amenity : (amenity?.label || amenity?.name || amenity?.value);
-                          const icon = typeof amenity === 'object' ? amenity?.icon : null;
+              </div>
 
-                          return (
-                            <div key={index} className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
-                              {icon && (
-                                <div className="w-4 h-4">
-                                  <AmenityIcon src={icon} alt={name} fillColor="#22C55E" />
-                                </div>
-                              )}
-                              <span className="text-sm font-medium text-gray-700">{name}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : "N/A"
-                  }
-                />
+              {/* Amenities Section */}
+              <div className="mt-6">
+                <p className="text-sm font-light text-gray-500 text-opacity-90 mb-2">Amenities</p>
+                {field.amenities?.length ? (
+                  <>
+                    <div className="flex flex-wrap gap-2">
+                      {(showAllAmenities ? field.amenities : field.amenities.slice(0, AMENITY_LIMIT)).map((amenity: any, index: number) => {
+                        const name = typeof amenity === 'string' ? amenity : (amenity?.label || amenity?.name || amenity?.value);
+                        const icon = typeof amenity === 'object' ? amenity?.icon : null;
+
+                        return (
+                          <div key={index} className="flex items-center gap-1.5 bg-gray-50 px-2.5 py-1.5 rounded-md border border-gray-100">
+                            {icon && (
+                              <div className="w-4 h-4">
+                                <AmenityIcon src={icon} alt={name} fillColor="#22C55E" />
+                              </div>
+                            )}
+                            <span className="text-sm font-medium text-gray-700">{name}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {field.amenities.length > AMENITY_LIMIT && (
+                      <button
+                        onClick={() => setShowAllAmenities(!showAllAmenities)}
+                        className="mt-3 flex items-center gap-1 text-sm font-medium text-green-600 hover:text-green-700 transition-colors"
+                      >
+                        {showAllAmenities ? (
+                          <>
+                            <ChevronUp className="w-4 h-4" />
+                            Show Less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDown className="w-4 h-4" />
+                            Show {field.amenities.length - AMENITY_LIMIT} More
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-base font-semibold text-[#192215]">N/A</p>
+                )}
               </div>
             </Card>
           </div>
@@ -418,7 +478,7 @@ export default function FieldDetails() {
               </div>
               {earningsData.length > 0 ? (
                 <Table
-                  headers={['Order ID', 'Payment ID', 'Date and Time', 'Clients', 'Dogs', 'Amount', 'Status']}
+                  headers={['Order ID', 'Payment ID', 'Date and Time', 'Clients', 'Dogs', 'Total', 'Commission', 'Earnings', 'Status']}
                   rows={earningsData}
                 />
               ) : (
@@ -444,14 +504,8 @@ export default function FieldDetails() {
                 <div className="flex flex-col items-center">
                   <p className="text-sm text-gray-500 mb-2">Reviews</p>
                   <p className="text-3xl font-semibold">{averageRating.toFixed(1)}</p>
-                  <div className="flex gap-1 my-2">
-                    {[...Array(5)].map((_, i) => (
-                      <img src='/star.svg'
-                        key={i}
-                        size={16}
-                        className={i < Math.round(averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}
-                      />
-                    ))}
+                  <div className="my-2">
+                    <RatingStars rating={averageRating} size={16} />
                   </div>
                   <p className="text-sm text-gray-500">{totalReviews} Reviews</p>
                 </div>
@@ -459,10 +513,13 @@ export default function FieldDetails() {
                 <div className="flex-1">
                   {[5, 4, 3, 2, 1].map((stars) => (
                     <div key={stars} className="flex items-center gap-3 mb-2">
-                      <span className="text-sm text-gray-600 w-12">{stars} Star</span>
+                      <div className="flex items-center gap-1 min-w-[40px]">
+                        <span className="text-sm text-gray-600">{stars}</span>
+                        <Star size={14} className="fill-[#FFDD57]  text-[#FFDD57]" />
+                      </div>
                       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-yellow-400 transition-all duration-300"
+                          className="h-full bg-[#FFDD57] transition-all duration-300"
                           style={{
                             width: `${getRatingPercentage(stars)}%`
                           }}
@@ -474,6 +531,7 @@ export default function FieldDetails() {
                     </div>
                   ))}
                 </div>
+                
               </div>
 
               {/* Review Cards */}
@@ -505,11 +563,11 @@ export default function FieldDetails() {
                   {reviews.slice(0, 5).map((review: any) => (
                     <ReviewCard
                       key={review.id}
-                      name={review.user?.name || 'Anonymous'}
+                      name={review.user?.name || review.userName || 'Anonymous'}
                       date={formatDate(review.createdAt)}
                       rating={review.rating}
                       review={review.comment}
-                      avatar={review.user?.avatar}
+                      avatar={review.user?.googleImage || review.user?.image || review.userImage || '/default-avatar.png'}
                     />
                   ))}
                   {reviews.length > 5 && (

@@ -310,7 +310,7 @@ export default function Fields() {
                       <TableHead>Field & Owner</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Field Price</TableHead>
-                      <TableHead>Earnings</TableHead>
+                      {/* <TableHead>Earnings</TableHead> */}
                       <TableHead>Max Dogs</TableHead>
                       <TableHead>Entry Code</TableHead>
                       <TableHead>Joined On</TableHead>
@@ -355,16 +355,16 @@ export default function Fields() {
                         <TableCell>
                           <div className="text-sm">
                             <div className="font-medium text-gray-900">
-                              £{(field.price || field.pricePerHour || 0).toFixed(2)}
+                              £{(field.price30min || field.price || 0).toFixed(2)}
                             </div>
                             <div className="text-xs text-gray-500">
-                              per dog/{field.bookingDuration === '30min' ? '30 min' : field.bookingDuration || '1 hour'}
+                              per 30 min/dog
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="font-medium text-gray-900">
+                        {/* <TableCell className="font-medium text-gray-900">
                           {formatCurrency(field.totalEarnings || 0)}
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell className="text-gray-500">
                           {field.maxDogs || 10}
                         </TableCell>

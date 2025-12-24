@@ -32,6 +32,8 @@ export interface Field {
   latitude: number;
   longitude: number;
   price?: number;
+  price30min?: number; // Price for 30 minute booking slot
+  price1hr?: number; // Price for 1 hour booking slot
   pricePerHour?: number; // Keep for backward compatibility
   size: number;
   type: 'PRIVATE' | 'PUBLIC' | 'TRAINING';
