@@ -325,26 +325,9 @@ export default function Fields() {
                     {filteredFields.map((field) => (
                       <TableRow key={field.id}>
                         <TableCell>
-                          <div className="flex items-center space-x-3">
-                            {/* Field Image */}
-                            <div className="flex-shrink-0">
-                              {field.images && field.images.length > 0 ? (
-                                <img
-                                  src={field.images[0]}
-                                  alt={field.name}
-                                  className="w-10 h-10 rounded-lg object-cover"
-                                />
-                              ) : (
-                                <div className="w-10 h-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                                  <MapPin className="w-5 h-5 text-gray-400" />
-                                </div>
-                              )}
-                            </div>
-                            {/* Field Name and Owner */}
-                            <div>
-                              <div className="text-sm font-medium text-gray-900">{field.name}</div>
-                              <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
-                            </div>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{field.name}</div>
+                            <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
                           </div>
                         </TableCell>
                         <TableCell>

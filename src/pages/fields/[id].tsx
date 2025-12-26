@@ -405,13 +405,13 @@ export default function FieldDetails() {
           {/* Field Images */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Images</h2>
-            <Card className="p-5">
-              {fieldImages.length > 0 ? (
-                <ImageGallery images={fieldImages} />
-              ) : (
-                <p className="text-gray-500 text-center py-8">No images available</p>
-              )}
-            </Card>
+              <Card className="p-5">
+                {fieldImages.length > 0 ? (
+                  <ImageGallery images={fieldImages} />
+                ) : (
+                  <p className="text-gray-500 text-center py-8">No images available</p>
+                )}
+              </Card>
           </div>
 
           {/* Description */}
@@ -531,7 +531,6 @@ export default function FieldDetails() {
                     </div>
                   ))}
                 </div>
-                
               </div>
 
               {/* Review Cards */}
