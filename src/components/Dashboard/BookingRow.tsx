@@ -39,14 +39,7 @@ const BookingRow: React.FC<BookingRowProps> = ({ booking }) => {
           {booking.id.slice(0, 6)}
         </span>
         
-        <div className="flex items-center gap-3 w-[175px]">
-          {booking.image && (
-            <img 
-              src={booking.image} 
-              alt="" 
-              className="w-10 h-10 rounded-lg object-cover" 
-            />
-          )}
+        <div className="flex items-center w-[175px]">
           <div className="overflow-hidden">
             <p className="text-[#20130b] text-sm font-semibold truncate">
               {booking.fieldName}

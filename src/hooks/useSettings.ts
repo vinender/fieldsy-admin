@@ -5,10 +5,14 @@ interface SystemSettings {
   id: string;
   defaultCommissionRate: number;
   cancellationWindowHours: number;
+  maxAdvanceBookingDays?: number;
   maxBookingsPerUser: number;
+  minimumFieldOperatingHours?: number;
+  payoutReleaseSchedule?: string;
   siteName: string;
   siteUrl: string;
   supportEmail: string;
+  adminEmail?: string;
   maintenanceMode: boolean;
   enableNotifications: boolean;
   enableEmailNotifications: boolean;

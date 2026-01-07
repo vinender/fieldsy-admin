@@ -444,22 +444,13 @@ export default function Dashboard() {
                 bookings.slice(0, 5).map((booking) => (
                   <div key={booking.id} className="bg-white rounded-xl p-4 border border-black/10 shadow-sm">
                     <div className="flex justify-between items-start mb-3">
-                      <div className="flex items-center gap-3">
-                        {booking.image && (
-                          <img
-                            src={booking.image}
-                            alt=""
-                            className="w-12 h-12 rounded-lg object-cover"
-                          />
-                        )}
-                        <div>
-                          <p className="text-[#20130b] font-semibold text-sm">
-                            {booking.fieldName}
-                          </p>
-                          <p className="text-[#575757] text-xs">
-                            {booking.ownerName}
-                          </p>
-                        </div>
+                      <div>
+                        <p className="text-[#20130b] font-semibold text-sm">
+                          {booking.fieldName}
+                        </p>
+                        <p className="text-[#575757] text-xs">
+                          {booking.ownerName}
+                        </p>
                       </div>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium border ${booking.status === 'COMPLETED' ? 'bg-[#3a6b22]/10 text-[#3a6b22] border-[#3a6b22]/12' :
                         booking.status === 'CONFIRMED' ? 'bg-[#8fb366]/10 text-[#8fb366] border-[#8fb366]/12' :

@@ -6,6 +6,7 @@ interface GeneralSettingsProps {
     siteName: string;
     siteUrl: string;
     supportEmail: string;
+    adminEmail?: string;
     maxBookingsPerUser: number;
     cancellationWindowHours: number;
     maxAdvanceBookingDays: number;
@@ -49,6 +50,7 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
     siteName: 100,
     siteUrl: 200,
     supportEmail: 100,
+    adminEmail: 100,
   };
 
   return (
@@ -110,6 +112,27 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
           placeholder="support@example.com"
         />
         <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.supportEmail} characters</p>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Admin Notification Email
+          <span className="text-xs text-gray-500 ml-2">
+            ({(formData.adminEmail || '').length}/{CHAR_LIMITS.adminEmail} characters)
+          </span>
+        </label>
+        <input
+          type="email"
+          name="adminEmail"
+          value={formData.adminEmail || ''}
+          onChange={handleChange}
+          maxLength={CHAR_LIMITS.adminEmail}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          placeholder="admin@example.com"
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          Email for receiving system notifications (e.g., field address changes). Maximum {CHAR_LIMITS.adminEmail} characters.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
