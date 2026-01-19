@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // Initialize S3 client
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION || 'us-east-1',
+  region: process.env.AWS_REGION || 'eu-west-2',
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -49,7 +49,7 @@ export default async function handler(
 
     // Create presigned post data
     const { url, fields } = await createPresignedPost(s3Client, {
-      Bucket: process.env.AWS_S3_BUCKET || 'fieldsy',
+      Bucket: process.env.AWS_S3_BUCKET || 'fieldsy-s3',
       Key: key,
       Conditions: [
         ['content-length-range', 0, 10485760], // Max 10MB
@@ -63,7 +63,7 @@ export default async function handler(
     });
 
     // Generate the final file URL
-    const fileUrl = `https://${process.env.AWS_S3_BUCKET || 'fieldsy'}.s3.${process.env.AWS_REGION || 'us-east-1'}.amazonaws.com/${key}`;
+    const fileUrl = `https://${process.env.AWS_S3_BUCKET || 'fieldsy-s3'}.s3.${process.env.AWS_REGION || 'eu-west-2'}.amazonaws.com/${key}`;
 
     res.status(200).json({
       uploadUrl: url,
