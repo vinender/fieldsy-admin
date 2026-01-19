@@ -21,12 +21,9 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Set environment variables for build
-ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_BACKEND_URL
 
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+# Environment variables will be read from .env.production automatically by Next.js
+# We do not set them here to avoid overriding the file with empty ARGs
 
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
