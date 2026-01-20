@@ -307,6 +307,7 @@ export default function Fields() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead>Field ID</TableHead>
                       <TableHead>Field & Owner</TableHead>
                       <TableHead>Location</TableHead>
                       <TableHead>Field Price</TableHead>
@@ -324,6 +325,9 @@ export default function Fields() {
                   <TableBody>
                     {filteredFields.map((field) => (
                       <TableRow key={field.id}>
+                        <TableCell>
+                          <div className="text-sm font-medium text-gray-900 font-mono">{field.fieldId || field.id.slice(-6).toUpperCase()}</div>
+                        </TableCell>
                         <TableCell>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{field.name}</div>
@@ -416,7 +420,7 @@ export default function Fields() {
                         </TableCell>
                         <TableCell>
                           <button
-                            onClick={() => router.push(`/fields/${field.id}`)}
+                            onClick={() => router.push(`/fields/${field.fieldId || field.id}`)}
                             className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                             title="View Details"
                           >
@@ -550,7 +554,7 @@ export default function Fields() {
                   className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors"
                 >
                   Cancel
-                </button> 
+                </button>
                 <button
                   onClick={handleConfirmBlock}
                   disabled={toggleBlockedMutation.isPending}

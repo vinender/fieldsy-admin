@@ -50,7 +50,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
         {bookings.map((booking) => (
           <TableRow key={booking.id}>
             <TableCell className="font-medium text-gray-900">
-              #{booking.id.slice(-6)}
+              #{booking.bookingId || booking.id.slice(-6).toUpperCase()}
             </TableCell>
             <TableCell className="max-w-[200px]">
               <div className="space-y-0.5">
@@ -69,7 +69,7 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
               <StatusBadge status={booking.status} />
             </TableCell>
             <TableCell className="text-table-text">
-              {getDuration(booking.startTime, booking.endTime)} 
+              {getDuration(booking.startTime, booking.endTime)}
             </TableCell>
             <TableCell className="text-table-text">
               {formatDate(booking.date)}
@@ -89,10 +89,10 @@ const BookingsTable: React.FC<BookingsTableProps> = ({ bookings }) => {
             </TableCell>
             <TableCell>
               <button
-                onClick={() => router.push(`/bookings/${booking.id}`)}
+                onClick={() => router.push(`/bookings/${booking.bookingId || booking.id}`)}
                 className="inline-flex items-center px-[20px] py-[10px]  text-xs font-medium rounded-[40px] text-white bg-green hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors"
               >
-                 View Detail
+                View Detail
               </button>
             </TableCell>
           </TableRow>

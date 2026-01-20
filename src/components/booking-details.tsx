@@ -8,7 +8,7 @@ interface BookingDetailsProps {
 
 export default function BookingDetail({ booking }: BookingDetailsProps) {
   const router = useRouter();
-  
+
   if (!booking) {
     return (
       <div className="text-center py-12">
@@ -74,7 +74,7 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 <div className="space-y-1.5">
                   <p className="text-sm text-[#8d8d8d]">Booking ID</p>
                   <p className="text-base font-semibold text-[#192215]">
-                    {booking.id ? `#${booking.id.slice(0, 8).toUpperCase()}` : 'N/A'}
+                    {booking.bookingId ? `#${booking.bookingId}` : (booking.id ? `#${booking.id.slice(0, 8).toUpperCase()}` : 'N/A')}
                   </p>
                 </div>
                 <div className="space-y-1.5">
@@ -135,8 +135,8 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 {/* User Avatar */}
                 <div className="w-12 h-12 rounded-xl bg-gray-200 overflow-hidden flex-shrink-0">
                   {booking.user?.image ? (
-                    <img 
-                      src={booking.user.image} 
+                    <img
+                      src={booking.user.image}
                       alt={booking.user.name}
                       className="w-full h-full object-cover"
                     />
@@ -187,11 +187,11 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                       {booking.user?.isActive !== false ? 'Active' : 'Inactive'}
                     </p>
                   </div>
-                  
+
                 </div>
 
-                  {/* View Detail Button */}
-                  <button 
+                {/* View Detail Button */}
+                <button
                   onClick={() => router.push(`/fields/${booking.user?.id}`)}
                   className="bg-[#3a6b22] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#2d5419] transition-colors flex-shrink-0 border border-[rgba(58,107,34,0.12)]"
                 >
@@ -209,8 +209,8 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 {/* Field Image */}
                 <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
                   {booking.field?.images?.[0] ? (
-                    <img 
-                      src={booking.field.images[0]} 
+                    <img
+                      src={booking.field.images[0]}
                       alt={booking.field.name}
                       className="w-full h-full object-cover"
                     />
@@ -250,8 +250,8 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
                 </div>
 
                 {/* View Detail Button */}
-                <button 
-                  onClick={() => router.push(`/fields/${booking.field?.id}`)}
+                <button
+                  onClick={() => router.push(`/fields/${booking.field?.fieldId || booking.field?.id}`)}
                   className="bg-[#3a6b22] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#2d5419] transition-colors flex-shrink-0 border border-[rgba(58,107,34,0.12)]"
                 >
                   View Field Details

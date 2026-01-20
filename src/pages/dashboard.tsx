@@ -9,7 +9,7 @@ import LineChart from '@/components/Dashboard/LineChart';
 import BookingRow, { BookingData } from '@/components/Dashboard/BookingRow';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useDashboardStats } from '@/hooks/useDashboard';
-import { Users, MapPin, Calendar, DollarSign, AlertTriangle } from 'lucide-react';
+import { Users, MapPin, Calendar, PoundSterling, AlertTriangle } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
@@ -301,8 +301,8 @@ export default function Dashboard() {
       title: 'Total Revenue',
       value: formatCurrency(totalRevenue || stats?.totalRevenue || 0),
       change: stats?.growth?.revenue || 0,
-      icon: '/dashboard/revenue.svg',
-      useImage: true
+      icon: PoundSterling,
+      useImage: false
     }
   ];
 

@@ -23,6 +23,7 @@ export interface User {
 
 export interface Field {
   id: string;
+  fieldId?: string; // Human-readable ID (F1111)
   name: string;
   description: string;
   address: string;
@@ -59,6 +60,7 @@ export interface Field {
 
 export interface Booking {
   id: string;
+  bookingId?: string; // Human-readable ID (1111)
   userId: string;
   fieldId: string;
   date: string;

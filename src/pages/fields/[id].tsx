@@ -222,7 +222,7 @@ export default function FieldDetails() {
     const ownerAmount = b.fieldOwnerAmount || (b.totalPrice - commission);
 
     return [
-      `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
+      b.bookingId ? `#${b.bookingId}` : `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
       b.paymentIntentId ? `#${b.paymentIntentId.slice(-8).toUpperCase()}` : 'N/A',  // Payment ID
       formatDate(b.date) + ' at ' + b.startTime,  // Date and Time
       b.user?.name || 'Unknown',  // Clients
@@ -290,7 +290,8 @@ export default function FieldDetails() {
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Overview</h2>
             <Card className="p-5">
-              <div className="grid grid-cols-5 gap-8">
+              <div className="grid grid-cols-6 gap-8">
+                <InfoCard label="Field ID" value={field.fieldId || field.id.slice(-6).toUpperCase()} />
                 <InfoCard label="Name" value={field.name || "N/A"} />
                 <InfoCard label="Size" value={capitalizeFirst(field.size)} />
                 <InfoCard label="Price (30 min/dog)" value={field.price30min ? `${formatCurrency(field.price30min)}` : (field.price ? `${formatCurrency(field.price)}` : "N/A")} />
@@ -405,13 +406,13 @@ export default function FieldDetails() {
           {/* Field Images */}
           <div className="mb-6">
             <h2 className="text-[#192215] font-semibold text-xl leading-5 mb-3">Field Images</h2>
-              <Card className="p-5">
-                {fieldImages.length > 0 ? (
-                  <ImageGallery images={fieldImages} />
-                ) : (
-                  <p className="text-gray-500 text-center py-8">No images available</p>
-                )}
-              </Card>
+            <Card className="p-5">
+              {fieldImages.length > 0 ? (
+                <ImageGallery images={fieldImages} />
+              ) : (
+                <p className="text-gray-500 text-center py-8">No images available</p>
+              )}
+            </Card>
           </div>
 
           {/* Description */}
