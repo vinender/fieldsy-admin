@@ -14,6 +14,8 @@ interface GeneralSettingsProps {
     defaultCommissionRate: number;
     payoutReleaseSchedule?: string;
     isLive: boolean;
+    bypassUsername?: string;
+    bypassPassword?: string;
     maintenanceMode: boolean;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -271,7 +273,37 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
         </div>
       </div>
 
-      <div className="flex items-center">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-t border-gray-100 pt-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Bypass Username
+            <span className="text-xs text-gray-500 ml-1">(For accessing site when not live)</span>
+          </label>
+          <input
+            type="text"
+            name="bypassUsername"
+            value={formData.bypassUsername || ''}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="admin"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Bypass Password
+          </label>
+          <input
+            type="text"
+            name="bypassPassword"
+            value={formData.bypassPassword || ''}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            placeholder="fieldsy123"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center pt-2">
         <input
           type="checkbox"
           id="maintenanceMode"

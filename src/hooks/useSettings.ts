@@ -14,6 +14,9 @@ interface SystemSettings {
   supportEmail: string;
   adminEmail?: string;
   maintenanceMode: boolean;
+  isLive: boolean;
+  bypassUsername?: string;
+  bypassPassword?: string;
   enableNotifications: boolean;
   enableEmailNotifications: boolean;
   enableSmsNotifications: boolean;

@@ -46,6 +46,8 @@ export default function Settings() {
     enableSmsNotifications: false,
     maintenanceMode: false,
     isLive: true,
+    bypassUsername: 'admin',
+    bypassPassword: 'fieldsy123',
     bannerText: '',
     highlightedText: '',
     aboutTitle: '',
@@ -198,6 +200,8 @@ export default function Settings() {
         enableSmsNotifications: settings.enableSmsNotifications ?? false,
         maintenanceMode: settings.maintenanceMode || false,
         isLive: settings.isLive ?? true,
+        bypassUsername: settings.bypassUsername || 'admin',
+        bypassPassword: settings.bypassPassword || 'fieldsy123',
         bannerText: settings.bannerText || 'Find Safe, private dog walking fields',
         highlightedText: settings.highlightedText || 'near you',
         aboutTitle: settings.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
@@ -419,8 +423,8 @@ export default function Settings() {
         {/* Notification */}
         {notification && (
           <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${notification.type === 'success'
-              ? 'bg-green-50 text-green border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
+            ? 'bg-green-50 text-green border border-green-200'
+            : 'bg-red-50 text-red-800 border border-red-200'
             }`}>
             {notification.type === 'success' ? (
               <CheckCircle className="w-5 h-5 text-green" />
@@ -451,8 +455,8 @@ export default function Settings() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
-                        ? 'bg-green text-white'
-                        : 'text-gray-600 hover:bg-gray-50'
+                      ? 'bg-green text-white'
+                      : 'text-gray-600 hover:bg-gray-50'
                       }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -571,8 +575,8 @@ export default function Settings() {
                       onClick={handleSave}
                       disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
                       className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-                          : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                        : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
                         }`}
                     >
                       {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
