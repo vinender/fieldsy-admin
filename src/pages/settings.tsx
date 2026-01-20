@@ -45,6 +45,7 @@ export default function Settings() {
     enableEmailNotifications: true,
     enableSmsNotifications: false,
     maintenanceMode: false,
+    isLive: true,
     bannerText: '',
     highlightedText: '',
     aboutTitle: '',
@@ -75,7 +76,7 @@ export default function Settings() {
     image: '/about/dog2.png',
     stats: [] as Array<{ value: string; label: string; order: number }>
   });
-  
+
   const [aboutMissionSection, setAboutMissionSection] = useState({
     title: 'Our Mission',
     description: 'At Fieldsy, we\'re on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces.',
@@ -121,7 +122,7 @@ export default function Settings() {
       router.push('/login');
     }
   }, [admin, adminLoading, adminError, router]);
-  
+
   // Load About page data
   useEffect(() => {
     if (aboutData) {
@@ -196,6 +197,7 @@ export default function Settings() {
         enableEmailNotifications: settings.enableEmailNotifications ?? true,
         enableSmsNotifications: settings.enableSmsNotifications ?? false,
         maintenanceMode: settings.maintenanceMode || false,
+        isLive: settings.isLive ?? true,
         bannerText: settings.bannerText || 'Find Safe, private dog walking fields',
         highlightedText: settings.highlightedText || 'near you',
         aboutTitle: settings.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
@@ -221,7 +223,7 @@ export default function Settings() {
       fetchFAQs();
     }
   }, [admin]);
-  
+
 
   const fetchFAQs = async () => {
     try {
@@ -231,7 +233,7 @@ export default function Settings() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         setFaqs(data.data || []);
@@ -253,9 +255,9 @@ export default function Settings() {
 
   const handleDeleteFAQ = async (id: string) => {
     if (!confirm('Are you sure you want to delete this FAQ?')) return;
-    
+
     const toastId = toast.loading('Deleting FAQ...');
-    
+
     try {
       const token = localStorage.getItem('adminToken');
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/faqs/admin/${id}`, {
@@ -264,7 +266,7 @@ export default function Settings() {
           'Authorization': `Bearer ${token}`
         }
       });
-      
+
       if (response.ok) {
         setFaqs(faqs.filter(f => f.id !== id));
         toast.success('FAQ deleted successfully', { id: toastId });
@@ -287,17 +289,17 @@ export default function Settings() {
       setNotification({ type: 'error', message: 'Question and answer are required' });
       return;
     }
-    
+
     const toastId = toast.loading(editingFAQ.id ? 'Updating FAQ...' : 'Creating FAQ...');
-    
+
     try {
       setSavingFAQs(true);
       const token = localStorage.getItem('adminToken');
       const method = editingFAQ.id ? 'PUT' : 'POST';
-      const url = editingFAQ.id 
+      const url = editingFAQ.id
         ? `${process.env.NEXT_PUBLIC_API_URL}/faqs/admin/${editingFAQ.id}`
         : `${process.env.NEXT_PUBLIC_API_URL}/faqs/admin`;
-      
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -306,7 +308,7 @@ export default function Settings() {
         },
         body: JSON.stringify(editingFAQ)
       });
-      
+
       if (response.ok) {
         const data = await response.json();
         if (editingFAQ.id) {
@@ -347,7 +349,7 @@ export default function Settings() {
     const { name, value } = e.target;
     const type = (e.target as HTMLInputElement).type;
     const checked = (e.target as HTMLInputElement).checked;
-    
+
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : type === 'number' ? Number(value) : value
@@ -376,19 +378,19 @@ export default function Settings() {
         // Save other settings
         await updateSettingsMutation.mutateAsync(formData);
       }
-      
+
       toast.success('Settings saved successfully!', { id: toastId });
       setNotification({ type: 'success', message: 'Settings saved successfully' });
       setHasChanges(false);
       // Clear notification after 3 seconds
       setTimeout(() => setNotification(null), 3000);
-      
+
     } catch (error: any) {
-      const errorMsg = error?.response?.data?.error || 
-                      error?.response?.data?.message || 
-                      error?.message || 
-                      'Failed to save settings';
-      
+      const errorMsg = error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to save settings';
+
       toast.error(errorMsg, { id: toastId });
       setNotification({ type: 'error', message: errorMsg });
       console.error('Error saving settings:', error);
@@ -416,11 +418,10 @@ export default function Settings() {
 
         {/* Notification */}
         {notification && (
-          <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${
-            notification.type === 'success' 
-              ? 'bg-green-50 text-green border border-green-200' 
+          <div className={`rounded-lg px-4 py-3 flex items-center gap-3 ${notification.type === 'success'
+              ? 'bg-green-50 text-green border border-green-200'
               : 'bg-red-50 text-red-800 border border-red-200'
-          }`}>
+            }`}>
             {notification.type === 'success' ? (
               <CheckCircle className="w-5 h-5 text-green" />
             ) : (
@@ -444,16 +445,15 @@ export default function Settings() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
-                
+
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      activeTab === tab.id
+                    className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${activeTab === tab.id
                         ? 'bg-green text-white'
                         : 'text-gray-600 hover:bg-gray-50'
-                    }`}
+                      }`}
                   >
                     <Icon className="w-5 h-5" />
                     <span className="font-medium">{tab.label}</span>
@@ -522,7 +522,7 @@ export default function Settings() {
               )}
 
               {activeTab === 'about-page' && (
-                <AboutPageManagement 
+                <AboutPageManagement
                   aboutData={aboutData}
                   updateAboutSection={updateAboutSection}
                   setNotification={setNotification}
@@ -540,7 +540,7 @@ export default function Settings() {
               )}
 
               {activeTab === 'faqs' && (
-                <FAQSettings 
+                <FAQSettings
                   faqs={faqs}
                   setFaqs={setFaqs}
                   handleAddFAQ={handleAddFAQ}
@@ -570,11 +570,10 @@ export default function Settings() {
                     <button
                       onClick={handleSave}
                       disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
-                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${
-                        !hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
+                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
                           ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
                           : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
-                      }`}
+                        }`}
                     >
                       {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
                         <>
@@ -595,12 +594,12 @@ export default function Settings() {
                     </button>
 
                     {hasChanges && (
-                      <div className="flex items-center space-x-2"> 
+                      <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
                         <p className="text-sm font-medium text-yellow-600">You have unsaved changes</p>
                       </div>
                     )}
-                    
+
                   </div>
                 </div>
               )}

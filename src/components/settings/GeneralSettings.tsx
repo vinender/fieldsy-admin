@@ -13,6 +13,7 @@ interface GeneralSettingsProps {
     minimumFieldOperatingHours: number;
     defaultCommissionRate: number;
     payoutReleaseSchedule?: string;
+    isLive: boolean;
     maintenanceMode: boolean;
   };
   handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
@@ -40,7 +41,7 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
         value: value,
         type: 'select'
       }
-    } as React.ChangeEvent<HTMLSelectElement>;
+    } as unknown as React.ChangeEvent<HTMLSelectElement>;
 
     handleChange(syntheticEvent);
   };
@@ -249,6 +250,25 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
           name="payoutReleaseSchedule"
           placeholder="Select payout schedule"
         />
+      </div>
+
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          id="isLive"
+          name="isLive"
+          checked={formData.isLive}
+          onChange={handleChange}
+          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+        />
+        <div className="ml-2">
+          <label htmlFor="isLive" className="block text-sm font-medium text-gray-700">
+            Website is Live (Public)
+          </label>
+          <p className="text-xs text-gray-500">
+            If unchecked, the website will show "Coming Soon" for public visitors.
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center">
