@@ -15,6 +15,7 @@ import ConfirmationModal from '@/components/modal/ConfirmationModal';
 
 interface FieldOwner {
   id: string;
+  userId?: string;
   name: string;
   email: string;
   phone: string;
@@ -74,17 +75,17 @@ export default function FieldOwners() {
 
   const handleSaveCommission = async () => {
     if (!selectedOwner) return;
-    
+
     try {
-      const data = useDefault 
+      const data = useDefault
         ? { useDefault: true }
         : { commissionRate: parseFloat(customRate) };
-      
+
       await updateCommissionMutation.mutateAsync({
         ownerId: selectedOwner.id,
         data
       });
-      
+
       setShowCommissionModal(false);
     } catch (error) {
       console.error('Error updating commission:', error);
@@ -230,6 +231,9 @@ export default function FieldOwners() {
                           <div className="text-sm font-medium text-gray-900">
                             {owner.name || 'N/A'}
                           </div>
+                          <div className="text-xs text-gray-500">
+                            ID: {owner.userId ? `#${owner.userId}` : owner.id.slice(-6)}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-table-text">{owner.email}</div>
@@ -255,11 +259,10 @@ export default function FieldOwners() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            owner.isBlocked
-                              ? 'bg-red-100 text-red-700'
-                              : 'bg-green-lighter text-green'
-                          }`}>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${owner.isBlocked
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-green-lighter text-green'
+                            }`}>
                             {owner.isBlocked ? 'Blocked' : 'Active'}
                           </span>
                         </td>
@@ -267,20 +270,17 @@ export default function FieldOwners() {
                           <button
                             onClick={() => handleToggleBlock(owner)}
                             disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                              owner.isBlocked
-                                ? 'bg-red focus:ring-red'
-                                : 'bg-green focus:ring-green'
-                            } ${
-                              blockUserMutation.isPending || unblockUserMutation.isPending
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${owner.isBlocked
+                              ? 'bg-red focus:ring-red'
+                              : 'bg-green focus:ring-green'
+                              } ${blockUserMutation.isPending || unblockUserMutation.isPending
                                 ? 'opacity-50 cursor-not-allowed'
                                 : ''
-                            }`}
+                              }`}
                           >
                             <span
-                              className={`${
-                                owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
-                              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                              className={`${owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                             />
                           </button>
                         </td>
@@ -348,7 +348,7 @@ export default function FieldOwners() {
               </div>
             )}
           </div>
-          
+
           {/* Mobile Cards */}
           <div className="lg:hidden space-y-4">
             {fieldOwnersLoading ? (
@@ -369,33 +369,32 @@ export default function FieldOwners() {
                       <h3 className="font-semibold text-gray-900">
                         {owner.name || 'N/A'}
                       </h3>
+                      <p className="text-xs text-gray-500 mb-1">
+                        ID: {owner.userId ? `#${owner.userId}` : owner.id.slice(-6)}
+                      </p>
                       <p className="text-sm text-gray-500">{owner.email}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        owner.isBlocked
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-green-lighter text-green'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${owner.isBlocked
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-green-lighter text-green'
+                        }`}>
                         {owner.isBlocked ? 'Blocked' : 'Active'}
                       </span>
                       <button
                         onClick={() => handleToggleBlock(owner)}
                         disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                          owner.isBlocked
-                            ? 'bg-red focus:ring-red'
-                            : 'bg-green focus:ring-green'
-                        } ${
-                          blockUserMutation.isPending || unblockUserMutation.isPending
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${owner.isBlocked
+                          ? 'bg-red focus:ring-red'
+                          : 'bg-green focus:ring-green'
+                          } ${blockUserMutation.isPending || unblockUserMutation.isPending
                             ? 'opacity-50 cursor-not-allowed'
                             : ''
-                        }`}
+                          }`}
                       >
                         <span
-                          className={`${
-                            owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
-                          } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                          className={`${owner.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                            } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                         />
                       </button>
                     </div>
@@ -453,7 +452,7 @@ export default function FieldOwners() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
                   <input
@@ -464,7 +463,7 @@ export default function FieldOwners() {
                   />
                   <span className="text-sm font-medium">Use default commission rate ({defaultCommission}%)</span>
                 </label>
-                
+
                 {!useDefault && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -490,7 +489,7 @@ export default function FieldOwners() {
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setShowCommissionModal(false)}

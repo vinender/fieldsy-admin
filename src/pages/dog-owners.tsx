@@ -178,7 +178,9 @@ export default function DogOwners() {
                             <div className="text-sm font-medium text-gray-900">
                               {user.name || 'Unnamed User'}
                             </div>
-                            <div className="text-sm text-gray-500">ID: {user.id.slice(-6)}</div>
+                            <div className="text-sm text-gray-500">
+                              ID: {user.userId ? `#${user.userId}` : user.id.slice(-6)}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
@@ -211,11 +213,10 @@ export default function DogOwners() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          user.isBlocked
+                        <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${user.isBlocked
                             ? 'bg-red-100 text-red-700'
                             : 'bg-green-lighter text-green'
-                        }`}>
+                          }`}>
                           {user.isBlocked ? 'Blocked' : 'Active'}
                         </span>
                       </TableCell>
@@ -236,20 +237,17 @@ export default function DogOwners() {
                           <button
                             onClick={() => handleToggleBlock(user)}
                             disabled={blockUserMutation.isPending || unblockUserMutation.isPending}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                              user.isBlocked
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${user.isBlocked
                                 ? 'bg-gray-300 focus:ring-gray-500'
                                 : 'bg-green focus:ring-green'
-                            } ${
-                              blockUserMutation.isPending || unblockUserMutation.isPending
+                              } ${blockUserMutation.isPending || unblockUserMutation.isPending
                                 ? 'opacity-50 cursor-not-allowed'
                                 : ''
-                            }`}
+                              }`}
                           >
                             <span
-                              className={`${
-                                user.isBlocked ? 'translate-x-1' : 'translate-x-6'
-                              } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
+                              className={`${user.isBlocked ? 'translate-x-1' : 'translate-x-6'
+                                } inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                             />
                           </button>
                         </div>

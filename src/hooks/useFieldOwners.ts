@@ -3,6 +3,7 @@ import api from '@/lib/api';
 
 interface FieldOwner {
   id: string;
+  userId?: string;
   name: string;
   email: string;
   phone: string;
@@ -10,6 +11,7 @@ interface FieldOwner {
   effectiveCommissionRate: number;
   isUsingDefault: boolean;
   fieldsCount: number;
+  isBlocked: boolean;
   createdAt: string;
 }
 
@@ -65,12 +67,12 @@ export const useUpdateFieldOwnerCommission = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      ownerId, 
-      data 
-    }: { 
-      ownerId: string; 
-      data: { useDefault: boolean } | { commissionRate: number } 
+    mutationFn: async ({
+      ownerId,
+      data
+    }: {
+      ownerId: string;
+      data: { useDefault: boolean } | { commissionRate: number }
     }) => {
       const response = await api.put(`/commission/field-owner/${ownerId}`, data);
       return response.data;
@@ -89,8 +91,8 @@ export const useUpdateDefaultCommission = () => {
 
   return useMutation({
     mutationFn: async (defaultCommissionRate: number) => {
-      const response = await api.put('/commission/settings', { 
-        defaultCommissionRate 
+      const response = await api.put('/commission/settings', {
+        defaultCommissionRate
       });
       return response.data;
     },

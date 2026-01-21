@@ -21,6 +21,7 @@ interface Booking {
 interface OwnerDetailsProps {
   user: {
     id: string;
+    userId?: string;
     name?: string;
     email: string;
     phone?: string;
@@ -44,63 +45,63 @@ export const getDuration = (startTime: string, endTime: string) => {
   if (!startTime || !endTime) {
     return 'N/A';
   }
-  
+
   try {
     // Function to convert 12-hour format to 24-hour minutes
     const parseTimeToMinutes = (timeStr: string) => {
       // Check if it's 12-hour format (contains AM/PM)
       const isAmPm = timeStr.toUpperCase().includes('AM') || timeStr.toUpperCase().includes('PM');
-      
+
       if (isAmPm) {
         // Parse 12-hour format like "12:00PM" or "1:00PM"
         const timeUpper = timeStr.toUpperCase();
         const isPM = timeUpper.includes('PM');
         const timePart = timeUpper.replace('AM', '').replace('PM', '').trim();
         const [hoursStr, minutesStr] = timePart.split(':');
-        
+
         let hours = parseInt(hoursStr);
         const minutes = parseInt(minutesStr) || 0;
-        
+
         if (isNaN(hours) || isNaN(minutes)) {
           return null;
         }
-        
+
         // Convert to 24-hour format
         if (isPM && hours !== 12) {
           hours += 12;
         } else if (!isPM && hours === 12) {
           hours = 0;
         }
-        
+
         return hours * 60 + minutes;
       } else {
         // Parse 24-hour format like "14:00"
         const [hoursStr, minutesStr] = timeStr.split(':');
         const hours = parseInt(hoursStr);
         const minutes = parseInt(minutesStr) || 0;
-        
+
         if (isNaN(hours) || isNaN(minutes)) {
           return null;
         }
-        
+
         return hours * 60 + minutes;
       }
     };
-    
+
     const startMins = parseTimeToMinutes(startTime);
     const endMins = parseTimeToMinutes(endTime);
-    
+
     if (startMins === null || endMins === null) {
       return 'N/A';
     }
-    
+
     let diffMins = endMins - startMins;
-    
+
     // Handle case where end time is next day
     if (diffMins < 0) {
       diffMins += 24 * 60; // Add 24 hours
     }
-    
+
     if (diffMins === 0) {
       return '0min';
     } else if (diffMins < 60) {
@@ -139,7 +140,7 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
       const now = new Date();
       const diffTime = Math.abs(now.getTime() - date.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 0) return 'Today';
       if (diffDays === 1) return 'Yesterday';
       if (diffDays < 7) return `${diffDays} days ago`;
@@ -152,7 +153,7 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
   const formatTime = (date: string, startTime: string, endTime: string) => {
     const bookingDate = new Date(date);
     const dayName = bookingDate.toLocaleDateString('en-US', { weekday: 'short' });
-    
+
     // Convert time strings like "14:00" to "2:00 PM"
     const convertTo12Hour = (timeStr: string) => {
       const [hours, minutes] = timeStr.split(':');
@@ -161,11 +162,11 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
       const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
       return `${displayHour}:${minutes} ${ampm}`;
     };
-    
+
     return `${dayName}, ${convertTo12Hour(startTime)} - ${convertTo12Hour(endTime)}`;
   };
 
-  
+
 
   return (
     <div className="min-h-screen bg-[#fffcf3] p-4 sm:p-6 md:p-8">
@@ -181,9 +182,9 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
               {/* Profile Avatar */}
               <div className="w-16 h-16 sm:w-16 sm:h-16 rounded-full bg-gray-200 overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
                 {(user.image || user.googleImage) ? (
-                  <img 
-                    src={user.image || user.googleImage} 
-                    alt={user.name || 'User'} 
+                  <img
+                    src={user.image || user.googleImage}
+                    alt={user.name || 'User'}
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -198,10 +199,16 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
               {/* Information Grid */}
               <div className="flex-1 w-full">
                 {/* First Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-x-8 sm:gap-y-4 mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-x-8 sm:gap-y-4 mb-4">
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Name</p>
                     <p className="text-sm sm:text-base font-semibold text-table-text break-words">{user.name || 'Not provided'}</p>
+                  </div>
+                  <div className="mb-3 sm:mb-0">
+                    <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">User ID</p>
+                    <p className="text-sm sm:text-base font-semibold text-table-text">
+                      {user.userId ? `#${user.userId}` : user.id.slice(-6)}
+                    </p>
                   </div>
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Email</p>
@@ -279,7 +286,7 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
                         </td>
                         <td className="py-3 sm:py-4 px-3 sm:px-4">
                           <p className="text-xs sm:text-sm font-normal text-table-text max-w-[150px] truncate">
-                            {typeof booking.field.location === 'object' && booking.field.location 
+                            {typeof booking.field.location === 'object' && booking.field.location
                               ? (booking.field.location.streetAddress || booking.field.location.formatted_address || 'N/A')
                               : (booking.field.location || 'N/A')}
                           </p>

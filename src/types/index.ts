@@ -9,11 +9,13 @@ export interface Admin {
 
 export interface User {
   id: string;
+  userId?: string;
   email: string;
   name: string | null;
   role: 'DOG_OWNER' | 'FIELD_OWNER' | 'ADMIN';
   phone: string | null;
   emailVerified: Date | null;
+  isBlocked?: boolean;
   createdAt: string;
   _count?: {
     bookings: number;
