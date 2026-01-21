@@ -5,7 +5,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -17,6 +17,7 @@ import PlatformSettings from '@/components/settings/PlatformSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
 import FAQSettings from '@/components/settings/FAQSettings';
 import NotificationsSettings from '@/components/settings/NotificationsSettings';
+import TermsSettings from '@/components/settings/TermsSettings';
 
 export default function Settings() {
   const router = useRouter();
@@ -63,6 +64,7 @@ export default function Settings() {
     platformFieldOwnersSubtitle: '',
     platformFieldOwnersTitle: '',
     platformFieldOwnersBullets: [] as string[],
+
   });
   const [faqs, setFaqs] = useState<any[]>([]);
   const [editingFAQ, setEditingFAQ] = useState<any>(null);
@@ -217,6 +219,7 @@ export default function Settings() {
         platformFieldOwnersSubtitle: settings.platformFieldOwnersSubtitle || 'For Field Owners:',
         platformFieldOwnersTitle: settings.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
         platformFieldOwnersBullets: settings.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
+
       });
     }
   }, [settings]);
@@ -408,6 +411,7 @@ export default function Settings() {
     { id: 'home-page', label: 'Home Page', icon: Home },
     { id: 'about-page', label: 'About Us Page', icon: Edit2 },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
+    { id: 'terms', label: 'Terms & Conditions', icon: FileText },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
@@ -558,6 +562,10 @@ export default function Settings() {
                   savingFAQs={savingFAQs}
                   setNotification={setNotification}
                 />
+              )}
+
+              {activeTab === 'terms' && (
+                <TermsSettings />
               )}
 
               {activeTab === 'notifications' && (

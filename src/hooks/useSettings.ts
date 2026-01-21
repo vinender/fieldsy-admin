@@ -35,6 +35,7 @@ interface SystemSettings {
   platformFieldOwnersSubtitle?: string;
   platformFieldOwnersTitle?: string;
   platformFieldOwnersBullets?: string[];
+  termsAndConditions?: any[];
   createdAt: string;
   updatedAt: string;
 }

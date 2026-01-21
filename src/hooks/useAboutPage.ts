@@ -26,6 +26,10 @@ export interface AboutPageData {
   whoWeAreSection: {
     title: string
     description: string
+    mainImage?: string
+    rightCardImage?: string
+    rightCardTitle?: string
+    rightCardDescription?: string
     features: Array<{
       icon: string
       title: string
@@ -47,6 +51,10 @@ export interface AboutPageData {
   whyFieldsySection: {
     title: string
     subtitle?: string
+    image?: string
+    boxTitle?: string
+    boxDescription?: string
+    buttonText?: string
     features: Array<{
       icon: string
       title: string
@@ -74,7 +82,7 @@ export const useAboutPage = () => {
 // Update entire About Page content
 export const useUpdateAboutPage = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async (updates: Partial<AboutPageData>) => {
       const token = localStorage.getItem('adminToken')
@@ -104,14 +112,14 @@ export const useUpdateAboutPage = () => {
 // Update specific section
 export const useUpdateAboutSection = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
-    mutationFn: async ({ 
-      section, 
-      updates 
-    }: { 
+    mutationFn: async ({
+      section,
+      updates
+    }: {
       section: 'heroSection' | 'missionSection' | 'whoWeAreSection' | 'whatWeDoSection' | 'whyFieldsySection'
-      updates: any 
+      updates: any
     }) => {
       const token = localStorage.getItem('adminToken')
       const { data } = await axios.put(
