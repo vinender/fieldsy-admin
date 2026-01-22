@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { getAdminSocketUrl } from '@/lib/utils';
 
 interface UseSocketOptions {
   autoConnect?: boolean;
@@ -25,30 +26,8 @@ export const useSocket = (options: UseSocketOptions = {}) => {
       return;
     }
 
-    // Initialize socket connection - remove /api from URL for socket connection
-    const apiURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
-    let socketURL = apiURL.replace('/api', '');
-
-    // Robust sanitization for double protocol/redundant strings
-    if (socketURL && typeof socketURL === 'string') {
-      // Fix https://https:// typos
-      if (socketURL.startsWith('https://https://')) {
-        socketURL = socketURL.replace('https://https://', 'https://');
-      }
-
-      // Fix the "https://https/" issue reported by user
-      if (socketURL === 'https' || socketURL === 'https/' || socketURL === 'https://https') {
-        socketURL = 'https://api.fieldsy.co.uk';
-        console.log('Admin: Malformed socketURL detected, falling back to production:', socketURL);
-      }
-
-      // Final fallback/validation
-      if (!socketURL.startsWith('http')) {
-        console.warn('Admin: Invalid socket URL protocol, falling back to localhost');
-        socketURL = 'http://localhost:5000';
-      }
-    }
-
+    // Get socket URL with automatic malformed URL fixing
+    const socketURL = getAdminSocketUrl('[AdminSocket]');
     console.log('Admin connecting to socket server:', socketURL);
 
     const socket = io(socketURL, {
