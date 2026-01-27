@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
@@ -10,8 +10,9 @@ import { ArrowLeft } from 'lucide-react';
 export default function DogOwnerDetails() {
   const router = useRouter();
   const { id } = router.query;
+  const [bookingPage, setBookingPage] = useState(1);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: userDetails, isLoading: userLoading, error: userError } = useUserDetails(id as string);
+  const { data: userDetails, isLoading: userLoading, error: userError } = useUserDetails(id as string, bookingPage, 10);
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -59,7 +60,11 @@ export default function DogOwnerDetails() {
           <span className="hidden sm:inline">Back to Dog Owners</span>
           <span className="sm:hidden">Back</span>
         </button>
-        <OwnerDetails user={userDetails.user} />
+        <OwnerDetails
+          user={userDetails.user}
+          bookingPagination={userDetails.bookingPagination}
+          onBookingPageChange={setBookingPage}
+        />
       </div>
     </AdminLayout>
   );

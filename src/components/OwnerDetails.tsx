@@ -1,12 +1,14 @@
 import React from 'react';
 import { formatDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
+import { TablePagination } from '@/components/ui/table';
 
 interface Booking {
   id: string;
   field: {
     name: string;
     location: any; // JSON object with streetAddress, city, etc.
+    address?: string; // Legacy street address field
   };
   date: string;
   startTime: string;
@@ -16,6 +18,13 @@ interface Booking {
   paymentStatus?: string;
   numberOfDogs: number;
   createdAt: string;
+}
+
+interface BookingPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 }
 
 interface OwnerDetailsProps {
@@ -35,6 +44,8 @@ interface OwnerDetailsProps {
     };
     bookings?: Booking[];
   };
+  bookingPagination?: BookingPagination;
+  onBookingPageChange?: (page: number) => void;
 }
 
 
@@ -118,7 +129,7 @@ export const getDuration = (startTime: string, endTime: string) => {
 };
 
 
-export default function OwnerDetails({ user }: OwnerDetailsProps) {
+export default function OwnerDetails({ user, bookingPagination, onBookingPageChange }: OwnerDetailsProps) {
   // Debug: Log the user data to see what we're receiving
   console.log('User data received:', user);
   console.log('Bookings:', user?.bookings);
@@ -230,10 +241,10 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Joined Date</p>
                     <p className="text-sm sm:text-base font-semibold text-table-text">{formatDate(user.createdAt)}</p>
                   </div>
-                  <div className="mb-3 sm:mb-0">
+                  {/* <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Last Active</p>
                     <p className="text-sm sm:text-base font-semibold text-table-text">{getLastActive()}</p>
-                  </div>
+                  </div> */}
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Total Spent</p>
                     <p className="text-sm sm:text-base font-semibold text-table-text">£{calculateTotalSpent().toFixed(2)}</p>
@@ -246,6 +257,7 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
         </div>
@@ -287,8 +299,8 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
                         <td className="py-3 sm:py-4 px-3 sm:px-4">
                           <p className="text-xs sm:text-sm font-normal text-table-text max-w-[150px] truncate">
                             {typeof booking.field.location === 'object' && booking.field.location
-                              ? (booking.field.location.streetAddress || booking.field.location.formatted_address || 'N/A')
-                              : (booking.field.location || 'N/A')}
+                              ? (booking.field.location.streetAddress || booking.field.location.formatted_address || booking.field.address || 'N/A')
+                              : (booking.field.location || booking.field.address || 'N/A')}
                           </p>
                         </td>
                         <td className="py-3 sm:py-4 px-3 sm:px-4 text-center whitespace-nowrap">
@@ -309,6 +321,17 @@ export default function OwnerDetails({ user }: OwnerDetailsProps) {
               <div className="p-6 sm:p-8 text-center">
                 <p className="text-sm sm:text-base text-gray-500">No booking history available</p>
               </div>
+            )}
+
+            {/* Booking Pagination */}
+            {bookingPagination && bookingPagination.totalPages > 1 && onBookingPageChange && (
+              <TablePagination
+                currentPage={bookingPagination.page}
+                totalPages={bookingPagination.totalPages}
+                totalItems={bookingPagination.total}
+                itemsPerPage={bookingPagination.limit}
+                onPageChange={onBookingPageChange}
+              />
             )}
           </div>
         </div>

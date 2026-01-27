@@ -23,12 +23,30 @@ export default function DogOwners() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showBlockConfirmModal, setShowBlockConfirmModal] = useState(false);
   const [userToToggle, setUserToToggle] = useState<any>(null);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: usersData, isLoading: usersLoading } = useUsers(page, 10, 'DOG_OWNER');
+  const { data: usersData, isLoading: usersLoading } = useUsers(page, 10, 'DOG_OWNER', searchQuery || undefined);
   const blockUserMutation = useBlockUser();
   const unblockUserMutation = useUnblockUser();
+
+  const handleSearch = () => {
+    setSearchQuery(searchTerm);
+    setPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setSearchQuery('');
+    setPage(1);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   useEffect(() => {
     if (!adminLoading && (adminError || !admin)) {
@@ -70,15 +88,7 @@ export default function DogOwners() {
     );
   }
 
-  const filteredUsers = usersData?.users?.filter(user => {
-    if (!searchTerm) return true;
-    const search = searchTerm.toLowerCase();
-    return (
-      user.name?.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search) ||
-      user.phone?.toLowerCase().includes(search)
-    );
-  }) || [];
+  const filteredUsers = usersData?.users || [];
 
   return (
     <AdminLayout>
@@ -124,27 +134,47 @@ export default function DogOwners() {
           </div>
         </div> */}
 
-        {/* Search and Filter */}
-        {/* <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
+        {/* Search */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3">
             <div className="flex-1 max-w-lg">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Search dog owners..."
+                  placeholder="Search by name, email, or ID (e.g. #1234)..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
               </div>
             </div>
-            <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-              <Filter className="w-4 h-4" />
-              <span>Filter</span>
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSearch}
+                disabled={usersLoading}
+                className="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-lg text-white bg-green hover:bg-green-hover focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green transition-colors disabled:opacity-50"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                Search
+              </button>
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="inline-flex items-center px-4 py-2.5 text-sm font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
-        </div> */}
+          {searchQuery && (
+            <p className="mt-2 text-sm text-gray-500">
+              Showing results for &quot;{searchQuery}&quot; — {usersData?.total || 0} found
+            </p>
+          )}
+        </div>
 
         {/* Users Table */}
         <TableContainer>

@@ -9,13 +9,13 @@ interface UsersResponse {
   pages: number;
 }
 
-// Get all users
-export const useUsers = (page: number = 1, limit: number = 10, role?: string) => {
+// Get all users (supports search by name, email, or userId)
+export const useUsers = (page: number = 1, limit: number = 10, role?: string, search?: string) => {
   return useQuery({
-    queryKey: ['users', page, limit, role],
+    queryKey: ['users', page, limit, role, search],
     queryFn: async () => {
       const response = await api.get<UsersResponse>('/admin/users', {
-        params: { page, limit, ...(role && { role }) }
+        params: { page, limit, ...(role && { role }), ...(search && { search }) }
       });
       return response.data;
     },
@@ -57,13 +57,15 @@ export const useUnblockUser = () => {
   });
 };
 
-// Get user details with bookings
-export const useUserDetails = (userId: string | undefined) => {
+// Get user details with paginated bookings
+export const useUserDetails = (userId: string | undefined, bookingPage: number = 1, bookingLimit: number = 10) => {
   return useQuery({
-    queryKey: ['user', userId],
+    queryKey: ['user', userId, bookingPage, bookingLimit],
     queryFn: async () => {
       if (!userId) throw new Error('User ID is required');
-      const response = await api.get(`/admin/users/${userId}`);
+      const response = await api.get(`/admin/users/${userId}`, {
+        params: { bookingPage, bookingLimit }
+      });
       return response.data;
     },
     enabled: !!userId,
