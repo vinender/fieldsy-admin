@@ -264,23 +264,45 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
           <div className="space-y-2.5">
             <h2 className="text-xl font-semibold text-[#192215]">Payment Details</h2>
             <div className="bg-white rounded-2xl p-6 shadow-[0px_10px_13px_0px_rgba(0,0,0,0.04)] border border-black/10">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                 <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Total Paid</p>
-                  <p className="text-base font-semibold text-[#3a6b22]">
+                  <p className="text-sm text-[#8d8d8d]">Booking Amount</p>
+                  <p className="text-base font-semibold text-[#192215]">
                     {booking.totalPrice ? formatCurrency(booking.totalPrice) : 'N/A'}
                   </p>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Admin Commission</p>
+                  <p className="text-sm text-[#8d8d8d]">Stripe Fee</p>
+                  <p className="text-base font-semibold text-[#8d8d8d]">
+                    {booking.stripeFee != null ? `- ${formatCurrency(booking.stripeFee)}` : 'N/A'}
+                  </p>
+                  <p className="text-xs text-[#8d8d8d]">1.5% + £0.20</p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-[#8d8d8d]">Net (After Stripe)</p>
                   <p className="text-base font-semibold text-[#192215]">
-                    {booking.adminCommission ? formatCurrency(booking.adminCommission) : '£0'}
+                    {booking.amountAfterStripeFee != null ? formatCurrency(booking.amountAfterStripeFee) : 'N/A'}
                   </p>
                 </div>
                 <div className="space-y-1.5">
-                  <p className="text-sm text-[#8d8d8d]">Field Owner Commission</p>
+                  <p className="text-sm text-[#8d8d8d]">Fieldsy Commission</p>
                   <p className="text-base font-semibold text-[#192215]">
+                    {booking.adminCommission ? formatCurrency(booking.adminCommission) : '£0'}
+                  </p>
+                  {booking.commissionRate && (
+                    <p className="text-xs text-[#8d8d8d]">{booking.commissionRate}% of net</p>
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-[#8d8d8d]">Field Owner Earnings</p>
+                  <p className="text-base font-semibold text-[#3a6b22]">
                     {booking.fieldOwnerCommission ? formatCurrency(booking.fieldOwnerCommission) : '£0'}
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <p className="text-sm text-[#8d8d8d]">Payment Method</p>
+                  <p className="text-base font-semibold text-[#192215]">
+                    {booking.paymentMethod || 'Card'}
                   </p>
                 </div>
               </div>
