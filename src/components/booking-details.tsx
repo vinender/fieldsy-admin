@@ -192,7 +192,7 @@ export default function BookingDetail({ booking }: BookingDetailsProps) {
 
                 {/* View Detail Button */}
                 <button
-                  onClick={() => router.push(`/fields/${booking.user?.id}`)}
+                  onClick={() => router.push(`/dog-owners/${booking.user?.userId || booking.user?.id}`)}
                   className="bg-[#3a6b22] text-white px-6 py-3 rounded-full text-sm font-semibold hover:bg-[#2d5419] transition-colors flex-shrink-0 border border-[rgba(58,107,34,0.12)]"
                 >
                   View  Details

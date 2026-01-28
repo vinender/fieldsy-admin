@@ -223,7 +223,7 @@ export default function FieldDetails() {
 
     return [
       b.bookingId ? `#${b.bookingId}` : `#${b.id.slice(0, 8).toUpperCase()}`,  // Order ID
-      b.paymentIntentId ? `#${b.paymentIntentId.slice(-8).toUpperCase()}` : 'N/A',  // Payment ID
+      (b.paymentIntentId || b.payment?.stripePaymentId) ? `#${(b.paymentIntentId || b.payment?.stripePaymentId).slice(-8).toUpperCase()}` : `#${b.id.slice(-8).toUpperCase()}`,  // Payment ID
       formatDate(b.date) + ' at ' + b.startTime,  // Date and Time
       b.user?.name || 'Unknown',  // Clients
       b.numberOfDogs?.toString() || '1',  // Dogs
@@ -475,7 +475,7 @@ export default function FieldDetails() {
             <Card>
               <div className="p-5 flex justify-between items-center border-b border-gray-200">
                 <h3 className="text-lg font-semibold">Recent Transactions</h3>
-                <p className="text-sm text-gray-500">Total Earnings: <span className="font-semibold text-[#192215]">{formatCurrency(totalEarnings)}</span></p>
+{/* <p className="text-sm text-gray-500">Total Earnings: <span className="font-semibold text-[#192215]">{formatCurrency(totalEarnings)}</span></p> */}
               </div>
               {earningsData.length > 0 ? (
                 <Table
