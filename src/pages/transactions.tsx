@@ -453,7 +453,7 @@ export default function Transactions() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-mono text-sm font-medium text-gray-900">
-                          #{transaction.bookingId?.slice(-4) || '-'}
+                          #{transaction.bookingId || '-'}
                         </span>
                         {transaction.booking?.date && (
                           <span className="text-xs text-gray-500">
