@@ -407,16 +407,25 @@ export default function Fields() {
                         <TableCell>
                           <button
                             onClick={() => handleBlockClick(field)}
-                            disabled={toggleBlockedMutation.isPending}
-                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50"
+                            disabled={toggleBlockedMutation.isPending || field.owner?.isBlocked === true}
+                            className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             style={{ backgroundColor: field.isBlocked ? '#ef4444' : '#e5e7eb' }}
-                            title={field.isBlocked ? 'Field is blocked - Click to unblock' : 'Field is not blocked - Click to block'}
+                            title={
+                              field.owner?.isBlocked === true
+                                ? 'Field owner is blocked — unblock the owner first to toggle this field'
+                                : field.isBlocked
+                                  ? 'Field is blocked - Click to unblock'
+                                  : 'Field is not blocked - Click to block'
+                            }
                           >
                             <span
                               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isBlocked ? 'translate-x-6' : 'translate-x-1'
                                 }`}
                             />
                           </button>
+                          {field.owner?.isBlocked === true && (
+                            <p className="text-[10px] text-red-500 mt-0.5 leading-tight">Owner blocked</p>
+                          )}
                         </TableCell>
                         <TableCell>
                           <button
