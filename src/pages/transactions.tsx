@@ -3,7 +3,7 @@ import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { ArrowUpRight, ArrowDownLeft, RefreshCw, X, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownLeft, RefreshCw, X, ExternalLink, Eye, CheckCircle, Clock, AlertCircle, Banknote, ArrowRight, CreditCard, Building2, Search } from 'lucide-react';
 import {
   Table,
   TableHeader,
@@ -326,14 +326,28 @@ export default function Transactions() {
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
   const [activeFilters, setActiveFilters] = useState({
     type: 'ALL' as TransactionType,
     status: 'ALL' as TransactionStatus,
     dateRange: 'ALL'
   });
 
+  const handleSearch = () => {
+    setActiveSearch(searchInput.trim());
+    setPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput('');
+    setActiveSearch('');
+    setPage(1);
+  };
+
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: transactionsData, isLoading: transactionsLoading, refetch } = useTransactions(page, 20, {
+    search: activeSearch || undefined,
     type: activeFilters.type,
     status: activeFilters.status,
     dateRange: activeFilters.dateRange
@@ -424,6 +438,35 @@ export default function Transactions() {
             </div>
             <p className="text-xl font-bold text-green">{formatCurrency(stats.netRevenue)}</p>
           </div>
+        </div>
+
+        {/* Search by Booking ID */}
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by Booking ID (e.g. 2241)"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+              className="w-full sm:w-80 pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-green/20 focus:border-green"
+            />
+            {searchInput && (
+              <button
+                onClick={handleClearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={handleSearch}
+            className="px-4 py-2.5 bg-green text-white text-sm font-medium rounded-xl hover:bg-green/90 transition-colors"
+          >
+            Search
+          </button>
         </div>
 
         {/* Transactions Table */}
