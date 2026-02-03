@@ -56,10 +56,32 @@ export default function Fields() {
   const toggleBlockedMutation = useToggleFieldBlocked();
   const toggleApprovedMutation = useToggleFieldApproved();
 
+  // Sync page state from URL on mount and query changes
+  useEffect(() => {
+    const { page: urlPage } = router.query;
+    if (urlPage) {
+      const parsed = parseInt(urlPage as string, 10);
+      if (!isNaN(parsed) && parsed >= 1) {
+        setPage(parsed);
+      }
+    }
+  }, [router.query]);
+
+  // Update URL when page changes
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    const query = { ...router.query, page: newPage > 1 ? String(newPage) : undefined };
+    if (newPage <= 1) delete query.page;
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
+  };
+
   // Handle search execution
   const handleSearch = () => {
     setSearchQuery(searchTerm);
     setPage(1);
+    const query = { ...router.query };
+    delete query.page;
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true });
   };
 
   // Handle search on Enter key
@@ -448,7 +470,7 @@ export default function Fields() {
                     totalPages={fieldsData.pages}
                     totalItems={fieldsData.total}
                     itemsPerPage={10}
-                    onPageChange={setPage}
+                    onPageChange={handlePageChange}
                   />
                 )}
               </>
