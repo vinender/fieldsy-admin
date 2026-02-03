@@ -51,13 +51,16 @@ export default function Fields() {
   const [approveModalOpen, setApproveModalOpen] = useState(false);
   const [selectedFieldForApprove, setSelectedFieldForApprove] = useState<Field | null>(null);
   const filterRef = useRef<HTMLDivElement>(null);
+  const [routerReady, setRouterReady] = useState(false);
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
-  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, searchQuery);
+  const { data: fieldsData, isLoading: fieldsLoading } = useFields(page, 10, searchQuery, routerReady);
   const toggleBlockedMutation = useToggleFieldBlocked();
   const toggleApprovedMutation = useToggleFieldApproved();
 
   // Sync page state from URL on mount and query changes
   useEffect(() => {
+    if (!router.isReady) return;
+
     const { page: urlPage } = router.query;
     if (urlPage) {
       const parsed = parseInt(urlPage as string, 10);
@@ -65,7 +68,9 @@ export default function Fields() {
         setPage(parsed);
       }
     }
-  }, [router.query]);
+
+    setRouterReady(true);
+  }, [router.isReady, router.query]);
 
   // Update URL when page changes
   const handlePageChange = (newPage: number) => {

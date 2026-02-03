@@ -10,7 +10,7 @@ interface FieldsResponse {
 }
 
 // Get all fields
-export const useFields = (page: number = 1, limit: number = 10, search: string = '') => {
+export const useFields = (page: number = 1, limit: number = 10, search: string = '', enabled: boolean = true) => {
   return useQuery({
     queryKey: ['fields', page, limit, search],
     queryFn: async () => {
@@ -21,6 +21,7 @@ export const useFields = (page: number = 1, limit: number = 10, search: string =
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
     refetchOnWindowFocus: true, // Refetch when window regains focus
+    enabled,
   });
 };
 
