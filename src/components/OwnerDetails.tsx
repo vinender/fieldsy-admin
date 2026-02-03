@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TablePagination } from '@/components/ui/table';
+import { Pencil } from 'lucide-react';
+import AdminEmailChangeModal from '@/components/modal/AdminEmailChangeModal';
+import AdminPasswordChangeModal from '@/components/modal/AdminPasswordChangeModal';
 
 interface Booking {
   id: string;
@@ -130,6 +133,9 @@ export const getDuration = (startTime: string, endTime: string) => {
 
 
 export default function OwnerDetails({ user, bookingPagination, onBookingPageChange }: OwnerDetailsProps) {
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
+
   // Debug: Log the user data to see what we're receiving
   console.log('User data received:', user);
   console.log('Bookings:', user?.bookings);
@@ -223,7 +229,16 @@ export default function OwnerDetails({ user, bookingPagination, onBookingPageCha
                   </div>
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Email</p>
-                    <p className="text-sm sm:text-base font-semibold text-table-text break-all">{user.email}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm sm:text-base font-semibold text-table-text break-all">{user.email}</p>
+                      <button
+                        onClick={() => setShowEmailChangeModal(true)}
+                        className="p-1 rounded-md hover:bg-gray-100 transition-colors text-gray-400 hover:text-green-700"
+                        title="Change email"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Phone</p>
@@ -236,7 +251,7 @@ export default function OwnerDetails({ user, bookingPagination, onBookingPageCha
                 </div>
 
                 {/* Second Row */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-x-8 sm:gap-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 sm:gap-x-8 sm:gap-y-4">
                   <div className="mb-3 sm:mb-0">
                     <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Joined Date</p>
                     <p className="text-sm sm:text-base font-semibold text-table-text">{formatDate(user.createdAt)}</p>
@@ -254,6 +269,15 @@ export default function OwnerDetails({ user, bookingPagination, onBookingPageCha
                     <p className={`text-sm sm:text-base font-semibold ${user.emailVerified ? 'text-[#3a6b22]' : 'text-yellow-600'}`}>
                       {user.emailVerified ? 'Active' : 'Unverified'}
                     </p>
+                  </div>
+                  <div className="mb-3 sm:mb-0">
+                    <p className="text-xs sm:text-sm text-[#8d8d8d] mb-1">Password</p>
+                    <button
+                      onClick={() => setShowPasswordChangeModal(true)}
+                      className="text-sm font-semibold text-green-700 hover:text-green-800 hover:underline transition-colors"
+                    >
+                      Change Password
+                    </button>
                   </div>
                 </div>
               </div>
@@ -336,6 +360,28 @@ export default function OwnerDetails({ user, bookingPagination, onBookingPageCha
           </div>
         </div>
       </div>
+
+      {/* Email Change Modal */}
+      <AdminEmailChangeModal
+        isOpen={showEmailChangeModal}
+        onClose={() => setShowEmailChangeModal(false)}
+        userId={user.id}
+        currentEmail={user.email}
+        onSuccess={() => {
+          setShowEmailChangeModal(false);
+        }}
+      />
+
+      {/* Password Change Modal */}
+      <AdminPasswordChangeModal
+        isOpen={showPasswordChangeModal}
+        onClose={() => setShowPasswordChangeModal(false)}
+        userId={user.id}
+        userName={user.name || user.email}
+        onSuccess={() => {
+          setShowPasswordChangeModal(false);
+        }}
+      />
     </div>
   );
 }

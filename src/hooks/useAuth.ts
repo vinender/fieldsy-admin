@@ -140,3 +140,38 @@ export const useDeleteAdminProfileImage = () => {
     },
   });
 };
+
+// Admin: Request email change OTP for own profile
+export const useAdminProfileRequestEmailChange = () => {
+  return useMutation({
+    mutationFn: async ({ newEmail }: { newEmail: string }) => {
+      const response = await api.post('/admin/profile/request-email-change', { newEmail });
+      return response.data;
+    },
+  });
+};
+
+// Admin: Verify email change OTP for own profile
+export const useAdminProfileVerifyEmailChange = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ newEmail, otp }: { newEmail: string; otp: string }) => {
+      const response = await api.post('/admin/profile/verify-email-change', { newEmail, otp });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin'] });
+    },
+  });
+};
+
+// Admin: Change own password
+export const useAdminProfileChangePassword = () => {
+  return useMutation({
+    mutationFn: async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      const response = await api.patch('/admin/profile/change-password', { currentPassword, newPassword });
+      return response.data;
+    },
+  });
+};

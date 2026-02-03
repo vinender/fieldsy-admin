@@ -87,3 +87,39 @@ export const useDeleteUser = () => {
     },
   });
 };
+
+// Admin: Request email change OTP for a user
+export const useAdminRequestEmailChange = () => {
+  return useMutation({
+    mutationFn: async ({ userId, newEmail }: { userId: string; newEmail: string }) => {
+      const response = await api.post(`/admin/users/${userId}/request-email-change`, { newEmail });
+      return response.data;
+    },
+  });
+};
+
+// Admin: Verify email change OTP and update user email
+export const useAdminVerifyEmailChange = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ userId, newEmail, otp }: { userId: string; newEmail: string; otp: string }) => {
+      const response = await api.post(`/admin/users/${userId}/verify-email-change`, { newEmail, otp });
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+};
+
+// Admin: Change user password
+export const useAdminChangePassword = () => {
+  return useMutation({
+    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+      const response = await api.patch(`/admin/users/${userId}/change-password`, { newPassword });
+      return response.data;
+    },
+  });
+};

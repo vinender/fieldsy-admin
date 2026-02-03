@@ -1,13 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   ArrowLeft,
   User,
   Mail,
   Phone,
   Check,
-  X
+  X,
+  Pencil,
+  Lock,
+  Eye,
+  EyeOff
 } from 'lucide-react';
-import { useVerifyAdmin, useUpdateAdminProfile, useUploadAdminProfileImage, useDeleteAdminProfileImage } from '@/hooks/useAuth';
+import { useVerifyAdmin, useUpdateAdminProfile, useUploadAdminProfileImage, useDeleteAdminProfileImage, useAdminProfileRequestEmailChange, useAdminProfileVerifyEmailChange, useAdminProfileChangePassword } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 // UK phone number length limits (excluding +44 country code)
@@ -23,6 +27,9 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
   const updateProfileMutation = useUpdateAdminProfile();
   const uploadImageMutation = useUploadAdminProfileImage();
   const deleteImageMutation = useDeleteAdminProfileImage();
+  const requestEmailChangeMutation = useAdminProfileRequestEmailChange();
+  const verifyEmailChangeMutation = useAdminProfileVerifyEmailChange();
+  const changePasswordMutation = useAdminProfileChangePassword();
 
   // Form state
   const [formData, setFormData] = useState({
@@ -32,6 +39,26 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
     phoneNumber: '',
     bio: ''
   });
+
+  // Email change state
+  const [showEmailChangeModal, setShowEmailChangeModal] = useState(false);
+  const [emailChangeStep, setEmailChangeStep] = useState<'enter-email' | 'verify-otp'>('enter-email');
+  const [newEmail, setNewEmail] = useState('');
+  const [emailOtp, setEmailOtp] = useState<string[]>(Array(6).fill(''));
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Password change state
+  const [showPasswordChangeModal, setShowPasswordChangeModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPw, setShowCurrentPw] = useState(false);
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
 
   // Initialize form data when admin loads
   useEffect(() => {
@@ -131,6 +158,129 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
       }
     }
   };
+
+  // Resend cooldown timer
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  // Reset modals when sidebar closes
+  useEffect(() => {
+    if (!isOpen) {
+      setShowEmailChangeModal(false);
+      setShowPasswordChangeModal(false);
+    }
+  }, [isOpen]);
+
+  const openEmailChangeModal = () => {
+    setEmailChangeStep('enter-email');
+    setNewEmail('');
+    setEmailOtp(Array(6).fill(''));
+    setEmailError(null);
+    setOtpError(null);
+    setResendCooldown(0);
+    requestEmailChangeMutation.reset();
+    verifyEmailChangeMutation.reset();
+    setShowEmailChangeModal(true);
+  };
+
+  const handleRequestEmailOtp = async () => {
+    setEmailError(null);
+    const trimmedEmail = newEmail.trim().toLowerCase();
+    if (!trimmedEmail) { setEmailError('Email address is required'); return; }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) { setEmailError('Please enter a valid email address'); return; }
+    if (trimmedEmail === admin?.email?.toLowerCase()) { setEmailError('New email must be different from your current email'); return; }
+    try {
+      await requestEmailChangeMutation.mutateAsync({ newEmail: trimmedEmail });
+      setEmailChangeStep('verify-otp');
+      setResendCooldown(60);
+      setTimeout(() => otpInputRefs.current[0]?.focus(), 100);
+    } catch (err: any) {
+      setEmailError(err?.response?.data?.error || 'Failed to send verification code');
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    if (!/^\d*$/.test(value)) return;
+    const newOtp = [...emailOtp];
+    newOtp[index] = value.slice(-1);
+    setEmailOtp(newOtp);
+    if (otpError) setOtpError(null);
+    if (value && index < 5) otpInputRefs.current[index + 1]?.focus();
+    const fullOtp = newOtp.join('');
+    if (fullOtp.length === 6) handleVerifyEmailOtp(fullOtp);
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !emailOtp[index] && index > 0) otpInputRefs.current[index - 1]?.focus();
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted.length > 0) {
+      const newOtp = Array(6).fill('');
+      pasted.split('').forEach((char, i) => { newOtp[i] = char; });
+      setEmailOtp(newOtp);
+      if (pasted.length === 6) handleVerifyEmailOtp(pasted);
+      else otpInputRefs.current[pasted.length]?.focus();
+    }
+  };
+
+  const handleVerifyEmailOtp = async (otpValue: string) => {
+    setOtpError(null);
+    try {
+      await verifyEmailChangeMutation.mutateAsync({ newEmail: newEmail.trim().toLowerCase(), otp: otpValue });
+      await refetch();
+      toast.success('Email updated successfully');
+      setShowEmailChangeModal(false);
+    } catch (err: any) {
+      setOtpError(err?.response?.data?.error || 'Invalid or expired code');
+    }
+  };
+
+  const handleResendEmailOtp = async () => {
+    if (resendCooldown > 0 || requestEmailChangeMutation.isPending) return;
+    setEmailOtp(Array(6).fill(''));
+    setOtpError(null);
+    try {
+      await requestEmailChangeMutation.mutateAsync({ newEmail: newEmail.trim().toLowerCase() });
+      setResendCooldown(60);
+    } catch {}
+  };
+
+  const openPasswordChangeModal = () => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowCurrentPw(false);
+    setShowNewPw(false);
+    setShowConfirmPw(false);
+    setPasswordError(null);
+    changePasswordMutation.reset();
+    setShowPasswordChangeModal(true);
+  };
+
+  const handleChangePassword = async () => {
+    setPasswordError(null);
+    if (!currentPassword) { setPasswordError('Current password is required'); return; }
+    if (!newPassword) { setPasswordError('New password is required'); return; }
+    if (newPassword.length < 8) { setPasswordError('New password must be at least 8 characters'); return; }
+    if (newPassword !== confirmPassword) { setPasswordError('Passwords do not match'); return; }
+    try {
+      await changePasswordMutation.mutateAsync({ currentPassword, newPassword });
+      toast.success('Password updated successfully');
+      setShowPasswordChangeModal(false);
+    } catch (err: any) {
+      setPasswordError(err?.response?.data?.error || 'Failed to update password');
+    }
+  };
+
+  const isEmailLoading = requestEmailChangeMutation.isPending || verifyEmailChangeMutation.isPending;
 
   return (
     <>
@@ -327,9 +477,18 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
                         type="email"
                         value={formData.email}
                         disabled
-                        className="w-full h-12 sm:h-14 px-4 pr-12 text-sm sm:text-[15px] border border-[#e3e3e3] rounded-full bg-gray-50 opacity-60"
+                        className="w-full h-12 sm:h-14 px-4 pr-20 text-sm sm:text-[15px] border border-[#e3e3e3] rounded-full bg-gray-50 opacity-60"
                       />
-                      <Check className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
+                      <div className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <Check className="w-5 h-5 sm:w-6 sm:h-6 text-[#3a6b22]" />
+                        <button
+                          type="button"
+                          onClick={openEmailChangeModal}
+                          className="text-xs sm:text-sm font-semibold text-[#3a6b22] hover:text-[#2e5519] transition-colors underline"
+                        >
+                          Edit
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -370,8 +529,14 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
                     </p>
                   </div>
 
-                  {/* Update Button */}
-                  <div className="flex justify-end pt-4 sm:pt-6">
+                  {/* Actions */}
+                  <div className="flex items-center justify-between pt-4 sm:pt-6">
+                    <button
+                      onClick={openPasswordChangeModal}
+                      className="text-sm sm:text-base font-semibold text-[#3a6b22] underline hover:opacity-80 transition-opacity"
+                    >
+                      Change Password?
+                    </button>
                     <button
                       onClick={handleUpdate}
                       disabled={updateProfileMutation.isPending}
@@ -386,6 +551,160 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose }) => {
           )}
         </div>
       </div>
+      {/* Email Change Modal */}
+      {showEmailChangeModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60] transition-opacity" onClick={!isEmailLoading ? () => setShowEmailChangeModal(false) : undefined} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in duration-200">
+              <button onClick={() => setShowEmailChangeModal(false)} disabled={isEmailLoading} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+
+              {emailChangeStep === 'enter-email' ? (
+                <>
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                      <Mail className="w-8 h-8 text-green-700" />
+                    </div>
+                  </div>
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Change Email</h3>
+                    <p className="text-sm text-gray-500 mb-1">Current: <span className="font-medium text-gray-700">{admin?.email}</span></p>
+                    <p className="text-sm text-gray-500">A verification code will be sent to the new email</p>
+                  </div>
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">New Email Address</label>
+                    <input
+                      type="email"
+                      placeholder="Enter new email address"
+                      value={newEmail}
+                      onChange={(e) => { setNewEmail(e.target.value); if (emailError) setEmailError(null); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleRequestEmailOtp(); }}
+                      disabled={isEmailLoading}
+                      className={`w-full h-12 px-4 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50 ${emailError ? 'border-red-500' : 'border-gray-300'}`}
+                    />
+                    {emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
+                  </div>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowEmailChangeModal(false)} disabled={isEmailLoading} className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50">Cancel</button>
+                    <button onClick={handleRequestEmailOtp} disabled={isEmailLoading} className="flex-1 px-4 py-2.5 text-white bg-green-700 rounded-lg hover:bg-green-800 font-medium transition-colors disabled:opacity-50">
+                      {requestEmailChangeMutation.isPending ? 'Sending...' : 'Send Code'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => { setEmailChangeStep('enter-email'); setEmailOtp(Array(6).fill('')); setOtpError(null); }} disabled={isEmailLoading} className="absolute left-4 top-4 p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50">
+                    <ArrowLeft className="w-5 h-5 text-gray-500" />
+                  </button>
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
+                      <Mail className="w-8 h-8 text-green-700" />
+                    </div>
+                  </div>
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Verify Email</h3>
+                    <p className="text-sm text-gray-500">Enter the 6-digit code sent to <span className="font-medium text-gray-700">{newEmail.trim()}</span></p>
+                  </div>
+                  <div className="flex justify-center gap-2 mb-4" onPaste={handleOtpPaste}>
+                    {emailOtp.map((digit, index) => (
+                      <input
+                        key={index}
+                        ref={(el) => { otpInputRefs.current[index] = el; }}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        value={digit}
+                        onChange={(e) => handleOtpChange(index, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                        disabled={isEmailLoading}
+                        className={`w-11 h-12 text-center text-lg font-semibold border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50 ${otpError ? 'border-red-500' : 'border-gray-300'}`}
+                      />
+                    ))}
+                  </div>
+                  {otpError && <p className="text-xs text-red-500 text-center mb-4">{otpError}</p>}
+                  <button onClick={() => handleVerifyEmailOtp(emailOtp.join(''))} disabled={isEmailLoading || emailOtp.join('').length < 6} className="w-full px-4 py-2.5 text-white bg-green-700 rounded-lg hover:bg-green-800 font-medium transition-colors disabled:opacity-50 mb-3">
+                    {verifyEmailChangeMutation.isPending ? 'Verifying...' : 'Verify & Update'}
+                  </button>
+                  <p className="text-sm text-gray-500 text-center">
+                    Didn&apos;t receive the code?{' '}
+                    {resendCooldown > 0 ? (
+                      <span className="text-gray-400">Resend in {resendCooldown}s</span>
+                    ) : (
+                      <button onClick={handleResendEmailOtp} disabled={requestEmailChangeMutation.isPending} className="text-green-700 font-semibold hover:underline disabled:opacity-50">
+                        {requestEmailChangeMutation.isPending ? 'Sending...' : 'Resend Code'}
+                      </button>
+                    )}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Password Change Modal */}
+      {showPasswordChangeModal && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-[60] transition-opacity" onClick={!changePasswordMutation.isPending ? () => setShowPasswordChangeModal(false) : undefined} />
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 relative animate-in fade-in zoom-in duration-200">
+              <button onClick={() => setShowPasswordChangeModal(false)} disabled={changePasswordMutation.isPending} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 transition-colors disabled:opacity-50">
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <Lock className="w-8 h-8 text-yellow-600" />
+                </div>
+              </div>
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">Change Password</h3>
+                <p className="text-sm text-gray-500">Enter your current password and a new password</p>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Current Password</label>
+                  <div className="relative">
+                    <input type={showCurrentPw ? 'text' : 'password'} placeholder="Enter current password" value={currentPassword} onChange={(e) => { setCurrentPassword(e.target.value); if (passwordError) setPasswordError(null); }} disabled={changePasswordMutation.isPending} className={`w-full h-12 px-4 pr-10 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50 ${passwordError ? 'border-red-500' : 'border-gray-300'}`} />
+                    <button type="button" onClick={() => setShowCurrentPw(!showCurrentPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showCurrentPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
+                  <div className="relative">
+                    <input type={showNewPw ? 'text' : 'password'} placeholder="Enter new password" value={newPassword} onChange={(e) => { setNewPassword(e.target.value); if (passwordError) setPasswordError(null); }} disabled={changePasswordMutation.isPending} className={`w-full h-12 px-4 pr-10 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50 ${passwordError ? 'border-red-500' : 'border-gray-300'}`} />
+                    <button type="button" onClick={() => setShowNewPw(!showNewPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showNewPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New Password</label>
+                  <div className="relative">
+                    <input type={showConfirmPw ? 'text' : 'password'} placeholder="Confirm new password" value={confirmPassword} onChange={(e) => { setConfirmPassword(e.target.value); if (passwordError) setPasswordError(null); }} onKeyDown={(e) => { if (e.key === 'Enter') handleChangePassword(); }} disabled={changePasswordMutation.isPending} className={`w-full h-12 px-4 pr-10 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600 disabled:opacity-50 ${passwordError ? 'border-red-500' : 'border-gray-300'}`} />
+                    <button type="button" onClick={() => setShowConfirmPw(!showConfirmPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                      {showConfirmPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                {passwordError && <p className="text-xs text-red-500">{passwordError}</p>}
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => setShowPasswordChangeModal(false)} disabled={changePasswordMutation.isPending} className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-medium transition-colors disabled:opacity-50">Cancel</button>
+                <button onClick={handleChangePassword} disabled={changePasswordMutation.isPending} className="flex-1 px-4 py-2.5 text-white bg-green-700 rounded-lg hover:bg-green-800 font-medium transition-colors disabled:opacity-50">
+                  {changePasswordMutation.isPending ? 'Updating...' : 'Update Password'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 };
