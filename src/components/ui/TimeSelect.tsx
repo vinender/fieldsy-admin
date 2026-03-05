@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Clock } from 'lucide-react';
+import { Clock } from 'lucide-react';
 
 interface TimeSelectProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  minTime?: string; // 24h format "HH:MM" — times at or before this are disabled
+}
+
+function timeToMinutes(time: string): number {
+  const [h, m] = time.split(':').map(Number);
+  return h * 60 + m;
 }
 
 function formatTimeDisplay(time24: string): string {
@@ -24,6 +30,7 @@ export default function TimeSelect({
   onChange,
   placeholder = 'Select time',
   className = '',
+  minTime,
 }: TimeSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedHour, setSelectedHour] = useState('');
@@ -60,16 +67,27 @@ export default function TimeSelect({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const to24Hour = (hour: string, minute: string, period: string): string => {
+    let hour24 = parseInt(hour);
+    if (period === 'PM' && hour24 !== 12) hour24 += 12;
+    else if (period === 'AM' && hour24 === 12) hour24 = 0;
+    return `${hour24.toString().padStart(2, '0')}:${minute}`;
+  };
+
+  const isTimeDisabled = (hour: string, minute: string, period: string): boolean => {
+    if (!minTime) return false;
+    const time24 = to24Hour(hour, minute, period);
+    return timeToMinutes(time24) <= timeToMinutes(minTime);
+  };
+
   const handleTimeSelect = (hour: string, minute: string, period: string) => {
+    if (isTimeDisabled(hour, minute, period)) return;
+
     setSelectedHour(hour);
     setSelectedMinute(minute);
     setSelectedPeriod(period);
 
-    let hour24 = parseInt(hour);
-    if (period === 'PM' && hour24 !== 12) hour24 += 12;
-    else if (period === 'AM' && hour24 === 12) hour24 = 0;
-
-    const formattedTime = `${hour24.toString().padStart(2, '0')}:${minute}`;
+    const formattedTime = to24Hour(hour, minute, period);
     onChange(formattedTime);
     setIsOpen(false);
   };
@@ -108,21 +126,27 @@ export default function TimeSelect({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2 text-center">Hour</div>
                 <div className="max-h-48 overflow-y-auto space-y-0.5">
-                  {hours.map(hour => (
-                    <button
-                      key={hour}
-                      type="button"
-                      onClick={() => handleTimeSelect(hour.toString(), selectedMinute || '00', selectedPeriod)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedHour === hour.toString()
-                          ? 'bg-[#3A6B22] text-white font-medium'
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {hour}
-                    </button>
-                  ))}
+                  {hours.map(hour => {
+                    const disabled = isTimeDisabled(hour.toString(), selectedMinute || '00', selectedPeriod);
+                    return (
+                      <button
+                        key={hour}
+                        type="button"
+                        onClick={() => handleTimeSelect(hour.toString(), selectedMinute || '00', selectedPeriod)}
+                        disabled={disabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${selectedHour === hour.toString()
+                            ? 'bg-[#3A6B22] text-white font-medium'
+                            : disabled
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {hour}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -130,21 +154,27 @@ export default function TimeSelect({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2 text-center">Min</div>
                 <div className="space-y-0.5">
-                  {minutes.map(minute => (
-                    <button
-                      key={minute}
-                      type="button"
-                      onClick={() => handleTimeSelect(selectedHour || '12', minute, selectedPeriod)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedMinute === minute
-                          ? 'bg-[#3A6B22] text-white font-medium'
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {minute}
-                    </button>
-                  ))}
+                  {minutes.map(minute => {
+                    const disabled = isTimeDisabled(selectedHour || '12', minute, selectedPeriod);
+                    return (
+                      <button
+                        key={minute}
+                        type="button"
+                        onClick={() => handleTimeSelect(selectedHour || '12', minute, selectedPeriod)}
+                        disabled={disabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${selectedMinute === minute
+                            ? 'bg-[#3A6B22] text-white font-medium'
+                            : disabled
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {minute}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -152,21 +182,27 @@ export default function TimeSelect({
               <div>
                 <div className="text-xs font-semibold text-gray-500 mb-2 text-center">Period</div>
                 <div className="space-y-0.5">
-                  {['AM', 'PM'].map(period => (
-                    <button
-                      key={period}
-                      type="button"
-                      onClick={() => handleTimeSelect(selectedHour || '7', selectedMinute || '00', period)}
-                      className={`
-                        w-full px-2 py-1.5 text-sm rounded-lg transition-colors
-                        ${selectedPeriod === period
-                          ? 'bg-[#3A6B22] text-white font-medium'
-                          : 'hover:bg-gray-100 text-gray-700'}
-                      `}
-                    >
-                      {period}
-                    </button>
-                  ))}
+                  {['AM', 'PM'].map(period => {
+                    const disabled = isTimeDisabled(selectedHour || '7', selectedMinute || '00', period);
+                    return (
+                      <button
+                        key={period}
+                        type="button"
+                        onClick={() => handleTimeSelect(selectedHour || '7', selectedMinute || '00', period)}
+                        disabled={disabled}
+                        className={`
+                          w-full px-2 py-1.5 text-sm rounded-lg transition-colors
+                          ${selectedPeriod === period
+                            ? 'bg-[#3A6B22] text-white font-medium'
+                            : disabled
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'hover:bg-gray-100 text-gray-700'}
+                        `}
+                      >
+                        {period}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             </div>

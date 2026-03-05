@@ -145,8 +145,19 @@ export default function AdminFieldEdit() {
     }
   }, [admin, adminLoading, router]);
 
+  const timeToMinutes = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
   const handleChange = (name: string, value: any) => {
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      // If opening time changed and closing time is now at or before it, clear closing time
+      if (name === 'openingTime' && updated.closingTime && value) {
+        if (timeToMinutes(updated.closingTime) <= timeToMinutes(value)) {
+          updated.closingTime = '';
+        }
+      }
+      return updated;
+    });
     if (errors[name]) {
       setErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
     }
@@ -209,8 +220,10 @@ export default function AdminFieldEdit() {
     if (!formData.operatingDays) e.operatingDays = 'Please select your opening days';
     if (!formData.openingTime) e.openingTime = 'Please select a start time';
     if (!formData.closingTime) e.closingTime = 'Please select an end time';
-    if (formData.openingTime && formData.closingTime && formData.openingTime === formData.closingTime) {
-      e.closingTime = 'End time must be different from start time';
+    if (formData.openingTime && formData.closingTime) {
+      if (timeToMinutes(formData.closingTime) <= timeToMinutes(formData.openingTime)) {
+        e.closingTime = 'Closing time must be after opening time';
+      }
     }
 
     // Tab 2: Images
@@ -643,6 +656,7 @@ export default function AdminFieldEdit() {
                       value={formData.closingTime}
                       onChange={v => handleChange('closingTime', v)}
                       placeholder="Select closing time"
+                      minTime={formData.openingTime || undefined}
                     />
                   </FormField>
                 </div>
