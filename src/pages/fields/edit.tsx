@@ -292,20 +292,17 @@ export default function AdminFieldEdit() {
       isActive: formData.isActive,
       isClaimed: formData.isClaimed,
       isApproved: formData.isApproved,
+      isSubmitted: true,
+      ...(!isEditing && { submittedAt: new Date().toISOString() }),
     };
 
     try {
       if (isEditing) {
         await updateMutation.mutateAsync({ fieldId: id as string, data: payload });
-        setSuccessMsg('Field updated successfully');
       } else {
-        const result = await createMutation.mutateAsync(payload);
-        setSuccessMsg('Field created successfully');
-        const newId = result?.data?.id || result?.data?.fieldId;
-        if (newId) {
-          router.replace(`/fields/edit?id=${newId}`);
-        }
+        await createMutation.mutateAsync(payload);
       }
+      router.push('/fields');
     } catch (err: any) {
       setErrors({ submit: err?.response?.data?.error || err?.message || 'Something went wrong' });
     }
