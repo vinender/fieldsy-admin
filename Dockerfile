@@ -19,12 +19,16 @@ WORKDIR /app
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
 
+# Copy config files first (change rarely - better layer caching)
+COPY package.json next.config.ts tsconfig.json postcss.config.mjs tailwind.config.js ./
+COPY .env.production* ./
+
+# Copy source and public separately (change more often)
+COPY src ./src
+COPY public ./public
 
 # Environment variables will be read from .env.production automatically by Next.js
-# We do not set them here to avoid overriding the file with empty ARGs
-
 # Disable telemetry during build
 ENV NEXT_TELEMETRY_DISABLED=1
 

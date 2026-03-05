@@ -143,3 +143,58 @@ export const useDeleteField = () => {
     },
   });
 };
+
+// Admin update field
+export const useAdminUpdateField = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ fieldId, data }: { fieldId: string; data: Record<string, any> }) => {
+      const response = await api.put(`/fields/${fieldId}`, data);
+      return response.data;
+    },
+    onSuccess: (_, { fieldId }) => {
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-field', fieldId] });
+    },
+  });
+};
+
+// Admin create field
+export const useAdminCreateField = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (data: Record<string, any>) => {
+      const response = await api.post('/fields', data);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
+    },
+  });
+};
+
+// Get field options (sizes, terrain types, etc.)
+export const useFieldOptions = () => {
+  return useQuery({
+    queryKey: ['field-options'],
+    queryFn: async () => {
+      const response = await api.get('/field-properties');
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 30,
+  });
+};
+
+// Get amenities list
+export const useAmenities = () => {
+  return useQuery({
+    queryKey: ['amenities'],
+    queryFn: async () => {
+      const response = await api.get('/amenities');
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 30,
+  });
+};

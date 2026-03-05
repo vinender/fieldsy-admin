@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useFields, useToggleFieldBlocked, useToggleFieldApproved } from '@/hooks/useFields';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { MapPin, Search, Filter, X, AlertTriangle, Eye } from 'lucide-react';
+import { MapPin, Search, Filter, X, AlertTriangle, Eye, Pencil, Plus } from 'lucide-react';
 import { formatCurrency, formatMonthYear } from '@/lib/utils';
 import Spinner from '@/components/ui/Spinner';
 import { Field } from '@/types';
@@ -261,9 +261,18 @@ export default function Fields() {
       <div className="space-y-6">
         {/* Progressive loading: Header loads first */}
         {/* Page Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Fields</h1>
-          <p className="text-gray-600 mt-1">Manage all fields</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Fields</h1>
+            <p className="text-gray-600 mt-1">Manage all fields</p>
+          </div>
+          <button
+            onClick={() => router.push('/fields/edit')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#3A6B22] text-white rounded-xl font-medium hover:bg-[#2d5519] transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Create Field
+          </button>
         </div>
 
         {/* Search and Filter */}
@@ -455,13 +464,22 @@ export default function Fields() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <button
-                            onClick={() => router.push(`/fields/${field.fieldId || field.id}`)}
-                            className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
-                            title="View Details"
-                          >
-                            <Eye className="w-5 h-5" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => router.push(`/fields/edit?id=${field.id}`)}
+                              className="p-2 text-gray-600 hover:bg-green-50 hover:text-[#3A6B22] rounded-full transition-all"
+                              title="Edit Field"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => router.push(`/fields/${field.fieldId || field.id}`)}
+                              className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
+                              title="View Details"
+                            >
+                              <Eye className="w-5 h-5" />
+                            </button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

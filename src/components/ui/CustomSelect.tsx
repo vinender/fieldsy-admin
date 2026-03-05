@@ -55,7 +55,7 @@ export default function CustomSelect({
           bg-white border border-gray-200 rounded-xl
           text-left font-medium transition-all duration-200
           hover:border-green-400 hover:shadow-sm
-          focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent
+          focus:outline-none focus:ring-0 focus:border-green-500
           ${isOpen ? 'border-green-500 shadow-lg' : ''}
         `}
       >

@@ -49,6 +49,9 @@ export interface Field {
   isSubmitted?: boolean; // Field has been submitted for review
   isClaimed?: boolean;
   entryCode?: string; // Entry code for the field
+  lastEditedBy?: string;
+  lastEditedByRole?: string;
+  lastEditedAt?: string;
   owner: User;
   createdAt: string;
   bookingDuration?: string;
