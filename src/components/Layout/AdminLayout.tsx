@@ -70,7 +70,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   ];
 
   const isActive = (href: string) => {
-    return router.pathname === href;
+    if (href === '/dashboard') return router.pathname === href;
+    return router.pathname === href || router.pathname.startsWith(href + '/');
   };
 
   return (
