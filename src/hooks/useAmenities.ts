@@ -4,6 +4,7 @@ import api from '@/lib/api';
 interface Amenity {
   id: string;
   name: string;
+  label?: string;
   icon: string | null;
   isActive: boolean;
   order: number;

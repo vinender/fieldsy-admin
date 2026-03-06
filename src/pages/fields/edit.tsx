@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
-import { useFieldDetails, useAdminUpdateField, useAdminCreateField, useFieldOptions, useAmenities } from '@/hooks/useFields';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useFieldDetails, useAdminUpdateField, useAdminCreateField, useFieldOptions } from '@/hooks/useFields';
+import { useAmenities } from '@/hooks/useAmenities';
+import { ArrowLeft, Save, Loader2, ChevronRight } from 'lucide-react';
 import CustomSelect from '@/components/ui/CustomSelect';
 import Spinner from '@/components/ui/Spinner';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
@@ -85,7 +86,7 @@ export default function AdminFieldEdit() {
   const { data: admin, isLoading: adminLoading } = useVerifyAdmin();
   const { data: fieldData, isLoading: fieldLoading } = useFieldDetails(id as string);
   const { data: fieldOptions } = useFieldOptions();
-  const { data: amenitiesData } = useAmenities();
+  const { amenities: amenitiesData } = useAmenities();
 
   const updateMutation = useAdminUpdateField();
   const createMutation = useAdminCreateField();
@@ -102,7 +103,7 @@ export default function AdminFieldEdit() {
   const fenceSizeOptions = fieldOptions?.data?.fenceSize || [];
   const surfaceTypeOptions = fieldOptions?.data?.surfaceType || [];
   const openingDaysOptions = fieldOptions?.data?.openingDays || [];
-  const amenitiesList = amenitiesData?.data || amenitiesData?.amenities || [];
+  const amenitiesList = amenitiesData || [];
 
   // Populate form when editing
   useEffect(() => {
@@ -127,7 +128,12 @@ export default function AdminFieldEdit() {
         operatingDays: f.operatingDays?.[0] || '',
         price30min: f.price30min ? String(f.price30min) : '',
         price1hr: f.price1hr ? String(f.price1hr) : '',
-        amenities: (f.amenities || []).map((a: any) => typeof a === 'string' ? a : a.label || a.name || ''),
+        amenities: (f.amenities || []).map((a: any) => {
+          if (typeof a === 'string') return a;
+          // Field API returns amenity objects with { id, label, value }
+          // Use value (original slug stored in field) for matching against amenities list name
+          return a.value || a.name || a.label || '';
+        }).filter(Boolean),
         images: f.images || [],
         rules: Array.isArray(f.rules) ? f.rules.join('\n') : (f.rules || ''),
         cancellationPolicy: f.cancellationPolicy || '',
@@ -177,36 +183,13 @@ export default function AdminFieldEdit() {
     if (['e', 'E', '-', '+', '.'].includes(e.key)) e.preventDefault();
   };
 
-  // Block non-numeric keys but allow one decimal point
-  const blockNonNumericAllowDecimal = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (['e', 'E', '-', '+'].includes(e.key)) e.preventDefault();
-  };
-
-  // Get max custom size based on selected field size
-  const getCustomSizeMax = (): number => {
-    switch (formData.size) {
-      case 'small': return 1;
-      case 'medium': return 3;
-      case 'large': return 20;
-      default: return 20;
-    }
-  };
-
-  const getCustomSizePlaceholder = (): string => {
-    switch (formData.size) {
-      case 'small': return 'Max 1.0';
-      case 'medium': return 'Max 3.0';
-      case 'large': return 'Max 20.0';
-      default: return '0.1 - 20.0';
-    }
-  };
-
   const validate = (): boolean => {
     const e: Record<string, string> = {};
 
     // Tab 1: Field Details
     if (!formData.name.trim()) e.name = 'Please enter a field name';
-    if (!formData.size && !formData.customFieldSize) e.size = 'Please select or enter a field size';
+    if (!formData.size) e.size = 'Please select a field size';
+    if (formData.size === 'Custom' && !formData.customFieldSize) e.customFieldSize = 'Please enter a custom field size';
     if (!formData.terrainType) e.terrainType = 'Please select a terrain type';
     if (!formData.fenceType) e.fenceType = 'Please select a fence type';
     if (!formData.fenceSize) e.fenceSize = 'Please select a fence size';
@@ -308,7 +291,19 @@ export default function AdminFieldEdit() {
     }
   };
 
+  const handleSaveAndNext = () => {
+    const currentIndex = TABS.findIndex(t => t.id === activeTab);
+    if (currentIndex < TABS.length - 1) {
+      setActiveTab(TABS[currentIndex + 1].id);
+    } else {
+      // On last tab, behave like Save & Exit
+      const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+      handleSubmit(fakeEvent);
+    }
+  };
+
   const isPending = updateMutation.isPending || createMutation.isPending;
+  const isLastTab = activeTab === TABS[TABS.length - 1].id;
 
   if (adminLoading || (isEditing && fieldLoading)) {
     return (
@@ -493,13 +488,13 @@ export default function AdminFieldEdit() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField label="Field Size" required error={errors.size}>
                     <CustomSelect
-                      options={fieldSizeOptions}
+                      options={[...fieldSizeOptions, { value: 'Custom', label: 'Custom' }]}
                       value={formData.size}
                       onChange={v => {
                         setFormData(prev => ({
                           ...prev,
                           size: v,
-                          customFieldSize: '', // Clear custom size when dropdown changes
+                          customFieldSize: v === 'Custom' ? prev.customFieldSize : '',
                         }));
                         if (errors.size) {
                           setErrors(prev => { const n = { ...prev }; delete n.size; return n; });
@@ -508,36 +503,38 @@ export default function AdminFieldEdit() {
                       placeholder="Select size"
                     />
                   </FormField>
-                  <FormField label="Custom Size (acres)" error={errors.customFieldSize}>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        value={formData.customFieldSize}
-                        disabled={formData.size === 'mid-high'}
-                        onChange={e => {
-                          const val = e.target.value;
-                          if (val === '') {
-                            handleChange('customFieldSize', '');
-                            return;
-                          }
-                          // Allow only 1 decimal place
-                          if (!/^\d{0,2}(\.\d{0,1})?$/.test(val)) return;
-                          const num = parseFloat(val);
-                          const max = getCustomSizeMax();
-                          if (!isNaN(num) && num <= max) {
-                            handleChange('customFieldSize', val);
-                          }
-                        }}
-                        onKeyDown={blockNonNumericAllowDecimal}
-                        className={`form-input pr-14 ${formData.size === 'mid-high' ? 'opacity-50 cursor-not-allowed bg-gray-50' : ''}`}
-                        placeholder={formData.size === 'mid-high' ? '7 acres (exact)' : getCustomSizePlaceholder()}
-                        min={0.1}
-                        max={getCustomSizeMax()}
-                        step={0.1}
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">acres</span>
-                    </div>
-                  </FormField>
+                  {formData.size === 'Custom' && (
+                    <FormField label="Custom Size (acres)" error={errors.customFieldSize}>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={formData.customFieldSize}
+                          onChange={e => {
+                            const val = e.target.value;
+                            if (val === '') {
+                              handleChange('customFieldSize', '');
+                              return;
+                            }
+                            if (!/^\d{1,2}$/.test(val)) return;
+                            const num = parseInt(val);
+                            if (num <= 20) {
+                              handleChange('customFieldSize', val);
+                            }
+                          }}
+                          onKeyDown={e => {
+                            if (['e', 'E', '-', '+', '.'].includes(e.key)) e.preventDefault();
+                          }}
+                          maxLength={2}
+                          className="form-input pr-14"
+                          placeholder="Enter size (max 20)"
+                          min={1}
+                          max={20}
+                          step={1}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 pointer-events-none">acres</span>
+                      </div>
+                    </FormField>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField label="Terrain Type" required error={errors.terrainType}>
@@ -724,20 +721,21 @@ export default function AdminFieldEdit() {
               <Section title="Amenities">
                 <div className="flex flex-wrap gap-2">
                   {amenitiesList.map((amenity: any) => {
-                    const name = amenity.label || amenity.name || amenity;
-                    const isSelected = formData.amenities.includes(name);
+                    const slug = amenity.name || amenity;
+                    const displayLabel = amenity.label || slug;
+                    const isSelected = formData.amenities.includes(slug);
                     return (
                       <button
-                        key={amenity.id || name}
+                        key={amenity.id || slug}
                         type="button"
-                        onClick={() => handleAmenityToggle(name)}
+                        onClick={() => handleAmenityToggle(slug)}
                         className={`px-3 py-2 rounded-xl text-sm border border-1 transition-colors outline-none ${
                           isSelected
                             ? 'bg-[#E8F5E0] border-[#3A6B22] text-[#3A6B22] font-medium'
                             : 'bg-white border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                       >
-                        {name}
+                        {displayLabel}
                       </button>
                     );
                   })}
@@ -798,8 +796,8 @@ export default function AdminFieldEdit() {
             </>
           )}
 
-          {/* Submit - always visible */}
-          <div className="flex items-center gap-3 pt-4 border-t">
+          {/* Action buttons - always visible */}
+          <div className="flex items-center justify-between pt-4 border-t">
             <button
               type="button"
               onClick={() => router.push('/fields')}
@@ -807,23 +805,43 @@ export default function AdminFieldEdit() {
             >
               Cancel
             </button>
-            <button
-              type="submit"
-              disabled={isPending}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#3A6B22] text-white rounded-xl font-medium hover:bg-[#2d5519] transition-colors disabled:opacity-50"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  {isEditing ? 'Saving...' : 'Creating...'}
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4" />
-                  {isEditing ? 'Save Changes' : 'Create Field'}
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={isPending}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#3A6B22] text-white rounded-xl font-medium hover:bg-[#2d5519] transition-colors disabled:opacity-50"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save & Exit
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAndNext}
+                disabled={isPending}
+                className="flex items-center gap-2 px-6 py-2.5 bg-[#2563eb] text-white rounded-xl font-medium hover:bg-[#1d4ed8] transition-colors disabled:opacity-50"
+              >
+                {isLastTab ? (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save & Finish
+                  </>
+                ) : (
+                  <>
+                    Save & Next
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>
