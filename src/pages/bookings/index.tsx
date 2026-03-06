@@ -93,8 +93,8 @@ export default function Bookings() {
   if (adminLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center h-64">
-          <Spinner size="xl" />
+        <div className="flex items-center justify-center h-full">
+          <Spinner size="md" />
         </div>
       </AdminLayout>
     );

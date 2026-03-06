@@ -377,12 +377,27 @@ export default function Fields() {
 
                         <TableCell>
                           <div className="text-sm">
-                            <div className="font-medium text-gray-900">
-                              £{(field.price30min || field.price || 0).toFixed(2)}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              per 30 min/dog
-                            </div>
+                            {(field.price30min || field.price) ? (
+                              <>
+                                <div className="font-medium text-gray-900">
+                                  £{(field.price30min || field.price || 0).toFixed(2)}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  per 30 min/dog
+                                </div>
+                              </>
+                            ) : field.price1hr ? (
+                              <>
+                                <div className="font-medium text-gray-900">
+                                  £{field.price1hr.toFixed(2)}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  per 1 hr/dog
+                                </div>
+                              </>
+                            ) : (
+                              <div className="font-medium text-gray-400">Not set</div>
+                            )}
                           </div>
                         </TableCell>
                         {/* <TableCell className="font-medium text-gray-900">
