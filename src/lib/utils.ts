@@ -10,6 +10,7 @@ export function formatDate(date: string | Date) {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
+    timeZone: 'Europe/London',
   }).format(new Date(date));
 }
 
@@ -18,6 +19,7 @@ export function formatTime(date: string | Date) {
     hour: 'numeric',
     minute: 'numeric',
     hour12: true,
+    timeZone: 'Europe/London',
   }).format(new Date(date));
 }
 
@@ -32,6 +34,7 @@ export function formatMonthYear(date: string | Date) {
   return new Intl.DateTimeFormat('en-US', {
     month: 'long',
     year: 'numeric',
+    timeZone: 'Europe/London',
   }).format(new Date(date));
 }
 

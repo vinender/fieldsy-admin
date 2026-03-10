@@ -166,6 +166,7 @@ export default function ReportDetail() {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
+                timeZone: 'Europe/London',
               })}
             </p>
           </div>
@@ -217,6 +218,7 @@ export default function ReportDetail() {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
+                      timeZone: 'Europe/London',
                     })}
                   </p>
                 </div>
@@ -348,6 +350,7 @@ export default function ReportDetail() {
                     {new Date(report.reportedUser?.createdAt).toLocaleDateString('en-US', {
                       month: 'short',
                       year: 'numeric',
+                      timeZone: 'Europe/London',
                     })}
                   </span>
                 </div>

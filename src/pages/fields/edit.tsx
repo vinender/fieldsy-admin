@@ -344,7 +344,7 @@ export default function AdminFieldEdit() {
               {isEditing && field && (
                 <p className="text-sm text-gray-500 mt-0.5">
                   {field.fieldId || field.id?.slice(-6)} &middot; Last edited by {field.lastEditedByRole === 'ADMIN' ? 'Admin' : 'Field Owner'}
-                  {field.lastEditedAt && ` on ${new Date(field.lastEditedAt).toLocaleDateString()}`}
+                  {field.lastEditedAt && ` on ${new Date(field.lastEditedAt).toLocaleDateString('en-GB', { timeZone: 'Europe/London' })}`}
                 </p>
               )}
             </div>

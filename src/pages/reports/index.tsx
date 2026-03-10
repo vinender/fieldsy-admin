@@ -252,6 +252,7 @@ export default function Reports() {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric',
+                          timeZone: 'Europe/London',
                         })}
                       </TableCell>
                       <TableCell>

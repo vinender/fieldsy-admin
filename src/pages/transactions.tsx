@@ -502,7 +502,8 @@ export default function Transactions() {
                           <span className="text-xs text-gray-500">
                             {new Date(transaction.booking.date).toLocaleDateString('en-GB', {
                               day: '2-digit',
-                              month: 'short'
+                              month: 'short',
+                              timeZone: 'Europe/London'
                             })}
                           </span>
                         )}
@@ -597,7 +598,8 @@ export default function Transactions() {
                                 weekday: 'short',
                                 day: '2-digit',
                                 month: 'short',
-                                year: 'numeric'
+                                year: 'numeric',
+                                timeZone: 'Europe/London'
                               })}
                             </span>
                             {transaction.booking.startTime && transaction.booking.endTime && (
@@ -611,7 +613,8 @@ export default function Transactions() {
                             {new Date(transaction.createdAt).toLocaleDateString('en-GB', {
                               day: '2-digit',
                               month: 'short',
-                              year: 'numeric'
+                              year: 'numeric',
+                              timeZone: 'Europe/London'
                             })}
                           </span>
                         )}
@@ -933,7 +936,8 @@ export default function Transactions() {
                               weekday: 'long',
                               day: '2-digit',
                               month: 'long',
-                              year: 'numeric'
+                              year: 'numeric',
+                              timeZone: 'Europe/London'
                             })}
                           </span>
                         </div>

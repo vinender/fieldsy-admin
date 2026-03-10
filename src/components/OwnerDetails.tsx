@@ -169,7 +169,7 @@ export default function OwnerDetails({ user, bookingPagination, onBookingPageCha
 
   const formatTime = (date: string, startTime: string, endTime: string) => {
     const bookingDate = new Date(date);
-    const dayName = bookingDate.toLocaleDateString('en-US', { weekday: 'short' });
+    const dayName = bookingDate.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'Europe/London' });
 
     // Convert time strings like "14:00" to "2:00 PM"
     const convertTo12Hour = (timeStr: string) => {

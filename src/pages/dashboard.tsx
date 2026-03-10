@@ -198,7 +198,8 @@ export default function Dashboard() {
           date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', {
             day: 'numeric',
             month: 'short',
-            year: 'numeric'
+            year: 'numeric',
+            timeZone: 'Europe/London'
           }),
           dogs: booking.numberOfDogs || 1,
           price: booking.totalPrice || 0,
@@ -231,7 +232,8 @@ export default function Dashboard() {
             date: new Date(booking.date || booking.createdAt).toLocaleDateString('en-US', {
               day: 'numeric',
               month: 'short',
-              year: 'numeric'
+              year: 'numeric',
+              timeZone: 'Europe/London'
             }),
             dogs: booking.numberOfDogs || 1,
             price: booking.totalPrice || 0,
@@ -609,7 +611,8 @@ export default function Dashboard() {
                         {new Date(report.createdAt).toLocaleDateString('en-US', {
                           day: 'numeric',
                           month: 'short',
-                          year: 'numeric'
+                          year: 'numeric',
+                          timeZone: 'Europe/London'
                         })}
                       </span>
 
@@ -715,7 +718,8 @@ export default function Dashboard() {
                           {new Date(report.createdAt).toLocaleDateString('en-US', {
                             day: 'numeric',
                             month: 'short',
-                            year: 'numeric'
+                            year: 'numeric',
+                            timeZone: 'Europe/London'
                           })}
                         </span>
                         <button
