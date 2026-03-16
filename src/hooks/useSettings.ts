@@ -35,6 +35,11 @@ interface SystemSettings {
   platformFieldOwnersSubtitle?: string;
   platformFieldOwnersTitle?: string;
   platformFieldOwnersBullets?: string[];
+  howItWorksTitle?: string;
+  howItWorksSteps?: any[];
+  landownersSectionTitle?: string;
+  landownersSectionDescription?: string;
+  landownersSectionImage?: string;
   termsAndConditions?: any[];
   createdAt: string;
   updatedAt: string;

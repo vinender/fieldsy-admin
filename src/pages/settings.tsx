@@ -5,7 +5,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -14,8 +14,10 @@ import GeneralSettings from '@/components/settings/GeneralSettings';
 import BannerSettings from '@/components/settings/BannerSettings';
 import AboutSectionSettings from '@/components/settings/AboutSectionSettings';
 import PlatformSettings from '@/components/settings/PlatformSettings';
+import HowItWorksSettings from '@/components/settings/HowItWorksSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
 import FAQSettings from '@/components/settings/FAQSettings';
+import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 import NotificationsSettings from '@/components/settings/NotificationsSettings';
 import TermsSettings from '@/components/settings/TermsSettings';
 
@@ -64,6 +66,11 @@ export default function Settings() {
     platformFieldOwnersSubtitle: '',
     platformFieldOwnersTitle: '',
     platformFieldOwnersBullets: [] as string[],
+    howItWorksTitle: '',
+    howItWorksSteps: [] as any[],
+    landownersSectionTitle: '',
+    landownersSectionDescription: '',
+    landownersSectionImage: '',
 
   });
   const [faqs, setFaqs] = useState<any[]>([]);
@@ -74,10 +81,10 @@ export default function Settings() {
   // About Page state
   const [aboutHeroSection, setAboutHeroSection] = useState({
     sectionTitle: 'About Us',
-    mainTitle: 'Find Safe, Private Dog Walking Fields Near You',
+    mainTitle: 'All-in-One Platform for Smarter Field Operations',
     subtitle: '',
-    description: 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
-    image: '/about/dog2.png',
+    description: 'Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.',
+    image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     stats: [] as Array<{ value: string; label: string; order: number }>
   });
 
@@ -85,14 +92,14 @@ export default function Settings() {
     title: 'Our Mission',
     description: 'At Fieldsy, we\'re on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces.',
     buttonText: 'Join Our Community',
-    image: '/about/mission.png'
+    image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp'
   });
 
   const [aboutWhoWeAreSection, setAboutWhoWeAreSection] = useState<any>({
     title: 'Who We Are',
     description: 'We\'re a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we\'ve built Fieldsy to give every dog the freedom they deserve.',
-    mainImage: '/about/fam.png',
-    rightCardImage: '/about/fam.png',
+    mainImage: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
+    rightCardImage: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
     rightCardTitle: 'Loved by Paws and People Alike',
     rightCardDescription: 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.',
     features: []
@@ -101,23 +108,23 @@ export default function Settings() {
   const [aboutWhatWeDoSection, setAboutWhatWeDoSection] = useState({
     title: 'What We Do',
     subtitle: '',
-    description: 'We provide a seamless platform that connects dog owners with private, secure fields for safe off-lead walks and playtime.',
-    image: '/about/what-we-do.png',
+    description: 'At Fieldsy, we empower field teams and property managers with the tools they need to work smarter—not harder. Our platform is designed to bring structure, visibility, and control to on-ground operations across real estate, infrastructure, land surveying, and more.',
+    image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     features: [] as Array<{ title: string; description: string; order: number }>
   });
 
   const [aboutWhyFieldsySection, setAboutWhyFieldsySection] = useState<any>({
     title: 'Why Fieldsy?',
     subtitle: 'Choosing Fieldsy means choosing peace of mind for you and freedom for your dog.',
-    image: '/about/dog2.png',
+    image: 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
     boxTitle: "Let's Build the Future of Field Intelligence",
     boxDescription: "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day.",
     buttonText: 'Download App',
     features: [
-      { icon: '', title: '', description: '100% secure, fully-fenced fields verified by our team', order: 1 },
-      { icon: '', title: '', description: 'Easy booking system - find and reserve in minutes', order: 2 },
-      { icon: '', title: '', description: 'Trusted by thousands of dog owners across the UK', order: 3 },
-      { icon: '', title: '', description: 'Perfect for reactive, nervous, or energetic dogs', order: 4 }
+      { icon: 'CheckCircle', title: 'Secure & Private', description: 'Designed with compliance, transparency, and usability in mind', order: 1 },
+      { icon: 'MapPin', title: 'Local & Convenient', description: 'Lightweight, mobile-friendly, and easy to use', order: 2 },
+      { icon: 'Calendar', title: 'Flexible Booking', description: 'Scalable across teams, projects, and regions', order: 3 },
+      { icon: 'Shield', title: 'Trusted Community', description: 'Built for the field, not just the office', order: 4 }
     ]
   });
 
@@ -133,10 +140,10 @@ export default function Settings() {
       console.log('Loading aboutData:', aboutData);
       setAboutHeroSection({
         sectionTitle: aboutData.heroSection?.sectionTitle || 'About Us',
-        mainTitle: aboutData.heroSection?.mainTitle || 'Find Safe, Private Dog Walking Fields Near You',
+        mainTitle: aboutData.heroSection?.mainTitle || 'All-in-One Platform for Smarter Field Operations',
         subtitle: aboutData.heroSection?.subtitle || '',
-        description: aboutData.heroSection?.description || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
-        image: aboutData.heroSection?.image || '/about/dog2.png',
+        description: aboutData.heroSection?.description || 'Fieldsy brings every aspect of field operations into a single, easy-to-use platform. From property claims and terrain tracking to team coordination and document management—we help you digitize, streamline, and scale your fieldwork with confidence. No more juggling spreadsheets, paperwork, or disconnected tools. With Fieldsy, everything you need is at your fingertips, wherever the field takes you.',
+        image: aboutData.heroSection?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
         stats: aboutData.heroSection?.stats || [
           { value: '500+', label: 'Happy Dogs', order: 1 },
           { value: '200+', label: 'Private Fields', order: 2 },
@@ -148,13 +155,13 @@ export default function Settings() {
         title: aboutData.missionSection?.title || 'Our Mission',
         description: aboutData.missionSection?.description || 'At Fieldsy, we\'re on a mission to create safe, accessible spaces where every dog can enjoy off-lead freedom. We connect dog owners with private, secure fields across the UK—making it easy to find, book, and enjoy peaceful walks away from busy parks and crowded spaces.',
         buttonText: aboutData.missionSection?.buttonText || 'Join Our Community',
-        image: aboutData.missionSection?.image || '/about/mission.png'
+        image: aboutData.missionSection?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp'
       });
       setAboutWhoWeAreSection({
         title: aboutData.whoWeAreSection?.title || 'Who We Are',
         description: aboutData.whoWeAreSection?.description || 'We\'re a passionate team of dog lovers, developers, and outdoor enthusiasts who understand the challenges of finding safe spaces for reactive, nervous, or energetic dogs. With our combined love for technology and animals, we\'ve built Fieldsy to give every dog the freedom they deserve.',
-        mainImage: aboutData.whoWeAreSection?.mainImage || '/about/fam.png',
-        rightCardImage: aboutData.whoWeAreSection?.rightCardImage || '/about/fam.png',
+        mainImage: aboutData.whoWeAreSection?.mainImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
+        rightCardImage: aboutData.whoWeAreSection?.rightCardImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
         rightCardTitle: aboutData.whoWeAreSection?.rightCardTitle || 'Loved by Paws and People Alike',
         rightCardDescription: aboutData.whoWeAreSection?.rightCardDescription || 'From tail wags to five-star ratings—Fieldsy is the go-to space for dog lovers to connect, explore, and book safe outdoor spots with ease.',
         features: aboutData.whoWeAreSection?.features || []
@@ -162,22 +169,22 @@ export default function Settings() {
       setAboutWhatWeDoSection({
         title: aboutData.whatWeDoSection?.title || 'What We Do',
         subtitle: aboutData.whatWeDoSection?.subtitle || '',
-        description: aboutData.whatWeDoSection?.description || 'We provide a seamless platform that connects dog owners with private, secure fields for safe off-lead walks and playtime.',
-        image: aboutData.whatWeDoSection?.image || '/about/what-we-do.png',
+        description: aboutData.whatWeDoSection?.description || 'At Fieldsy, we empower field teams and property managers with the tools they need to work smarter—not harder. Our platform is designed to bring structure, visibility, and control to on-ground operations across real estate, infrastructure, land surveying, and more.',
+        image: aboutData.whatWeDoSection?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
         features: aboutData.whatWeDoSection?.features || []
       });
       setAboutWhyFieldsySection({
         title: aboutData.whyFieldsySection?.title || 'Why Fieldsy?',
         subtitle: aboutData.whyFieldsySection?.subtitle || 'Choosing Fieldsy means choosing peace of mind for you and freedom for your dog.',
-        image: aboutData.whyFieldsySection?.image || '/about/dog2.png',
+        image: aboutData.whyFieldsySection?.image || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
         boxTitle: aboutData.whyFieldsySection?.boxTitle || "Let's Build the Future of Field Intelligence",
         boxDescription: aboutData.whyFieldsySection?.boxDescription || "Fieldsy is more than a tool—it's a platform for innovation and transformation in field operations. We're constantly evolving with feedback, and we're here to help you work smarter on-site, every day.",
         buttonText: aboutData.whyFieldsySection?.buttonText || 'Download App',
         features: aboutData.whyFieldsySection?.features || [
-          { icon: '', title: '', description: '100% secure, fully-fenced fields verified by our team', order: 1 },
-          { icon: '', title: '', description: 'Easy booking system - find and reserve in minutes', order: 2 },
-          { icon: '', title: '', description: 'Trusted by thousands of dog owners across the UK', order: 3 },
-          { icon: '', title: '', description: 'Perfect for reactive, nervous, or energetic dogs', order: 4 }
+          { icon: 'CheckCircle', title: 'Secure & Private', description: 'Designed with compliance, transparency, and usability in mind', order: 1 },
+          { icon: 'MapPin', title: 'Local & Convenient', description: 'Lightweight, mobile-friendly, and easy to use', order: 2 },
+          { icon: 'Calendar', title: 'Flexible Booking', description: 'Scalable across teams, projects, and regions', order: 3 },
+          { icon: 'Shield', title: 'Trusted Community', description: 'Built for the field, not just the office', order: 4 }
         ]
       });
     }
@@ -207,11 +214,11 @@ export default function Settings() {
         bannerText: settings.bannerText || 'Find Safe, private dog walking fields',
         highlightedText: settings.highlightedText || 'near you',
         aboutTitle: settings.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
-        aboutDogImage: settings.aboutDogImage || '/about/dog2.png',
-        aboutFamilyImage: settings.aboutFamilyImage || '/about/fam.png',
+        aboutDogImage: settings.aboutDogImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
+        aboutFamilyImage: settings.aboutFamilyImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
         aboutDogIcons: settings.aboutDogIcons || [],
-        platformDogOwnersImage: settings.platformDogOwnersImage || '/platform-section/img1.png',
-        platformFieldOwnersImage: settings.platformFieldOwnersImage || '/platform-section/img2.png',
+        platformDogOwnersImage: settings.platformDogOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp',
+        platformFieldOwnersImage: settings.platformFieldOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp',
         platformTitle: settings.platformTitle || 'One Platform, Two Tail-Wagging Experiences',
         platformDogOwnersSubtitle: settings.platformDogOwnersSubtitle || 'For Dog Owners:',
         platformDogOwnersTitle: settings.platformDogOwnersTitle || 'Find & Book Private Dog Walking Fields in Seconds',
@@ -219,6 +226,11 @@ export default function Settings() {
         platformFieldOwnersSubtitle: settings.platformFieldOwnersSubtitle || 'For Field Owners:',
         platformFieldOwnersTitle: settings.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
         platformFieldOwnersBullets: settings.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
+        howItWorksTitle: settings.howItWorksTitle || 'How Fieldsy Works',
+        howItWorksSteps: settings.howItWorksSteps || [],
+        landownersSectionTitle: settings.landownersSectionTitle || 'How Fieldsy Works for Landowners',
+        landownersSectionDescription: settings.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.",
+        landownersSectionImage: settings.landownersSectionImage || '',
 
       });
     }
@@ -410,6 +422,7 @@ export default function Settings() {
     { id: 'general', label: 'General', icon: SettingsIcon },
     { id: 'home-page', label: 'Home Page', icon: Home },
     { id: 'about-page', label: 'About Us Page', icon: Edit2 },
+    { id: 'how-it-works-page', label: 'How It Works Page', icon: BookOpen },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'terms', label: 'Terms & Conditions', icon: FileText },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -489,12 +502,15 @@ export default function Settings() {
                   </div>
 
                   <Tabs value={homePageSubTab} onValueChange={setHomePageSubTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-6">
+                    <TabsList className="grid w-full grid-cols-4 mb-6">
                       <TabsTrigger value="hero" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Hero Section
                       </TabsTrigger>
                       <TabsTrigger value="about" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         About Section
+                      </TabsTrigger>
+                      <TabsTrigger value="how-it-works" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        How It Works
                       </TabsTrigger>
                       <TabsTrigger value="platform" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Platform Section
@@ -511,6 +527,14 @@ export default function Settings() {
 
                     <TabsContent value="about" className="mt-0">
                       <AboutSectionSettings
+                        formData={formData}
+                        setFormData={setFormData}
+                        setHasChanges={setHasChanges}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="how-it-works" className="mt-0">
+                      <HowItWorksSettings
                         formData={formData}
                         setFormData={setFormData}
                         setHasChanges={setHasChanges}
@@ -547,6 +571,66 @@ export default function Settings() {
                 />
               )}
 
+              {activeTab === 'how-it-works-page' && (
+                <div className="space-y-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">How It Works Page Settings</h2>
+                    <p className="text-gray-600 mt-1">Manage the "For Landowners" section on the How It Works page</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Section Title
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({(formData.landownersSectionTitle || '').length}/150 characters)
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.landownersSectionTitle || 'How Fieldsy Works for Landowners'}
+                      onChange={(e) => {
+                        setFormData((prev: any) => ({ ...prev, landownersSectionTitle: e.target.value }));
+                        setHasChanges(true);
+                      }}
+                      maxLength={150}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Section Description
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({(formData.landownersSectionDescription || '').length}/500 characters)
+                      </span>
+                    </label>
+                    <textarea
+                      value={formData.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible."}
+                      onChange={(e) => {
+                        setFormData((prev: any) => ({ ...prev, landownersSectionDescription: e.target.value }));
+                        setHasChanges(true);
+                      }}
+                      maxLength={500}
+                      rows={3}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    />
+                  </div>
+
+                  <div>
+                    <SettingsImageUploader
+                      label="Section Image"
+                      description="Image displayed on the left side of the Landowners section"
+                      value={formData.landownersSectionImage}
+                      onChange={(url) => {
+                        setFormData((prev: any) => ({ ...prev, landownersSectionImage: url as string }));
+                        setHasChanges(true);
+                      }}
+                      aspectRatio="portrait"
+                    />
+                  </div>
+                </div>
+              )}
+
               {activeTab === 'faqs' && (
                 <FAQSettings
                   faqs={faqs}
@@ -576,7 +660,7 @@ export default function Settings() {
               )}
 
               {/* Save Button - Always visible when there are changes */}
-              {(activeTab === 'general' || activeTab === 'home-page' || activeTab === 'notifications') && (
+              {(activeTab === 'general' || activeTab === 'home-page' || activeTab === 'how-it-works-page' || activeTab === 'notifications') && (
                 <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
                   <div className="flex items-center justify-between">
                     <button

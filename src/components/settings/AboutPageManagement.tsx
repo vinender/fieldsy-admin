@@ -154,8 +154,8 @@ export default function AboutPageManagement({
 
       <Tabs defaultValue="hero" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="hero">Hero Section</TabsTrigger>
-          <TabsTrigger value="mission">Mission</TabsTrigger>
+          <TabsTrigger value="hero">All in One Platform</TabsTrigger>
+          <TabsTrigger value="mission">Our Mission</TabsTrigger>
           <TabsTrigger value="who">Who We Are</TabsTrigger>
           <TabsTrigger value="what">What We Do</TabsTrigger>
           <TabsTrigger value="why">Why Fieldsy</TabsTrigger>
@@ -165,7 +165,7 @@ export default function AboutPageManagement({
         <TabsContent value="hero" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Hero Section</CardTitle>
+              <CardTitle>All in One Platform Section</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4">
