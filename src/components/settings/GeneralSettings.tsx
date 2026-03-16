@@ -240,18 +240,14 @@ export default function GeneralSettings({ formData, handleChange }: GeneralSetti
         </p>
       </div>
 
+      {/* Payout schedule is fixed to after_cancellation_window — not configurable */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Payout Release Schedule
-          <span className="text-xs text-gray-500 ml-1">(When to release field owner payments)</span>
         </label>
-        <CustomSelect
-          options={payoutOptions}
-          value={formData.payoutReleaseSchedule || 'after_cancellation_window'}
-          onChange={handleSelectChange}
-          name="payoutReleaseSchedule"
-          placeholder="Select payout schedule"
-        />
+        <div className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-700">
+          After Cancellation Window — Payouts are released to field owners after the cancellation window ({formData.cancellationWindowHours || 12} hours) expires
+        </div>
       </div>
 
       <div className="flex items-center">

@@ -348,8 +348,6 @@ export default function Fields() {
                       <TableHead>Location</TableHead>
                       <TableHead>Field Price</TableHead>
                       {/* <TableHead>Earnings</TableHead> */}
-                      <TableHead>Max Dogs</TableHead>
-                      <TableHead>Entry Code</TableHead>
                       <TableHead>Joined On</TableHead>
                       <TableHead>Claimed</TableHead>
                       <TableHead>Status</TableHead>
@@ -403,18 +401,6 @@ export default function Fields() {
                         {/* <TableCell className="font-medium text-gray-900">
                           {formatCurrency(field.totalEarnings || 0)}
                         </TableCell> */}
-                        <TableCell className="text-gray-500">
-                          {field.maxDogs || 10}
-                        </TableCell>
-                        <TableCell>
-                          {field.entryCode ? (
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-sm font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
-                              {field.entryCode}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Not set</span>
-                          )}
-                        </TableCell>
                         <TableCell className="text-gray-500">
                           {field.joinedOn || formatMonthYear(field.createdAt)}
                         </TableCell>
