@@ -5,7 +5,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -20,6 +20,7 @@ import FAQSettings from '@/components/settings/FAQSettings';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 import NotificationsSettings from '@/components/settings/NotificationsSettings';
 import TermsSettings from '@/components/settings/TermsSettings';
+import PrivacyPolicySettings from '@/components/settings/PrivacyPolicySettings';
 
 export default function Settings() {
   const router = useRouter();
@@ -425,6 +426,7 @@ export default function Settings() {
     { id: 'how-it-works-page', label: 'How It Works Page', icon: BookOpen },
     { id: 'faqs', label: 'FAQs', icon: HelpCircle },
     { id: 'terms', label: 'Terms & Conditions', icon: FileText },
+    { id: 'privacy-policy', label: 'Privacy Policy', icon: Shield },
     { id: 'notifications', label: 'Notifications', icon: Bell },
   ];
 
@@ -650,6 +652,10 @@ export default function Settings() {
 
               {activeTab === 'terms' && (
                 <TermsSettings />
+              )}
+
+              {activeTab === 'privacy-policy' && (
+                <PrivacyPolicySettings />
               )}
 
               {activeTab === 'notifications' && (
