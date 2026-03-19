@@ -1,9 +1,11 @@
 import React from 'react';
+import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 
 interface BannerSettingsProps {
   formData: {
     bannerText: string;
     highlightedText: string;
+    heroBackgroundImage: string;
   };
   setFormData: (data: any) => void;
   setHasChanges: (value: boolean) => void;
@@ -25,6 +27,22 @@ export default function BannerSettings({ formData, setFormData, setHasChanges }:
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Hero Banner Settings</h2>
+
+      {/* Hero Background Image */}
+      <div>
+        <SettingsImageUploader
+          label="Hero Background Image"
+          value={formData.heroBackgroundImage || ''}
+          onChange={(url) => {
+            setFormData((prev: any) => ({ ...prev, heroBackgroundImage: url as string }));
+            setHasChanges(true);
+          }}
+          aspectRatio="video"
+        />
+        <p className="mt-1 text-sm text-gray-500">
+          Upload a high-quality landscape image for the hero section background. Recommended: 1920x1080 or larger.
+        </p>
+      </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -101,6 +119,7 @@ export default function BannerSettings({ formData, setFormData, setHasChanges }:
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <h4 className="text-sm font-semibold text-blue-900 mb-2">Instructions:</h4>
         <ul className="text-sm text-blue-800 space-y-1">
+          <li>• Upload a hero background image (landscape, 1920x1080 or larger recommended)</li>
           <li>• The banner text is the main heading displayed on the homepage hero section</li>
           <li>• The highlighted text should be a portion of the banner text that you want to emphasize</li>
           <li>• The highlighted text will appear in green color</li>
