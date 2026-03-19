@@ -25,6 +25,17 @@ export function useUploadFile() {
   });
 }
 
+export function useDeleteFile() {
+  return useMutation({
+    mutationFn: async (url: string) => {
+      const response = await axiosClient.delete('/upload/admin/delete', {
+        data: { url },
+      });
+      return response.data;
+    },
+  });
+}
+
 export function useUploadSingle() {
   return useMutation({
     mutationFn: async (file: File) => {
