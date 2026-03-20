@@ -351,7 +351,7 @@ export default function Fields() {
                       <TableHead>Joined On</TableHead>
                       <TableHead>Claimed</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Approved</TableHead>
+                      <TableHead>Show/Hide</TableHead>
                       <TableHead>Block/Unblock</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -421,7 +421,7 @@ export default function Fields() {
                             {field.isActive ? 'Active' : 'Disabled'}
                           </span>
                         </TableCell>
-                        {/* Approved - Admin controlled (only for submitted fields) */}
+                        {/* Show/Hide - Admin controlled (only for submitted fields) */}
                         <TableCell>
                           {field.isSubmitted ? (
                             <button
@@ -429,7 +429,7 @@ export default function Fields() {
                               disabled={toggleApprovedMutation.isPending}
                               className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green focus:ring-offset-2 disabled:opacity-50"
                               style={{ backgroundColor: field.isApproved ? '#22c55e' : '#e5e7eb' }}
-                              title={field.isApproved ? 'Field is approved - Click to unapprove' : 'Field is not approved - Click to approve'}
+                              title={field.isApproved ? 'Field is visible - Click to hide' : 'Field is hidden - Click to show'}
                             >
                               <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${field.isApproved ? 'translate-x-6' : 'translate-x-1'
@@ -654,7 +654,7 @@ export default function Fields() {
                     <AlertTriangle className={`w-5 h-5 ${selectedFieldForApprove.isApproved ? 'text-amber-600' : 'text-white'}`} />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {selectedFieldForApprove.isApproved ? 'Unapprove Field' : 'Approve Field'}
+                    {selectedFieldForApprove.isApproved ? 'Hide Field' : 'Show Field'}
                   </h3>
                 </div>
                 <button
@@ -670,12 +670,12 @@ export default function Fields() {
                 <p className="text-gray-600 mb-4">
                   {selectedFieldForApprove.isApproved ? (
                     <>
-                      Are you sure you want to <span className="font-semibold text-amber-600">unapprove</span> this field?
-                      The field will be deactivated and hidden from public listings.
+                      Are you sure you want to <span className="font-semibold text-amber-600">hide</span> this field?
+                      The field will be hidden from public listings.
                     </>
                   ) : (
                     <>
-                      Are you sure you want to <span className="font-semibold text-green">approve</span> this field?
+                      Are you sure you want to <span className="font-semibold text-green">show</span> this field?
                       The field will become visible in public listings and the owner will be notified.
                     </>
                   )}
@@ -720,10 +720,10 @@ export default function Fields() {
                   {toggleApprovedMutation.isPending ? (
                     <span className="flex items-center justify-center gap-2">
                       <Spinner size="sm" />
-                      {selectedFieldForApprove.isApproved ? 'Unapproving...' : 'Approving...'}
+                      {selectedFieldForApprove.isApproved ? 'Hiding...' : 'Showing...'}
                     </span>
                   ) : (
-                    selectedFieldForApprove.isApproved ? 'Unapprove Field' : 'Approve Field'
+                    selectedFieldForApprove.isApproved ? 'Hide Field' : 'Show Field'
                   )}
                 </button>
               </div>

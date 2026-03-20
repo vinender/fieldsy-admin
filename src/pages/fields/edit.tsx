@@ -777,17 +777,12 @@ export default function AdminFieldEdit() {
               <Section title="Admin Controls">
                 <div className="flex flex-wrap gap-6">
                   <ToggleField
-                    label="Active"
-                    checked={formData.isActive}
-                    onChange={v => handleChange('isActive', v)}
-                  />
-                  <ToggleField
                     label="Claimed"
                     checked={formData.isClaimed}
                     onChange={v => handleChange('isClaimed', v)}
                   />
                   <ToggleField
-                    label="Approved"
+                    label="Show/Hide"
                     checked={formData.isApproved}
                     onChange={v => handleChange('isApproved', v)}
                   />
