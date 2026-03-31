@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'fieldsy.s3.us-east-1.amazonaws.com',
+        hostname: 'fieldsy-s3.s3.eu-west-2.amazonaws.com',
         port: '',
         pathname: '/**',
       },
