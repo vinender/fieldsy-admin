@@ -40,6 +40,12 @@ interface SystemSettings {
   landownersSectionTitle?: string;
   landownersSectionDescription?: string;
   landownersSectionImage?: string;
+  aboutSectionTitle?: string;
+  aboutSectionSubtitle?: string;
+  aboutSectionMainText?: string;
+  aboutSectionSecondaryText?: string;
+  aboutSectionTrustedTitle?: string;
+  aboutSectionTrustedSubtitle?: string;
   termsAndConditions?: any[];
   createdAt: string;
   updatedAt: string;
