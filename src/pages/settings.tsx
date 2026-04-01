@@ -17,6 +17,7 @@ import AboutSectionSettings from '@/components/settings/AboutSectionSettings';
 import PlatformSettings from '@/components/settings/PlatformSettings';
 import HowItWorksSettings from '@/components/settings/HowItWorksSettings';
 import StatisticsSettings from '@/components/settings/StatisticsSettings';
+import AboutSectionContentSettings from '@/components/settings/AboutSectionContentSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
 import FAQSettings from '@/components/settings/FAQSettings';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
@@ -78,6 +79,12 @@ export default function Settings() {
     landownersSectionTitle: '',
     landownersSectionDescription: '',
     landownersSectionImage: '',
+    aboutSectionTitle: '',
+    aboutSectionSubtitle: '',
+    aboutSectionMainText: '',
+    aboutSectionSecondaryText: '',
+    aboutSectionTrustedTitle: '',
+    aboutSectionTrustedSubtitle: '',
 
   });
   const [faqs, setFaqs] = useState<any[]>([]);
@@ -240,6 +247,12 @@ export default function Settings() {
         landownersSectionTitle: settings.landownersSectionTitle || 'How Fieldsy Works for Landowners',
         landownersSectionDescription: settings.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.",
         landownersSectionImage: settings.landownersSectionImage || '',
+        aboutSectionTitle: settings.aboutSectionTitle || 'Fieldsy helps dog owners find and book private dog walking fields for safer, calmer, and more enjoyable off-lead time.',
+        aboutSectionSubtitle: settings.aboutSectionSubtitle || 'Whether your dog needs space for training, confidence, or simply a good run, we make it easier to find the right field.',
+        aboutSectionMainText: settings.aboutSectionMainText || '',
+        aboutSectionSecondaryText: settings.aboutSectionSecondaryText || '',
+        aboutSectionTrustedTitle: settings.aboutSectionTrustedTitle || 'Trusted by dog owners across the UK',
+        aboutSectionTrustedSubtitle: settings.aboutSectionTrustedSubtitle || 'Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.',
 
       });
     }
@@ -542,12 +555,12 @@ export default function Settings() {
                   </div>
 
                   <Tabs value={homePageSubTab} onValueChange={setHomePageSubTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-5 mb-6">
+                    <TabsList className="grid w-full grid-cols-6 mb-6">
                       <TabsTrigger value="hero" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Hero Section
                       </TabsTrigger>
                       <TabsTrigger value="about" className="data-[state=active]:bg-green data-[state=active]:text-white">
-                        About Section
+                        About Content
                       </TabsTrigger>
                       <TabsTrigger value="statistics" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Statistics
@@ -556,7 +569,7 @@ export default function Settings() {
                         How It Works
                       </TabsTrigger>
                       <TabsTrigger value="platform" className="data-[state=active]:bg-green data-[state=active]:text-white">
-                        Platform Section
+                        Platform
                       </TabsTrigger>
                     </TabsList>
 
@@ -569,7 +582,7 @@ export default function Settings() {
                     </TabsContent>
 
                     <TabsContent value="about" className="mt-0">
-                      <AboutSectionSettings
+                      <AboutSectionContentSettings
                         formData={formData}
                         setFormData={setFormData}
                         setHasChanges={setHasChanges}
