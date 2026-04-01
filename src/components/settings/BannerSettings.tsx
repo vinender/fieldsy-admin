@@ -226,7 +226,7 @@ export default function BannerSettings({ formData, setFormData, setHasChanges }:
           onChange={handleChange}
           maxLength={CHAR_LIMITS.bannerText}
           rows={3}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
           placeholder="Enter the main banner text..."
         />
       </div>
@@ -245,7 +245,7 @@ export default function BannerSettings({ formData, setFormData, setHasChanges }:
           onChange={handleChange}
           maxLength={CHAR_LIMITS.highlightedText}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
           placeholder="Enter the text to highlight..."
         />
       </div>

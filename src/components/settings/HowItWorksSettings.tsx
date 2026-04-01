@@ -114,7 +114,7 @@ export default function HowItWorksSettings({ formData, setFormData, setHasChange
           onChange={(e) => updateTitle(e.target.value)}
           maxLength={CHAR_LIMITS.title}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
           placeholder="e.g., How Fieldsy Works"
         />
       </div>
@@ -160,7 +160,7 @@ export default function HowItWorksSettings({ formData, setFormData, setHasChange
                   onChange={(e) => updateStep(index, 'title', e.target.value)}
                   maxLength={CHAR_LIMITS.stepTitle}
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-vertical"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-vertical whitespace-pre-wrap break-words"
                   placeholder="Step title"
                 />
               </div>

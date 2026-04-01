@@ -210,7 +210,7 @@ export default function AboutPageManagement({
                   </Label>
                   <textarea
                     id="description"
-                    className="w-full p-2 border rounded-md min-h-[100px]"
+                    className="w-full p-2 border rounded-md min-h-[100px] whitespace-pre-wrap break-words"
                     value={aboutHeroSection.description}
                     onChange={(e) => setAboutHeroSection({ ...aboutHeroSection, description: e.target.value })}
                     maxLength={CHAR_LIMITS.description}
@@ -292,7 +292,7 @@ export default function AboutPageManagement({
                   </Label>
                   <textarea
                     id="missionDescription"
-                    className="w-full p-2 border rounded-md min-h-[100px]"
+                    className="w-full p-2 border rounded-md min-h-[100px] whitespace-pre-wrap break-words"
                     value={aboutMissionSection.description}
                     onChange={(e) => setAboutMissionSection({ ...aboutMissionSection, description: e.target.value })}
                     maxLength={CHAR_LIMITS.description}
@@ -376,7 +376,7 @@ export default function AboutPageManagement({
                     </Label>
                     <textarea
                       id="whoDescription"
-                      className="w-full p-2 border rounded-md min-h-[100px]"
+                      className="w-full p-2 border rounded-md min-h-[100px] whitespace-pre-wrap break-words"
                       value={aboutWhoWeAreSection.description}
                       onChange={(e) => setAboutWhoWeAreSection({ ...aboutWhoWeAreSection, description: e.target.value })}
                       maxLength={CHAR_LIMITS.description}
@@ -436,7 +436,7 @@ export default function AboutPageManagement({
                     </Label>
                     <textarea
                       id="rightDescription"
-                      className="w-full p-2 border rounded-md min-h-[80px]"
+                      className="w-full p-2 border rounded-md min-h-[80px] whitespace-pre-wrap break-words"
                       value={aboutWhoWeAreSection.rightCardDescription}
                       onChange={(e) => setAboutWhoWeAreSection({ ...aboutWhoWeAreSection, rightCardDescription: e.target.value })}
                       maxLength={CHAR_LIMITS.description}
@@ -517,7 +517,7 @@ export default function AboutPageManagement({
                   </Label>
                   <textarea
                     id="whatDescription"
-                    className="w-full p-2 border rounded-md min-h-[100px]"
+                    className="w-full p-2 border rounded-md min-h-[100px] whitespace-pre-wrap break-words"
                     value={aboutWhatWeDoSection.description}
                     onChange={(e) => setAboutWhatWeDoSection({ ...aboutWhatWeDoSection, description: e.target.value })}
                     maxLength={CHAR_LIMITS.description}
@@ -574,7 +574,7 @@ export default function AboutPageManagement({
                         </div>
                         <div>
                           <textarea
-                            className="w-full p-2 border rounded-md min-h-[60px]"
+                            className="w-full p-2 border rounded-md min-h-[60px] whitespace-pre-wrap break-words"
                             value={feature.description}
                             onChange={(e) => {
                               const newFeatures = [...aboutWhatWeDoSection.features];
@@ -664,7 +664,7 @@ export default function AboutPageManagement({
                     </Label>
                     <textarea
                       id="whySubtitle"
-                      className="w-full p-2 border rounded-md min-h-[80px]"
+                      className="w-full p-2 border rounded-md min-h-[80px] whitespace-pre-wrap break-words"
                       value={aboutWhyFieldsySection.subtitle}
                       onChange={(e) => setAboutWhyFieldsySection({ ...aboutWhyFieldsySection, subtitle: e.target.value })}
                       maxLength={CHAR_LIMITS.subtitle}
@@ -751,7 +751,7 @@ export default function AboutPageManagement({
                       </Label>
                       <textarea
                         id="boxDescription"
-                        className="w-full p-2 border rounded-md min-h-[80px]"
+                        className="w-full p-2 border rounded-md min-h-[80px] whitespace-pre-wrap break-words"
                         value={aboutWhyFieldsySection.boxDescription}
                         onChange={(e) => setAboutWhyFieldsySection({ ...aboutWhyFieldsySection, boxDescription: e.target.value })}
                         maxLength={CHAR_LIMITS.boxDescription}

@@ -76,7 +76,7 @@ export default function PlatformSettings({
           onChange={handleChange}
           maxLength={CHAR_LIMITS.platformTitle}
           rows={2}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
           placeholder="Enter the main platform section title..."
         />
         <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.platformTitle} characters</p>
@@ -99,7 +99,7 @@ export default function PlatformSettings({
             onChange={handleChange}
             maxLength={CHAR_LIMITS.subtitle}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
             placeholder="e.g., For Dog Owners:"
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
@@ -118,7 +118,7 @@ export default function PlatformSettings({
             onChange={handleChange}
             maxLength={CHAR_LIMITS.title}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
             placeholder="Enter the dog owners card title..."
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
@@ -137,7 +137,7 @@ export default function PlatformSettings({
                     onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
                     maxLength={CHAR_LIMITS.bullet}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
                     placeholder="Enter bullet point..."
                   />
                   <p className="text-xs text-gray-500 mt-0.5 ml-1">
@@ -194,7 +194,7 @@ export default function PlatformSettings({
             onChange={handleChange}
             maxLength={CHAR_LIMITS.subtitle}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
             placeholder="e.g., For Field Owners:"
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
@@ -213,7 +213,7 @@ export default function PlatformSettings({
             onChange={handleChange}
             maxLength={CHAR_LIMITS.title}
             rows={2}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
             placeholder="Enter the field owners card title..."
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
@@ -232,7 +232,7 @@ export default function PlatformSettings({
                     onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
                     maxLength={CHAR_LIMITS.bullet}
                     rows={2}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical whitespace-pre-wrap break-words"
                     placeholder="Enter bullet point..."
                   />
                   <p className="text-xs text-gray-500 mt-0.5 ml-1">
