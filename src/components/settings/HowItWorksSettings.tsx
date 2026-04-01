@@ -109,12 +109,12 @@ export default function HowItWorksSettings({ formData, setFormData, setHasChange
             ({(formData.howItWorksTitle || '').length}/{CHAR_LIMITS.title} characters)
           </span>
         </label>
-        <input
-          type="text"
+        <textarea
           value={formData.howItWorksTitle || 'How Fieldsy Works'}
           onChange={(e) => updateTitle(e.target.value)}
           maxLength={CHAR_LIMITS.title}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          rows={2}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
           placeholder="e.g., How Fieldsy Works"
         />
       </div>
@@ -155,12 +155,12 @@ export default function HowItWorksSettings({ formData, setFormData, setHasChange
                     ({(step.title || '').length}/{CHAR_LIMITS.stepTitle})
                   </span>
                 </label>
-                <input
-                  type="text"
+                <textarea
                   value={step.title}
                   onChange={(e) => updateStep(index, 'title', e.target.value)}
                   maxLength={CHAR_LIMITS.stepTitle}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm resize-vertical"
                   placeholder="Step title"
                 />
               </div>

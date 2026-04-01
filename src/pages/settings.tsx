@@ -16,6 +16,7 @@ import BannerSettings from '@/components/settings/BannerSettings';
 import AboutSectionSettings from '@/components/settings/AboutSectionSettings';
 import PlatformSettings from '@/components/settings/PlatformSettings';
 import HowItWorksSettings from '@/components/settings/HowItWorksSettings';
+import StatisticsSettings from '@/components/settings/StatisticsSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
 import FAQSettings from '@/components/settings/FAQSettings';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
@@ -35,6 +36,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('general');
   const [homePageSubTab, setHomePageSubTab] = useState('hero');
   const [hasChanges, setHasChanges] = useState(false);
+  const [statistics, setStatistics] = useState<Array<{ value: string; label: string; order: number }>>([]);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [formData, setFormData] = useState({
     siteName: '',
@@ -243,6 +245,20 @@ export default function Settings() {
     }
   }, [settings]);
 
+
+  // Initialize and sync statistics from aboutData and formData
+  useEffect(() => {
+    if (aboutData?.heroSection?.stats && aboutData.heroSection.stats.length > 0) {
+      setStatistics(aboutData.heroSection.stats);
+    }
+  }, [aboutData]);
+
+  // Sync statistics back to aboutHeroSection when they change
+  useEffect(() => {
+    if (statistics.length > 0) {
+      setAboutHeroSection({ ...aboutHeroSection, stats: statistics });
+    }
+  }, [statistics]);
 
   useEffect(() => {
     if (admin) {
@@ -526,12 +542,15 @@ export default function Settings() {
                   </div>
 
                   <Tabs value={homePageSubTab} onValueChange={setHomePageSubTab} className="w-full">
-                    <TabsList className="grid w-full grid-cols-4 mb-6">
+                    <TabsList className="grid w-full grid-cols-5 mb-6">
                       <TabsTrigger value="hero" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Hero Section
                       </TabsTrigger>
                       <TabsTrigger value="about" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         About Section
+                      </TabsTrigger>
+                      <TabsTrigger value="statistics" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        Statistics
                       </TabsTrigger>
                       <TabsTrigger value="how-it-works" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         How It Works
@@ -553,6 +572,14 @@ export default function Settings() {
                       <AboutSectionSettings
                         formData={formData}
                         setFormData={setFormData}
+                        setHasChanges={setHasChanges}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="statistics" className="mt-0">
+                      <StatisticsSettings
+                        stats={statistics}
+                        setStats={setStatistics}
                         setHasChanges={setHasChanges}
                       />
                     </TabsContent>

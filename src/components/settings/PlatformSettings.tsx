@@ -70,13 +70,13 @@ export default function PlatformSettings({
             ({formData.platformTitle.length}/{CHAR_LIMITS.platformTitle} characters)
           </span>
         </label>
-        <input
-          type="text"
+        <textarea
           name="platformTitle"
           value={formData.platformTitle}
           onChange={handleChange}
           maxLength={CHAR_LIMITS.platformTitle}
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+          rows={2}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
           placeholder="Enter the main platform section title..."
         />
         <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.platformTitle} characters</p>
@@ -93,13 +93,13 @@ export default function PlatformSettings({
               ({formData.platformDogOwnersSubtitle.length}/{CHAR_LIMITS.subtitle} characters)
             </span>
           </label>
-          <input
-            type="text"
+          <textarea
             name="platformDogOwnersSubtitle"
             value={formData.platformDogOwnersSubtitle}
             onChange={handleChange}
             maxLength={CHAR_LIMITS.subtitle}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
             placeholder="e.g., For Dog Owners:"
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
@@ -112,13 +112,13 @@ export default function PlatformSettings({
               ({formData.platformDogOwnersTitle.length}/{CHAR_LIMITS.title} characters)
             </span>
           </label>
-          <input
-            type="text"
+          <textarea
             name="platformDogOwnersTitle"
             value={formData.platformDogOwnersTitle}
             onChange={handleChange}
             maxLength={CHAR_LIMITS.title}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
             placeholder="Enter the dog owners card title..."
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
@@ -130,14 +130,14 @@ export default function PlatformSettings({
           </label>
           <div className="space-y-2">
             {formData.platformDogOwnersBullets.map((bullet, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-start gap-2">
                 <div className="flex-1">
-                  <input
-                    type="text"
+                  <textarea
                     value={bullet}
                     onChange={(e) => handleBulletChange('platformDogOwnersBullets', index, e.target.value)}
                     maxLength={CHAR_LIMITS.bullet}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
                     placeholder="Enter bullet point..."
                   />
                   <p className="text-xs text-gray-500 mt-0.5 ml-1">
@@ -146,7 +146,7 @@ export default function PlatformSettings({
                 </div>
                 <button
                   onClick={() => removeBullet('platformDogOwnersBullets', index)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1"
                   title="Remove bullet"
                 >
                   <X className="w-5 h-5" />
@@ -180,7 +180,7 @@ export default function PlatformSettings({
       {/* Field Owners Section */}
       <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
         <h3 className="font-semibold text-gray-900">Field Owners Card</h3>
-        
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Subtitle (Green Text)
@@ -188,13 +188,13 @@ export default function PlatformSettings({
               ({formData.platformFieldOwnersSubtitle.length}/{CHAR_LIMITS.subtitle} characters)
             </span>
           </label>
-          <input
-            type="text"
+          <textarea
             name="platformFieldOwnersSubtitle"
             value={formData.platformFieldOwnersSubtitle}
             onChange={handleChange}
             maxLength={CHAR_LIMITS.subtitle}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
             placeholder="e.g., For Field Owners:"
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.subtitle} characters</p>
@@ -207,13 +207,13 @@ export default function PlatformSettings({
               ({formData.platformFieldOwnersTitle.length}/{CHAR_LIMITS.title} characters)
             </span>
           </label>
-          <input
-            type="text"
+          <textarea
             name="platformFieldOwnersTitle"
             value={formData.platformFieldOwnersTitle}
             onChange={handleChange}
             maxLength={CHAR_LIMITS.title}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+            rows={2}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
             placeholder="Enter the field owners card title..."
           />
           <p className="text-xs text-gray-500 mt-1">Maximum {CHAR_LIMITS.title} characters</p>
@@ -225,14 +225,14 @@ export default function PlatformSettings({
           </label>
           <div className="space-y-2">
             {formData.platformFieldOwnersBullets.map((bullet, index) => (
-              <div key={index} className="flex items-center gap-2">
+              <div key={index} className="flex items-start gap-2">
                 <div className="flex-1">
-                  <input
-                    type="text"
+                  <textarea
                     value={bullet}
                     onChange={(e) => handleBulletChange('platformFieldOwnersBullets', index, e.target.value)}
                     maxLength={CHAR_LIMITS.bullet}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                    rows={2}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-vertical"
                     placeholder="Enter bullet point..."
                   />
                   <p className="text-xs text-gray-500 mt-0.5 ml-1">
@@ -241,7 +241,7 @@ export default function PlatformSettings({
                 </div>
                 <button
                   onClick={() => removeBullet('platformFieldOwnersBullets', index)}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-1"
                   title="Remove bullet"
                 >
                   <X className="w-5 h-5" />

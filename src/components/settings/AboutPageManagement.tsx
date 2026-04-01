@@ -226,68 +226,13 @@ export default function AboutPageManagement({
                   aspectRatio="video"
                 />
 
-                {/* Stats Section */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <Label>Statistics</Label>
-                    <Button
-                      type="button"
-                      onClick={() => setAboutHeroSection({
-                        ...aboutHeroSection,
-                        stats: [...aboutHeroSection.stats, { value: '', label: '', order: aboutHeroSection.stats.length + 1 }]
-                      })}
-                      size="sm"
-                      variant="outline"
-                    >
-                      <Plus className="w-4 h-4 mr-1" />
-                      Add Stat
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {aboutHeroSection.stats.map((stat: any, index: number) => (
-                      <div key={index} className="flex gap-2 items-start">
-                        <div className="flex-1">
-                          <Input
-                            value={stat.value}
-                            onChange={(e) => {
-                              const newStats = [...aboutHeroSection.stats];
-                              newStats[index] = { ...newStats[index], value: e.target.value };
-                              setAboutHeroSection({ ...aboutHeroSection, stats: newStats });
-                            }}
-                            maxLength={CHAR_LIMITS.statValue}
-                            placeholder="Value (e.g., 500+)"
-                            className="w-24 px-2"
-                          />
-                          <p className="text-xs text-gray-500 ml-1 mt-0.5">{stat.value?.length || 0}/{CHAR_LIMITS.statValue}</p>
-                        </div>
-                        <div className="flex-2">
-                          <Input
-                            value={stat.label}
-                            onChange={(e) => {
-                              const newStats = [...aboutHeroSection.stats];
-                              newStats[index] = { ...newStats[index], label: e.target.value };
-                              setAboutHeroSection({ ...aboutHeroSection, stats: newStats });
-                            }}
-                            maxLength={CHAR_LIMITS.statLabel}
-                            placeholder="Label (e.g., Happy Customers)"
-                          />
-                          <p className="text-xs text-gray-500 ml-1 mt-0.5">{stat.label?.length || 0}/{CHAR_LIMITS.statLabel}</p>
-                        </div>
-                        <Button
-                          type="button"
-                          onClick={() => {
-                            const newStats = aboutHeroSection.stats.filter((_: any, i: number) => i !== index);
-                            setAboutHeroSection({ ...aboutHeroSection, stats: newStats });
-                          }}
-                          size="sm"
-                          variant="destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                {/* Statistics Note */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">Statistics</h4>
+                  <p className="text-sm text-blue-800">
+                    Statistics are managed centrally in <strong>Home Page Settings → Statistics</strong>.
+                    These statistics appear on both the home page and this about page hero section.
+                  </p>
                 </div>
 
                 <Button
