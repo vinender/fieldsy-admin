@@ -5,7 +5,7 @@ import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen, Shield, Loader } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen, Shield } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -80,11 +80,6 @@ export default function Settings() {
   const [editingFAQ, setEditingFAQ] = useState<any>(null);
   const [showFAQModal, setShowFAQModal] = useState(false);
   const [savingFAQs, setSavingFAQs] = useState(false);
-
-  // Auto-save state
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastSavedDataRef = useRef<any>(null);
 
   // About Page state
   const [aboutHeroSection, setAboutHeroSection] = useState({
@@ -364,54 +359,68 @@ export default function Settings() {
     }
   };
 
-  // Auto-save effect: saves formData 1.5 seconds after last change
+  // Refetch data on window refocus (without page reload)
   useEffect(() => {
-    // Clear existing timer
-    if (autoSaveTimerRef.current) {
-      clearTimeout(autoSaveTimerRef.current);
-    }
-
-    // If data hasn't changed from last saved, skip
-    if (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData)) {
-      return;
-    }
-
-    // Skip if settings haven't loaded yet
-    if (!settings) {
-      return;
-    }
-
-    // Set saving status
-    setAutoSaveStatus('saving');
-
-    // Debounce: only save 1.5 seconds after user stops typing
-    autoSaveTimerRef.current = setTimeout(async () => {
+    const handleFocus = async () => {
       try {
-        // Auto-save all settings
-        await updateSettingsMutation.mutateAsync(formData);
-        lastSavedDataRef.current = formData;
-        setAutoSaveStatus('saved');
-
-        // Clear saved status after 2 seconds
-        setTimeout(() => {
-          setAutoSaveStatus('idle');
-        }, 2000);
-      } catch (error: any) {
-        console.error('Auto-save failed:', error);
-        setAutoSaveStatus('error');
-        // Clear error status after 3 seconds
-        setTimeout(() => {
-          setAutoSaveStatus('idle');
-        }, 3000);
-      }
-    }, 1500); // 1.5 second debounce
-
-    return () => {
-      if (autoSaveTimerRef.current) {
-        clearTimeout(autoSaveTimerRef.current);
+        // Refetch system settings
+        if (settings) {
+          // This triggers a fresh API call via React Query
+          await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure focus
+          // Force invalidate and refetch the query
+          const api = require('@/lib/api').default;
+          const response = await api.get('/settings/admin');
+          setFormData({
+            siteName: response.data.data.siteName || 'Fieldsy',
+            siteUrl: response.data.data.siteUrl || 'https://fieldsy.com',
+            supportEmail: response.data.data.supportEmail || 'support@fieldsy.com',
+            adminEmail: response.data.data.adminEmail || '',
+            maxBookingsPerUser: response.data.data.maxBookingsPerUser || 10,
+            cancellationWindowHours: response.data.data.cancellationWindowHours || 24,
+            maxAdvanceBookingDays: response.data.data.maxAdvanceBookingDays || 30,
+            minimumFieldOperatingHours: response.data.data.minimumFieldOperatingHours || 4,
+            defaultCommissionRate: response.data.data.defaultCommissionRate || 20,
+            payoutReleaseSchedule: response.data.data.payoutReleaseSchedule || 'after_cancellation_window',
+            enableNotifications: response.data.data.enableNotifications ?? true,
+            enableEmailNotifications: response.data.data.enableEmailNotifications ?? true,
+            enableSmsNotifications: response.data.data.enableSmsNotifications ?? false,
+            maintenanceMode: response.data.data.maintenanceMode || false,
+            isLive: response.data.data.isLive ?? true,
+            bypassUsername: response.data.data.bypassUsername || 'admin',
+            bypassPassword: response.data.data.bypassPassword || 'fieldsy123',
+            bannerText: response.data.data.bannerText || 'Find Safe, private dog walking fields',
+            highlightedText: response.data.data.highlightedText || 'near you',
+            heroBackgroundImage: response.data.data.heroBackgroundImage || '',
+            heroBackgroundImages: response.data.data.heroBackgroundImages || [],
+            aboutTitle: response.data.data.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
+            aboutDogImage: response.data.data.aboutDogImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
+            aboutFamilyImage: response.data.data.aboutFamilyImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
+            aboutDogIcons: response.data.data.aboutDogIcons || [],
+            platformDogOwnersImage: response.data.data.platformDogOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp',
+            platformFieldOwnersImage: response.data.data.platformFieldOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp',
+            platformTitle: response.data.data.platformTitle || 'One Platform, Two Tail-Wagging Experiences',
+            platformDogOwnersSubtitle: response.data.data.platformDogOwnersSubtitle || 'For Dog Owners:',
+            platformDogOwnersTitle: response.data.data.platformDogOwnersTitle || 'Find & Book Private Dog Walking Fields in Seconds',
+            platformDogOwnersBullets: response.data.data.platformDogOwnersBullets || ["Stress-free walks for reactive or energetic dogs", "Fully fenced, secure spaces", "GPS-powered search", "Instant hourly bookings"],
+            platformFieldOwnersSubtitle: response.data.data.platformFieldOwnersSubtitle || 'For Field Owners:',
+            platformFieldOwnersTitle: response.data.data.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
+            platformFieldOwnersBullets: response.data.data.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
+            howItWorksTitle: response.data.data.howItWorksTitle || 'How Fieldsy Works',
+            howItWorksSteps: response.data.data.howItWorksSteps || [],
+            landownersSectionTitle: response.data.data.landownersSectionTitle || 'How Fieldsy Works for Landowners',
+            landownersSectionDescription: response.data.data.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.",
+            landownersSectionImage: response.data.data.landownersSectionImage || '',
+          });
+          setHasChanges(false);
+        }
+      } catch (error) {
+        console.error('Error refetching settings on focus:', error);
       }
     };
-  }, [formData, settings, updateSettingsMutation]);
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [settings]);
 
   if (adminLoading || settingsLoading) {
     return (
@@ -723,62 +732,43 @@ export default function Settings() {
                 />
               )}
 
-              {/* Auto-Save Status Indicator */}
+              {/* Save Button - Always visible when there are changes */}
               {(activeTab === 'general' || activeTab === 'home-page' || activeTab === 'how-it-works-page' || activeTab === 'notifications') && (
-                <div className={`mt-6 pt-6 border-t sticky bottom-0 bg-white pb-6 z-10`}>
-                  <div className="flex items-center justify-between gap-4">
-                    {/* Auto-save Status */}
-                    <div className="flex items-center space-x-2">
-                      {autoSaveStatus === 'saving' && (
+                <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
+                  <div className="flex items-center justify-between">
+                    <button
+                      onClick={handleSave}
+                      disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
+                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                        : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
+                        }`}
+                    >
+                      {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
                         <>
-                          <Loader className="w-4 h-4 text-blue-600 animate-spin" />
-                          <span className="text-sm font-medium text-blue-600">Auto-saving...</span>
+                          <Spinner size="sm" />
+                          <span>Saving...</span>
+                        </>
+                      ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess) && !hasChanges ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          <span>Saved Successfully</span>
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-5 h-5 text-white" />
+                          <span className='text-white'>Save Changes</span>
                         </>
                       )}
-                      {autoSaveStatus === 'saved' && (
-                        <>
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                          <span className="text-sm font-medium text-green-600">Auto-saved</span>
-                        </>
-                      )}
-                      {autoSaveStatus === 'error' && (
-                        <>
-                          <XCircle className="w-4 h-4 text-red-600" />
-                          <span className="text-sm font-medium text-red-600">Save failed, retrying...</span>
-                        </>
-                      )}
-                      {autoSaveStatus === 'idle' && hasChanges && (
-                        <>
-                          <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
-                          <span className="text-sm font-medium text-yellow-600">Changes will save automatically</span>
-                        </>
-                      )}
-                    </div>
+                    </button>
 
-                    {/* Manual Save Fallback Button */}
-                    {(hasChanges || autoSaveStatus === 'error') && (
-                      <button
-                        onClick={handleSave}
-                        disabled={updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-all text-sm ${updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-                          : 'bg-green text-white hover:bg-green-700 shadow-md'
-                          }`}
-                        title="Save immediately (changes auto-save after 1.5 seconds of no changes)"
-                      >
-                        {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
-                          <>
-                            <Spinner size="sm" />
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-4 h-4" />
-                            <span>Save Now</span>
-                          </>
-                        )}
-                      </button>
+                    {hasChanges && (
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
+                        <p className="text-sm font-medium text-yellow-600">You have unsaved changes</p>
+                      </div>
                     )}
+
                   </div>
                 </div>
               )}
