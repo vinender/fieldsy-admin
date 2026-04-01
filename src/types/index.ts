@@ -52,7 +52,7 @@ export interface Field {
   lastEditedBy?: string;
   lastEditedByRole?: string;
   lastEditedAt?: string;
-  owner: User;
+  owner?: User | null;
   createdAt: string;
   bookingDuration?: string;
   maxDogs?: number;

@@ -365,7 +365,7 @@ export default function Fields() {
                         <TableCell>
                           <div>
                             <div className="text-sm font-medium text-gray-900">{field.name}</div>
-                            <div className="text-sm text-gray-500">{field.owner.name || 'Unknown Owner'}</div>
+                            <div className="text-sm text-gray-500">{field.owner?.name || 'Unclaimed'}</div>
                           </div>
                         </TableCell>
                         <TableCell>
