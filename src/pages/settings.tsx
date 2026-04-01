@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
 import { useAboutPage, useUpdateAboutSection } from '@/hooks/useAboutPage';
-import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Bell, Save, Check, CheckCircle, XCircle, HelpCircle, Edit2, Home, FileText, BookOpen, Shield, Loader } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -80,6 +80,11 @@ export default function Settings() {
   const [editingFAQ, setEditingFAQ] = useState<any>(null);
   const [showFAQModal, setShowFAQModal] = useState(false);
   const [savingFAQs, setSavingFAQs] = useState(false);
+
+  // Auto-save state
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedDataRef = useRef<any>(null);
 
   // About Page state
   const [aboutHeroSection, setAboutHeroSection] = useState({
@@ -358,6 +363,55 @@ export default function Settings() {
       setSavingFAQs(false);
     }
   };
+
+  // Auto-save effect: saves formData 1.5 seconds after last change
+  useEffect(() => {
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+
+    // If data hasn't changed from last saved, skip
+    if (lastSavedDataRef.current && JSON.stringify(lastSavedDataRef.current) === JSON.stringify(formData)) {
+      return;
+    }
+
+    // Skip if settings haven't loaded yet
+    if (!settings) {
+      return;
+    }
+
+    // Set saving status
+    setAutoSaveStatus('saving');
+
+    // Debounce: only save 1.5 seconds after user stops typing
+    autoSaveTimerRef.current = setTimeout(async () => {
+      try {
+        // Auto-save all settings
+        await updateSettingsMutation.mutateAsync(formData);
+        lastSavedDataRef.current = formData;
+        setAutoSaveStatus('saved');
+
+        // Clear saved status after 2 seconds
+        setTimeout(() => {
+          setAutoSaveStatus('idle');
+        }, 2000);
+      } catch (error: any) {
+        console.error('Auto-save failed:', error);
+        setAutoSaveStatus('error');
+        // Clear error status after 3 seconds
+        setTimeout(() => {
+          setAutoSaveStatus('idle');
+        }, 3000);
+      }
+    }, 1500); // 1.5 second debounce
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+    };
+  }, [formData, settings, updateSettingsMutation]);
 
   if (adminLoading || settingsLoading) {
     return (
@@ -669,43 +723,62 @@ export default function Settings() {
                 />
               )}
 
-              {/* Save Button - Always visible when there are changes */}
+              {/* Auto-Save Status Indicator */}
               {(activeTab === 'general' || activeTab === 'home-page' || activeTab === 'how-it-works-page' || activeTab === 'notifications') && (
-                <div className={`mt-6 pt-6 border-t ${hasChanges ? 'sticky bottom-0 bg-white pb-6 z-10' : ''}`}>
-                  <div className="flex items-center justify-between">
-                    <button
-                      onClick={handleSave}
-                      disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
-                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-                        : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
-                        }`}
-                    >
-                      {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
+                <div className={`mt-6 pt-6 border-t sticky bottom-0 bg-white pb-6 z-10`}>
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Auto-save Status */}
+                    <div className="flex items-center space-x-2">
+                      {autoSaveStatus === 'saving' && (
                         <>
-                          <Spinner size="sm" />
-                          <span>Saving...</span>
-                        </>
-                      ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess) && !hasChanges ? (
-                        <>
-                          <Check className="w-5 h-5" />
-                          <span>Saved Successfully</span>
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-5 h-5 text-white" />
-                          <span className='text-white'>Save Changes</span>
+                          <Loader className="w-4 h-4 text-blue-600 animate-spin" />
+                          <span className="text-sm font-medium text-blue-600">Auto-saving...</span>
                         </>
                       )}
-                    </button>
+                      {autoSaveStatus === 'saved' && (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-600">Auto-saved</span>
+                        </>
+                      )}
+                      {autoSaveStatus === 'error' && (
+                        <>
+                          <XCircle className="w-4 h-4 text-red-600" />
+                          <span className="text-sm font-medium text-red-600">Save failed, retrying...</span>
+                        </>
+                      )}
+                      {autoSaveStatus === 'idle' && hasChanges && (
+                        <>
+                          <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
+                          <span className="text-sm font-medium text-yellow-600">Changes will save automatically</span>
+                        </>
+                      )}
+                    </div>
 
-                    {hasChanges && (
-                      <div className="flex items-center space-x-2">
-                        <div className="w-2 h-2 bg-yellow rounded-full animate-pulse"></div>
-                        <p className="text-sm font-medium text-yellow-600">You have unsaved changes</p>
-                      </div>
+                    {/* Manual Save Fallback Button */}
+                    {(hasChanges || autoSaveStatus === 'error') && (
+                      <button
+                        onClick={handleSave}
+                        disabled={updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-semibold transition-all text-sm ${updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
+                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
+                          : 'bg-green text-white hover:bg-green-700 shadow-md'
+                          }`}
+                        title="Save immediately (changes auto-save after 1.5 seconds of no changes)"
+                      >
+                        {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
+                          <>
+                            <Spinner size="sm" />
+                            <span>Saving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Save className="w-4 h-4" />
+                            <span>Save Now</span>
+                          </>
+                        )}
+                      </button>
                     )}
-
                   </div>
                 </div>
               )}
