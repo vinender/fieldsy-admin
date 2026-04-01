@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Spinner from '@/components/ui/Spinner';
 import { useRouter } from 'next/router';
+import { useQueryClient } from '@tanstack/react-query';
 import AdminLayout from '@/components/Layout/AdminLayout';
 import { useVerifyAdmin } from '@/hooks/useAuth';
 import { useSystemSettings, useUpdateSystemSettings, useUpdatePlatformImages } from '@/hooks/useSettings';
@@ -24,6 +25,7 @@ import PrivacyPolicySettings from '@/components/settings/PrivacyPolicySettings';
 
 export default function Settings() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: admin, isLoading: adminLoading, error: adminError } = useVerifyAdmin();
   const { data: settings, isLoading: settingsLoading } = useSystemSettings();
   const { data: aboutData } = useAboutPage();
@@ -363,64 +365,17 @@ export default function Settings() {
   useEffect(() => {
     const handleFocus = async () => {
       try {
-        // Refetch system settings
-        if (settings) {
-          // This triggers a fresh API call via React Query
-          await new Promise(resolve => setTimeout(resolve, 100)); // Small delay to ensure focus
-          // Force invalidate and refetch the query
-          const api = require('@/lib/api').default;
-          const response = await api.get('/settings/admin');
-          setFormData({
-            siteName: response.data.data.siteName || 'Fieldsy',
-            siteUrl: response.data.data.siteUrl || 'https://fieldsy.com',
-            supportEmail: response.data.data.supportEmail || 'support@fieldsy.com',
-            adminEmail: response.data.data.adminEmail || '',
-            maxBookingsPerUser: response.data.data.maxBookingsPerUser || 10,
-            cancellationWindowHours: response.data.data.cancellationWindowHours || 24,
-            maxAdvanceBookingDays: response.data.data.maxAdvanceBookingDays || 30,
-            minimumFieldOperatingHours: response.data.data.minimumFieldOperatingHours || 4,
-            defaultCommissionRate: response.data.data.defaultCommissionRate || 20,
-            payoutReleaseSchedule: response.data.data.payoutReleaseSchedule || 'after_cancellation_window',
-            enableNotifications: response.data.data.enableNotifications ?? true,
-            enableEmailNotifications: response.data.data.enableEmailNotifications ?? true,
-            enableSmsNotifications: response.data.data.enableSmsNotifications ?? false,
-            maintenanceMode: response.data.data.maintenanceMode || false,
-            isLive: response.data.data.isLive ?? true,
-            bypassUsername: response.data.data.bypassUsername || 'admin',
-            bypassPassword: response.data.data.bypassPassword || 'fieldsy123',
-            bannerText: response.data.data.bannerText || 'Find Safe, private dog walking fields',
-            highlightedText: response.data.data.highlightedText || 'near you',
-            heroBackgroundImage: response.data.data.heroBackgroundImage || '',
-            heroBackgroundImages: response.data.data.heroBackgroundImages || [],
-            aboutTitle: response.data.data.aboutTitle || 'At Fieldsy, we believe every dog deserves the freedom to run, sniff, and play safely.',
-            aboutDogImage: response.data.data.aboutDogImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/dog2.webp',
-            aboutFamilyImage: response.data.data.aboutFamilyImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/about/fam.webp',
-            aboutDogIcons: response.data.data.aboutDogIcons || [],
-            platformDogOwnersImage: response.data.data.platformDogOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img1.webp',
-            platformFieldOwnersImage: response.data.data.platformFieldOwnersImage || 'https://fieldsy-s3.s3.eu-west-2.amazonaws.com/defaults/platform-section/img2.webp',
-            platformTitle: response.data.data.platformTitle || 'One Platform, Two Tail-Wagging Experiences',
-            platformDogOwnersSubtitle: response.data.data.platformDogOwnersSubtitle || 'For Dog Owners:',
-            platformDogOwnersTitle: response.data.data.platformDogOwnersTitle || 'Find & Book Private Dog Walking Fields in Seconds',
-            platformDogOwnersBullets: response.data.data.platformDogOwnersBullets || ["Stress-free walks for reactive or energetic dogs", "Fully fenced, secure spaces", "GPS-powered search", "Instant hourly bookings"],
-            platformFieldOwnersSubtitle: response.data.data.platformFieldOwnersSubtitle || 'For Field Owners:',
-            platformFieldOwnersTitle: response.data.data.platformFieldOwnersTitle || "Turn Your Land into a Dog's Dream & Earn",
-            platformFieldOwnersBullets: response.data.data.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
-            howItWorksTitle: response.data.data.howItWorksTitle || 'How Fieldsy Works',
-            howItWorksSteps: response.data.data.howItWorksSteps || [],
-            landownersSectionTitle: response.data.data.landownersSectionTitle || 'How Fieldsy Works for Landowners',
-            landownersSectionDescription: response.data.data.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.",
-            landownersSectionImage: response.data.data.landownersSectionImage || '',
-          });
-          setHasChanges(false);
-        }
+        // Invalidate React Query cache to force fresh fetch
+        await queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
+        await queryClient.invalidateQueries({ queryKey: ['aboutPage'] });
       } catch (error) {
-        console.error('Error refetching settings on focus:', error);
+        console.error('Error refetching data on focus:', error);
       }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [settings]);
+  }, [queryClient]);
 
   if (adminLoading || settingsLoading) {
     return (
