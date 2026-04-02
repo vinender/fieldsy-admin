@@ -16,6 +16,7 @@ import BannerSettings from '@/components/settings/BannerSettings';
 import AboutSectionSettings from '@/components/settings/AboutSectionSettings';
 import PlatformSettings from '@/components/settings/PlatformSettings';
 import HowItWorksSettings from '@/components/settings/HowItWorksSettings';
+import HowItWorksPageSettings from '@/components/settings/HowItWorksPageSettings';
 import StatisticsSettings from '@/components/settings/StatisticsSettings';
 import AboutSectionContentSettings from '@/components/settings/AboutSectionContentSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
@@ -76,9 +77,18 @@ export default function Settings() {
     platformFieldOwnersBullets: [] as string[],
     howItWorksTitle: '',
     howItWorksSteps: [] as any[],
+    howItWorksHeroTitle: '',
+    howItWorksHeroHeading: '',
+    howItWorksHeroDescription: '',
+    forDogOwnersSectionTitle: '',
+    forDogOwnersSteps: [] as any[],
     landownersSectionTitle: '',
     landownersSectionDescription: '',
     landownersSectionImage: '',
+    landownersOptionCard1Title: '',
+    landownersOptionCard1Description: '',
+    landownersOptionCard2Title: '',
+    landownersOptionCard2Description: '',
     aboutSectionTitle: '',
     aboutSectionSubtitle: '',
     aboutSectionMainText: '',
@@ -244,9 +254,18 @@ export default function Settings() {
         platformFieldOwnersBullets: settings.platformFieldOwnersBullets || ["Earn passive income while helping pets", "Host dog owners with full control", "Set your availability and pricing", "List your field for free"],
         howItWorksTitle: settings.howItWorksTitle || 'How Fieldsy Works',
         howItWorksSteps: settings.howItWorksSteps || [],
+        howItWorksHeroTitle: settings.howItWorksHeroTitle || 'How It Works',
+        howItWorksHeroHeading: settings.howItWorksHeroHeading || 'Getting Started with Fieldsy',
+        howItWorksHeroDescription: settings.howItWorksHeroDescription || 'Find, book, and enjoy secure dog walking fields or list your land and start earning. It takes just a few simple steps.',
+        forDogOwnersSectionTitle: settings.forDogOwnersSectionTitle || 'For Dog Owners',
+        forDogOwnersSteps: settings.forDogOwnersSteps || [],
         landownersSectionTitle: settings.landownersSectionTitle || 'How Fieldsy Works for Landowners',
         landownersSectionDescription: settings.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible.",
         landownersSectionImage: settings.landownersSectionImage || '',
+        landownersOptionCard1Title: settings.landownersOptionCard1Title || 'Claim Your Existing Listing',
+        landownersOptionCard1Description: settings.landownersOptionCard1Description || 'If your land is already listed on Fieldsy, claim it to access your host dashboard. From there you can manage availability, update field details, respond to dog owners, and start earning.',
+        landownersOptionCard2Title: settings.landownersOptionCard2Title || 'List Your Land for Free',
+        landownersOptionCard2Description: settings.landownersOptionCard2Description || 'Sign up, add your field details and photos, set your pricing and availability, and start receiving bookings. Everything is managed from your easy-to-use host dashboard.',
         aboutSectionTitle: settings.aboutSectionTitle || 'Fieldsy helps dog owners find and book private dog walking fields for safer, calmer, and more enjoyable off-lead time.',
         aboutSectionSubtitle: settings.aboutSectionSubtitle || 'Whether your dog needs space for training, confidence, or simply a good run, we make it easier to find the right field.',
         aboutSectionMainText: settings.aboutSectionMainText || '',
@@ -390,20 +409,33 @@ export default function Settings() {
     }
   };
 
-  // Refetch data on window refocus (without page reload)
+  // Refetch data on window refocus and tab visibility change (without page reload)
   useEffect(() => {
     const handleFocus = async () => {
       try {
-        // Invalidate React Query cache to force fresh fetch
+        // Invalidate React Query cache to force fresh fetch in background
         await queryClient.invalidateQueries({ queryKey: ['systemSettings'] });
         await queryClient.invalidateQueries({ queryKey: ['aboutPage'] });
+        await queryClient.invalidateQueries({ queryKey: ['publicSettings'] });
       } catch (error) {
         console.error('Error refetching data on focus:', error);
       }
     };
 
+    const handleVisibilityChange = async () => {
+      // Fetch fresh data when tab becomes visible
+      if (document.visibilityState === 'visible') {
+        await handleFocus();
+      }
+    };
+
     window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [queryClient]);
 
   if (adminLoading || settingsLoading) {
@@ -636,62 +668,16 @@ export default function Settings() {
               )}
 
               {activeTab === 'how-it-works-page' && (
-                <div className="space-y-6">
-                  <div>
+                <div>
+                  <div className="mb-6">
                     <h2 className="text-xl font-semibold text-gray-900">How It Works Page Settings</h2>
-                    <p className="text-gray-600 mt-1">Manage the "For Landowners" section on the How It Works page</p>
+                    <p className="text-gray-600 mt-1">Manage all text content on the How It Works page - hero, dog owners, and landowners sections</p>
                   </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Section Title
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({(formData.landownersSectionTitle || '').length}/150 characters)
-                      </span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.landownersSectionTitle || 'How Fieldsy Works for Landowners'}
-                      onChange={(e) => {
-                        setFormData((prev: any) => ({ ...prev, landownersSectionTitle: e.target.value }));
-                        setHasChanges(true);
-                      }}
-                      maxLength={150}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Section Description
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({(formData.landownersSectionDescription || '').length}/500 characters)
-                      </span>
-                    </label>
-                    <textarea
-                      value={formData.landownersSectionDescription || "List or claim your field, set your schedule, and start earning—it's simple, secure, and flexible."}
-                      onChange={(e) => {
-                        setFormData((prev: any) => ({ ...prev, landownersSectionDescription: e.target.value }));
-                        setHasChanges(true);
-                      }}
-                      maxLength={500}
-                      rows={3}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 whitespace-pre-wrap break-words"
-                    />
-                  </div>
-
-                  <div>
-                    <SettingsImageUploader
-                      label="Section Image"
-                      description="Image displayed on the left side of the Landowners section"
-                      value={formData.landownersSectionImage}
-                      onChange={(url) => {
-                        setFormData((prev: any) => ({ ...prev, landownersSectionImage: url as string }));
-                        setHasChanges(true);
-                      }}
-                      aspectRatio="portrait"
-                    />
-                  </div>
+                  <HowItWorksPageSettings
+                    formData={formData}
+                    setFormData={setFormData}
+                    setHasChanges={setHasChanges}
+                  />
                 </div>
               )}
 
