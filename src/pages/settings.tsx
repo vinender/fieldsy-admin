@@ -20,6 +20,7 @@ import HowItWorksPageSettings from '@/components/settings/HowItWorksPageSettings
 import StatisticsSettings from '@/components/settings/StatisticsSettings';
 import AboutSectionContentSettings from '@/components/settings/AboutSectionContentSettings';
 import AboutPageManagement from '@/components/settings/AboutPageManagement';
+import WhyChooseFieldsySettings from '@/components/settings/WhyChooseFieldsySettings';
 import FAQSettings from '@/components/settings/FAQSettings';
 import { SettingsImageUploader } from '@/components/ui/SettingsImageUploader';
 import NotificationsSettings from '@/components/settings/NotificationsSettings';
@@ -39,6 +40,7 @@ export default function Settings() {
   const [homePageSubTab, setHomePageSubTab] = useState('hero');
   const [hasChanges, setHasChanges] = useState(false);
   const [statistics, setStatistics] = useState<Array<{ id?: string; value: string; label: string; order: number }>>([]);
+  const [whyChooseFieldsyFeatures, setWhyChooseFieldsyFeatures] = useState<Array<{ title: string; description: string }>>([]);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [formData, setFormData] = useState({
     siteName: '',
@@ -95,6 +97,7 @@ export default function Settings() {
     aboutSectionSecondaryText: '',
     aboutSectionTrustedTitle: '',
     aboutSectionTrustedSubtitle: '',
+    whyChooseFieldsyFeatures: [] as any[],
 
   });
   const [faqs, setFaqs] = useState<any[]>([]);
@@ -272,11 +275,28 @@ export default function Settings() {
         aboutSectionSecondaryText: settings.aboutSectionSecondaryText || '',
         aboutSectionTrustedTitle: settings.aboutSectionTrustedTitle || 'Trusted by dog owners across the UK',
         aboutSectionTrustedSubtitle: settings.aboutSectionTrustedSubtitle || 'Powered by real reviews, easy booking, and a growing network of secure private dog fields across the UK.',
+        whyChooseFieldsyFeatures: settings.whyChooseFieldsyFeatures || [],
 
       });
     }
   }, [settings]);
 
+  // Initialize Why Choose Fieldsy features
+  useEffect(() => {
+    if (formData.whyChooseFieldsyFeatures && formData.whyChooseFieldsyFeatures.length > 0) {
+      setWhyChooseFieldsyFeatures(formData.whyChooseFieldsyFeatures);
+    }
+  }, [formData.whyChooseFieldsyFeatures]);
+
+  // Sync Why Choose Fieldsy features back to formData when they change
+  useEffect(() => {
+    if (whyChooseFieldsyFeatures.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        whyChooseFieldsyFeatures: whyChooseFieldsyFeatures
+      }));
+    }
+  }, [whyChooseFieldsyFeatures]);
 
   // Initialize and sync statistics from aboutData and formData
   useEffect(() => {
@@ -608,6 +628,9 @@ export default function Settings() {
                       <TabsTrigger value="platform" className="data-[state=active]:bg-green data-[state=active]:text-white">
                         Platform
                       </TabsTrigger>
+                      <TabsTrigger value="why-fieldsy" className="data-[state=active]:bg-green data-[state=active]:text-white">
+                        Why Fieldsy
+                      </TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="hero" className="mt-0">
@@ -648,6 +671,14 @@ export default function Settings() {
                         setFormData={setFormData}
                         setHasChanges={setHasChanges}
                         handleChange={handleChange}
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="why-fieldsy" className="mt-0">
+                      <WhyChooseFieldsySettings
+                        features={whyChooseFieldsyFeatures}
+                        setFeatures={setWhyChooseFieldsyFeatures}
+                        setHasChanges={setHasChanges}
                       />
                     </TabsContent>
                   </Tabs>
