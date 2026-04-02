@@ -38,7 +38,7 @@ export default function Settings() {
   const [activeTab, setActiveTab] = useState('general');
   const [homePageSubTab, setHomePageSubTab] = useState('hero');
   const [hasChanges, setHasChanges] = useState(false);
-  const [statistics, setStatistics] = useState<Array<{ value: string; label: string; order: number }>>([]);
+  const [statistics, setStatistics] = useState<Array<{ id?: string; value: string; label: string; order: number }>>([]);
   const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
   const [formData, setFormData] = useState({
     siteName: '',
@@ -281,7 +281,12 @@ export default function Settings() {
   // Initialize and sync statistics from aboutData and formData
   useEffect(() => {
     if (aboutData?.heroSection?.stats && aboutData.heroSection.stats.length > 0) {
-      setStatistics(aboutData.heroSection.stats);
+      // Add IDs to stats that don't have them
+      const statsWithIds = aboutData.heroSection.stats.map((stat: any) => ({
+        ...stat,
+        id: stat.id || `stat-${Date.now()}-${Math.random()}`
+      }));
+      setStatistics(statsWithIds);
     }
   }, [aboutData]);
 

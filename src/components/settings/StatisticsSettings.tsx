@@ -8,6 +8,7 @@ interface Statistic {
   value: string;
   label: string;
   order: number;
+  id?: string;
 }
 
 interface StatisticsSettingsProps {
@@ -24,6 +25,7 @@ const CHAR_LIMITS = {
 export default function StatisticsSettings({ stats, setStats, setHasChanges }: StatisticsSettingsProps) {
   const handleAddStat = () => {
     const newStats = [...stats, {
+      id: `stat-${Date.now()}-${Math.random()}`,
       value: '',
       label: '',
       order: (Math.max(...stats.map(s => s.order), 0)) + 1
@@ -32,36 +34,38 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
     setHasChanges(true);
   };
 
-  const handleUpdateStat = (index: number, field: 'value' | 'label', value: string) => {
+  const handleUpdateStat = (id: string | undefined, field: 'value' | 'label', value: string) => {
     const newStats = [...stats];
-    newStats[index] = { ...newStats[index], [field]: value };
+    const statIndex = newStats.findIndex(s => s.id === id);
+    if (statIndex !== -1) {
+      newStats[statIndex] = { ...newStats[statIndex], [field]: value };
+      setStats(newStats);
+      setHasChanges(true);
+    }
+  };
+
+  const handleRemoveStat = (id: string | undefined) => {
+    const newStats = stats.filter((s: any) => s.id !== id);
     setStats(newStats);
     setHasChanges(true);
   };
 
-  const handleRemoveStat = (index: number) => {
-    const newStats = stats.filter((_: any, i: number) => i !== index);
-    setStats(newStats);
-    setHasChanges(true);
-  };
+  const handleReorder = (id: string | undefined, direction: 'up' | 'down') => {
+    const sortedStats = [...stats].sort((a, b) => a.order - b.order);
+    const sortedIndex = sortedStats.findIndex(s => s.id === id);
 
-  const handleReorder = (index: number, direction: 'up' | 'down') => {
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === stats.length - 1)) {
+    if ((direction === 'up' && sortedIndex === 0) || (direction === 'down' && sortedIndex === sortedStats.length - 1)) {
       return;
     }
 
-    const newStats = [...stats];
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    const targetSortedIndex = direction === 'up' ? sortedIndex - 1 : sortedIndex + 1;
 
-    // Swap order values
-    const tempOrder = newStats[index].order;
-    newStats[index].order = newStats[targetIndex].order;
-    newStats[targetIndex].order = tempOrder;
+    // Swap order values between the two items
+    const tempOrder = sortedStats[sortedIndex].order;
+    sortedStats[sortedIndex].order = sortedStats[targetSortedIndex].order;
+    sortedStats[targetSortedIndex].order = tempOrder;
 
-    // Swap positions in array
-    [newStats[index], newStats[targetIndex]] = [newStats[targetIndex], newStats[index]];
-
-    setStats(newStats);
+    setStats(sortedStats);
     setHasChanges(true);
   };
 
@@ -95,16 +99,15 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
             {stats
               .sort((a, b) => a.order - b.order)
               .map((stat, index) => {
-                const actualIndex = stats.findIndex(s => s.order === stat.order);
                 const isFirst = index === 0;
                 const isLast = index === stats.length - 1;
 
                 return (
-                  <div key={stat.order} className="flex gap-2 items-start p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div key={stat.id || stat.order} className="flex gap-2 items-start p-4 border border-gray-200 rounded-lg bg-gray-50">
                     <div className="flex flex-col gap-1">
                       <button
                         type="button"
-                        onClick={() => handleReorder(actualIndex, 'up')}
+                        onClick={() => handleReorder(stat.id, 'up')}
                         disabled={isFirst}
                         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Move up"
@@ -113,7 +116,7 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleReorder(actualIndex, 'down')}
+                        onClick={() => handleReorder(stat.id, 'down')}
                         disabled={isLast}
                         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
                         title="Move down"
@@ -125,16 +128,22 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
                     <div className="flex-1 grid grid-cols-2 gap-3">
                       <div>
                         <Label className="text-xs font-medium text-gray-600 mb-1 block">
-                          Value
+                          Value (Numbers only)
                           <span className="text-xs text-gray-400 ml-1">
                             ({stat.value?.length || 0}/{CHAR_LIMITS.statValue})
                           </span>
                         </Label>
                         <Input
                           value={stat.value}
-                          onChange={(e) => handleUpdateStat(actualIndex, 'value', e.target.value)}
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            // Only allow numbers and common symbols like +, %, -
+                            if (/^[0-9+%\-]*$/.test(inputValue)) {
+                              handleUpdateStat(stat.id, 'value', inputValue);
+                            }
+                          }}
                           maxLength={CHAR_LIMITS.statValue}
-                          placeholder="e.g., 500+"
+                          placeholder="e.g., 500+ or 100%"
                           className="text-sm"
                         />
                       </div>
@@ -148,7 +157,7 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
                         </Label>
                         <Input
                           value={stat.label}
-                          onChange={(e) => handleUpdateStat(actualIndex, 'label', e.target.value)}
+                          onChange={(e) => handleUpdateStat(stat.id, 'label', e.target.value)}
                           maxLength={CHAR_LIMITS.statLabel}
                           placeholder="e.g., Happy Dogs"
                           className="text-sm"
@@ -158,7 +167,7 @@ export default function StatisticsSettings({ stats, setStats, setHasChanges }: S
 
                     <Button
                       type="button"
-                      onClick={() => handleRemoveStat(actualIndex)}
+                      onClick={() => handleRemoveStat(stat.id)}
                       size="sm"
                       variant="destructive"
                       className="mt-6"

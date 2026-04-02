@@ -300,22 +300,6 @@ export default function AboutPageManagement({
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="missionButton">
-                    Button Text
-                    <span className="text-xs text-gray-500 ml-2">
-                      ({aboutMissionSection.buttonText?.length || 0}/{CHAR_LIMITS.buttonText})
-                    </span>
-                  </Label>
-                  <Input
-                    id="missionButton"
-                    value={aboutMissionSection.buttonText}
-                    onChange={(e) => setAboutMissionSection({ ...aboutMissionSection, buttonText: e.target.value })}
-                    maxLength={CHAR_LIMITS.buttonText}
-                    placeholder="Optional button text"
-                  />
-                </div>
-
                 <Button
                   onClick={() => handleSaveSection('missionSection', aboutMissionSection, 'Mission section updated successfully', 'Failed to update mission section')}
                   disabled={updateAboutSection.isPending || !hasMissionSectionChanged()}
