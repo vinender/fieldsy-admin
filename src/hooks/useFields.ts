@@ -54,20 +54,32 @@ export const useToggleFieldClaimed = () => {
       await queryClient.cancelQueries({ queryKey: ['admin-field', fieldId] });
       await queryClient.cancelQueries({ queryKey: ['fields'] });
 
-      // Snapshot the previous value
+      // Snapshot the previous values
       const previousField = queryClient.getQueryData(['admin-field', fieldId]);
 
-      // Optimistically update the cache
+      // Optimistically update the detail page cache
       queryClient.setQueryData(['admin-field', fieldId], (old: any) => {
         if (!old) return old;
-        // Handle both wrapped and unwrapped response formats
         if (old.data) {
           return { ...old, data: { ...old.data, isClaimed } };
         }
         return { ...old, isClaimed };
       });
 
-      // Return context with the previous value
+      // Optimistically update ALL list page caches too
+      queryClient.setQueriesData({ queryKey: ['fields'] }, (old: any) => {
+        if (!old?.data?.fields) return old;
+        return {
+          ...old,
+          data: {
+            ...old.data,
+            fields: old.data.fields.map((f: any) =>
+              f.id === fieldId ? { ...f, isClaimed } : f
+            )
+          }
+        };
+      });
+
       return { previousField };
     },
     onError: (err, { fieldId }, context) => {
@@ -75,6 +87,8 @@ export const useToggleFieldClaimed = () => {
       if (context?.previousField) {
         queryClient.setQueryData(['admin-field', fieldId], context.previousField);
       }
+      // Also invalidate list to restore correct data
+      queryClient.invalidateQueries({ queryKey: ['fields'] });
     },
     onSettled: (data, error, { fieldId }) => {
       // Always refetch after error or success to ensure data is in sync
