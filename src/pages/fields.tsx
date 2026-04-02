@@ -474,7 +474,7 @@ export default function Fields() {
                               <Pencil className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => router.push(`/fields/${field.fieldId || field.id}`)}
+                              onClick={() => router.push(`/fields/${field.id}`)}
                               className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-all"
                               title="View Details"
                             >
