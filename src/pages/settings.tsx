@@ -502,6 +502,12 @@ export default function Settings() {
           platformFieldOwnersTitle: formData.platformFieldOwnersTitle,
           platformFieldOwnersBullets: formData.platformFieldOwnersBullets,
         });
+      } else if (activeTab === 'home-page' && homePageSubTab === 'statistics') {
+        // Statistics are stored in the AboutPage heroSection, not SystemSettings
+        await updateAboutSection.mutateAsync({
+          section: 'heroSection',
+          updates: aboutHeroSection,
+        });
       } else {
         // Save other settings
         await updateSettingsMutation.mutateAsync(formData);
@@ -755,18 +761,18 @@ export default function Settings() {
                   <div className="flex items-center justify-between">
                     <button
                       onClick={handleSave}
-                      disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending}
-                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending
+                      disabled={!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending || updateAboutSection.isPending}
+                      className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-all transform ${!hasChanges || updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending || updateAboutSection.isPending
                         ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
                         : 'bg-green text-white hover:bg-green-700 hover:shadow-lg hover:scale-105 shadow-md'
                         }`}
                     >
-                      {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending) ? (
+                      {(updateSettingsMutation.isPending || updatePlatformImagesMutation.isPending || updateAboutSection.isPending) ? (
                         <>
                           <Spinner size="sm" />
                           <span>Saving...</span>
                         </>
-                      ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess) && !hasChanges ? (
+                      ) : (updateSettingsMutation.isSuccess || updatePlatformImagesMutation.isSuccess || updateAboutSection.isSuccess) && !hasChanges ? (
                         <>
                           <Check className="w-5 h-5" />
                           <span>Saved Successfully</span>
